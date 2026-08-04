@@ -18,7 +18,7 @@
 
 WebUI、原生 CLI 与本地 HTTP API 使用同一套通用后端。页面默认保留目标 169 预设，也可以清空后只填写自己关心的条件。资源、道具结算后的最终属性、用户 Profile 提取仍在后续范围内。本项目不扩展完整楼层、房间或掉落模拟。
 
-这里的“属性”严格指伊甸生成阶段的随机基础值：`damage_delta`、`move_speed_delta`、`tears_delta`、`shot_speed_delta`、`luck_delta` 是加算修正，`range` 是以 6.5 为基准换算后的显示值。它们都不包含两个开局道具带来的效果；血量也不包含开局道具追加的心。胶囊使用效果 ID，不是颜色 ID。
+这里的“属性”严格指伊甸生成阶段、两个开局道具结算前的真实面板值：伤害以 3.5、移速以 1.0、弹速以 1.0、幸运以 0 为模板基准，射程已经换算为显示值；射速则按 Repentance 的泪延迟公式换算成 Found HUD 的每秒泪弹数。血量同样不包含开局道具追加的心。胶囊使用效果 ID，不是颜色 ID。
 
 ## 当前目标与修正结果
 
@@ -64,14 +64,14 @@ C++ 全域扫描在当前机器的 Release 检查中以 8 线程耗时约 18–1
   --threads 8 `
   --output data\target-169-native.json
 
-# 通用组合示例：胶囊效果 12、指定主动/被动、2 红心、伤害修正至少 0.55
+# 通用组合示例：胶囊效果 12、指定主动/被动、2 红心、真实伤害至少 4.05
 .\build\native\IsaacSeedSeeker.exe search `
   --pill 12 `
   --active 639 `
   --passive 393 `
   --red-hearts-min 2 `
   --red-hearts-max 2 `
-  --damage-delta-min 0.55 `
+  --damage-min 4.05 `
   --range-min 7.42 `
   --range-max 7.43 `
   --end 100

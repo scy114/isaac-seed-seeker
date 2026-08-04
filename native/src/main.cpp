@@ -162,10 +162,15 @@ iss::EdenCriteria parse_criteria(const Arguments& arguments) {
     };
     range("red-hearts", criteria.red_hearts);
     range("soul-hearts", criteria.soul_hearts);
+    range("damage", criteria.damage);
+    range("move-speed", criteria.move_speed);
+    range("tears", criteria.tears);
+    range("range", criteria.range);
+    range("shot-speed", criteria.shot_speed);
+    range("luck", criteria.luck);
     range("damage-delta", criteria.damage_delta);
     range("move-speed-delta", criteria.move_speed_delta);
     range("tears-delta", criteria.tears_delta);
-    range("range", criteria.range);
     range("shot-speed-delta", criteria.shot_speed_delta);
     range("luck-delta", criteria.luck_delta);
     criteria.validate();
@@ -223,10 +228,15 @@ void write_result(std::ostream& output, const iss::SearchResult& result, const i
                << ", \"passive_id\": " << start.passive_id
                << ", \"red_hearts\": " << start.red_hearts
                << ", \"soul_hearts\": " << start.soul_hearts
+               << ", \"damage\": " << start.damage
+               << ", \"move_speed\": " << start.move_speed
+               << ", \"tears\": " << start.tears
+               << ", \"range\": " << start.range
+               << ", \"shot_speed\": " << start.shot_speed
+               << ", \"luck\": " << start.luck
                << ", \"damage_delta\": " << start.damage_delta
                << ", \"move_speed_delta\": " << start.move_speed_delta
                << ", \"tears_delta\": " << start.tears_delta
-               << ", \"range\": " << start.range
                << ", \"shot_speed_delta\": " << start.shot_speed_delta
                << ", \"luck_delta\": " << start.luck_delta << "}";
         output << (index + 1 == result.matches.size() ? "\n" : ",\n");
@@ -246,9 +256,9 @@ void print_usage() {
         << "Generic filters (categories are AND; comma-separated IDs are OR):\n"
         << "  --pocket-kind none|trinket|card|pill; --pocket/--card/--pill ID[,ID]\n"
         << "  --active ID[,ID]; --passive ID[,ID]; each also supports -exclude\n"
-        << "  --red-hearts-min/max, --soul-hearts-min/max, --damage-delta-min/max,\n"
-        << "  --move-speed-delta-min/max, --tears-delta-min/max, --range-min/max,\n"
-        << "  --shot-speed-delta-min/max, --luck-delta-min/max, --max-results N\n";
+        << "  --red-hearts-min/max, --soul-hearts-min/max, --damage-min/max,\n"
+        << "  --move-speed-min/max, --tears-min/max, --range-min/max,\n"
+        << "  --shot-speed-min/max, --luck-min/max, --max-results N\n";
 }
 
 }  // namespace
@@ -281,10 +291,15 @@ int main(int argc, char** argv) {
                       << ",\"passive_id\":" << start.passive_id
                       << ",\"red_hearts\":" << start.red_hearts
                       << ",\"soul_hearts\":" << start.soul_hearts
+                      << ",\"damage\":" << start.damage
+                      << ",\"move_speed\":" << start.move_speed
+                      << ",\"tears\":" << start.tears
+                      << ",\"range\":" << start.range
+                      << ",\"shot_speed\":" << start.shot_speed
+                      << ",\"luck\":" << start.luck
                       << ",\"damage_delta\":" << start.damage_delta
                       << ",\"move_speed_delta\":" << start.move_speed_delta
                       << ",\"tears_delta\":" << start.tears_delta
-                      << ",\"range\":" << start.range
                       << ",\"shot_speed_delta\":" << start.shot_speed_delta
                       << ",\"luck_delta\":" << start.luck_delta << "}\n";
             return 0;

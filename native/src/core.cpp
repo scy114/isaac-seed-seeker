@@ -27,6 +27,17 @@ constexpr std::uint32_t seed_xor = 0x0fef7ffdU;
 constexpr double u32_to_unit = 2.3283062e-10;
 constexpr char alphabet[] = "ABCDEFGHJKLMNPQRSTWXYZ01234V6789";
 
+double fire_rate_from_tears_modifier(double modifier) noexcept {
+    // Repentance Found HUD displays fire rate as 30 / (tear delay + 1).
+    // Eden's generated modifier stays inside (-0.77, Tmax), so only the two
+    // middle branches of the game's tear-delay formula are reachable here.
+    auto tear_delay = 16.0 - 6.0 * std::sqrt(modifier * 1.3 + 1.0);
+    if (modifier < 0.0) {
+        tear_delay -= 6.0 * modifier;
+    }
+    return 30.0 / (tear_delay + 1.0);
+}
+
 std::uint32_t mix(std::uint32_t seed, std::uint64_t qword, std::uint32_t third) noexcept {
     const auto shift_right = static_cast<std::uint32_t>(qword & 0xffffffffULL);
     const auto shift_left = static_cast<std::uint32_t>((qword >> 32U) & 0xffffffffULL);
@@ -239,6 +250,12 @@ void roll_base_start(EdenStart& result) noexcept {
     result.shot_speed_delta = static_cast<double>(state) * u32_to_unit * 0.5 - 0.25;
     state = eden_step(state);
     result.luck_delta = static_cast<double>(state) * u32_to_unit * 2.0 - 1.0;
+
+    result.damage = 3.5 + result.damage_delta;
+    result.move_speed = 1.0 + result.move_speed_delta;
+    result.tears = fire_rate_from_tears_modifier(result.tears_delta);
+    result.shot_speed = 1.0 + result.shot_speed_delta;
+    result.luck = result.luck_delta;
 }
 
 std::pair<std::int32_t, std::int32_t> roll_items(
@@ -310,10 +327,15 @@ bool matches_items(const EdenStart& start, const EdenCriteria& criteria) noexcep
 bool matches_base_start(const EdenStart& start, const EdenCriteria& criteria) noexcept {
     return criteria.red_hearts.matches(start.red_hearts)
         && criteria.soul_hearts.matches(start.soul_hearts)
+        && criteria.damage.matches(start.damage)
+        && criteria.move_speed.matches(start.move_speed)
+        && criteria.tears.matches(start.tears)
+        && criteria.range.matches(start.range)
+        && criteria.shot_speed.matches(start.shot_speed)
+        && criteria.luck.matches(start.luck)
         && criteria.damage_delta.matches(start.damage_delta)
         && criteria.move_speed_delta.matches(start.move_speed_delta)
         && criteria.tears_delta.matches(start.tears_delta)
-        && criteria.range.matches(start.range)
         && criteria.shot_speed_delta.matches(start.shot_speed_delta)
         && criteria.luck_delta.matches(start.luck_delta);
 }
@@ -383,10 +405,15 @@ void EdenCriteria::validate() const {
     }
     red_hearts.validate("red hearts");
     soul_hearts.validate("soul hearts");
+    damage.validate("damage");
+    move_speed.validate("move speed");
+    tears.validate("tears");
+    range.validate("range");
+    shot_speed.validate("shot speed");
+    luck.validate("luck");
     damage_delta.validate("damage delta");
     move_speed_delta.validate("move speed delta");
     tears_delta.validate("tears delta");
-    range.validate("range");
     shot_speed_delta.validate("shot speed delta");
     luck_delta.validate("luck delta");
 }
@@ -407,8 +434,11 @@ bool EdenCriteria::needs_items() const noexcept {
 
 bool EdenCriteria::needs_base_rolls() const noexcept {
     return red_hearts.configured() || soul_hearts.configured()
+        || damage.configured() || move_speed.configured()
+        || tears.configured() || range.configured()
+        || shot_speed.configured() || luck.configured()
         || damage_delta.configured() || move_speed_delta.configured()
-        || tears_delta.configured() || range.configured()
+        || tears_delta.configured()
         || shot_speed_delta.configured() || luck_delta.configured();
 }
 

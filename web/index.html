@@ -109,31 +109,31 @@
               <div><input id="soul-hearts-min" type="number" step="1" min="0" max="3" placeholder="最小"><b>—</b><input id="soul-hearts-max" type="number" step="1" min="0" max="3" placeholder="最大"></div>
             </div>
             <div class="range-field">
-              <span>伤害修正</span><small>约 -1.00～+1.00</small>
-              <div><input id="damage-delta-min" type="number" step="any" placeholder="最小"><b>—</b><input id="damage-delta-max" type="number" step="any" placeholder="最大"></div>
+              <span>伤害</span><small>约 2.50～4.50</small>
+              <div><input id="damage-min" type="number" step="any" placeholder="最小"><b>—</b><input id="damage-max" type="number" step="any" placeholder="最大"></div>
             </div>
             <div class="range-field">
-              <span>移速修正</span><small>约 -0.15～+0.15</small>
-              <div><input id="move-speed-delta-min" type="number" step="any" placeholder="最小"><b>—</b><input id="move-speed-delta-max" type="number" step="any" placeholder="最大"></div>
+              <span>移速</span><small>约 0.85～1.15</small>
+              <div><input id="move-speed-min" type="number" step="any" placeholder="最小"><b>—</b><input id="move-speed-max" type="number" step="any" placeholder="最大"></div>
             </div>
             <div class="range-field">
-              <span>射速修正</span><small>约 -0.75～+0.75</small>
-              <div><input id="tears-delta-min" type="number" step="any" placeholder="最小"><b>—</b><input id="tears-delta-max" type="number" step="any" placeholder="最大"></div>
+              <span>射速</span><small>约 1.46～3.50（Found HUD）</small>
+              <div><input id="tears-min" type="number" step="any" placeholder="最小"><b>—</b><input id="tears-max" type="number" step="any" placeholder="最大"></div>
             </div>
             <div class="range-field">
               <span>基础射程</span><small>约 5.00～8.00</small>
               <div><input id="range-min" type="number" step="any" placeholder="最小"><b>—</b><input id="range-max" type="number" step="any" placeholder="最大"></div>
             </div>
             <div class="range-field">
-              <span>弹速修正</span><small>约 -0.25～+0.25</small>
-              <div><input id="shot-speed-delta-min" type="number" step="any" placeholder="最小"><b>—</b><input id="shot-speed-delta-max" type="number" step="any" placeholder="最大"></div>
+              <span>弹速</span><small>约 0.75～1.25</small>
+              <div><input id="shot-speed-min" type="number" step="any" placeholder="最小"><b>—</b><input id="shot-speed-max" type="number" step="any" placeholder="最大"></div>
             </div>
             <div class="range-field">
-              <span>幸运修正</span><small>约 -1.00～+1.00</small>
-              <div><input id="luck-delta-min" type="number" step="any" placeholder="最小"><b>—</b><input id="luck-delta-max" type="number" step="any" placeholder="最大"></div>
+              <span>幸运</span><small>约 -1.00～1.00</small>
+              <div><input id="luck-min" type="number" step="any" placeholder="最小"><b>—</b><input id="luck-max" type="number" step="any" placeholder="最大"></div>
             </div>
           </div>
-          <p class="inline-note">属性不包含主动/被动道具带来的加成；胶囊筛选使用效果 ID，而不是颜色 ID。</p>
+          <p class="inline-note">属性使用游戏 Found HUD 口径，但不包含主动/被动道具带来的加成；胶囊筛选使用效果 ID，而不是颜色 ID。</p>
         </section>
 
         <details class="search-settings">
@@ -189,7 +189,7 @@
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>种子</th><th>口袋物</th><th>主动</th><th>被动</th><th>血量</th><th>伤害 Δ</th><th>移速 Δ</th><th>射速 Δ</th><th>射程</th><th>弹速 Δ</th><th>幸运 Δ</th></tr>
+            <tr><th>种子</th><th>口袋物</th><th>主动</th><th>被动</th><th>血量</th><th>伤害</th><th>移速</th><th>射速</th><th>射程</th><th>弹速</th><th>幸运</th></tr>
           </thead>
           <tbody id="results-body"><tr><td colspan="11" class="empty">还没有搜索结果</td></tr></tbody>
         </table>

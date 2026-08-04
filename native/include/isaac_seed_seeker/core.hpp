@@ -54,14 +54,20 @@ struct EdenStart {
     std::int32_t active_id = 0;
     std::int32_t passive_id = 0;
 
-    // Health is expressed in full-heart units.  Stats are Eden's random
-    // additive modifiers before either starting collectible is applied.
+    // Health is expressed in full-heart units.  The primary stat fields are
+    // the pre-item values shown by Found HUD.  Raw Eden modifiers are retained
+    // for backwards-compatible API output and decoder verification.
     double red_hearts = 0.0;
     double soul_hearts = 0.0;
+    double damage = 3.5;
+    double move_speed = 1.0;
+    double tears = 30.0 / 11.0;
+    double range = 6.5;
+    double shot_speed = 1.0;
+    double luck = 0.0;
     double damage_delta = 0.0;
     double move_speed_delta = 0.0;
     double tears_delta = 0.0;
-    double range = 6.5;
     double shot_speed_delta = 0.0;
     double luck_delta = 0.0;
 };
@@ -92,10 +98,18 @@ struct EdenCriteria {
 
     NumberRange red_hearts;
     NumberRange soul_hearts;
+    NumberRange damage;
+    NumberRange move_speed;
+    NumberRange tears;
+    NumberRange range;
+    NumberRange shot_speed;
+    NumberRange luck;
+
+    // Legacy raw-modifier filters.  New callers should use the Found HUD
+    // fields above; these remain valid so existing scripts do not break.
     NumberRange damage_delta;
     NumberRange move_speed_delta;
     NumberRange tears_delta;
-    NumberRange range;
     NumberRange shot_speed_delta;
     NumberRange luck_delta;
 

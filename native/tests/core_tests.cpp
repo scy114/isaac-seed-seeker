@@ -66,6 +66,11 @@ int main(int argc, char** argv) {
         require(builtin_start.passive_id == 134, "builtin passive mismatch");
         require_near(builtin_start.red_hearts, 1.0, "builtin red hearts mismatch");
         require_near(builtin_start.soul_hearts, 1.0, "builtin soul hearts mismatch");
+        require_near(builtin_start.damage, 2.924349875850715, "builtin actual damage mismatch");
+        require_near(builtin_start.move_speed, 1.0026879816750494, "builtin actual speed mismatch");
+        require_near(builtin_start.tears, 2.996046515031133, "builtin actual tears mismatch");
+        require_near(builtin_start.shot_speed, 0.9083650745217387, "builtin actual shot speed mismatch");
+        require_near(builtin_start.luck, -0.4185999840698891, "builtin actual luck mismatch");
         require_near(builtin_start.damage_delta, -0.5756501241492851, "builtin damage mismatch");
         require_near(builtin_start.move_speed_delta, 0.0026879816750493835, "builtin speed mismatch");
         require_near(builtin_start.tears_delta, 0.27383407490872536, "builtin tears mismatch");
@@ -164,7 +169,7 @@ int main(int argc, char** argv) {
         generic.passive_items.any_of = {393};
         generic.red_hearts.minimum = 2.0;
         generic.red_hearts.maximum = 2.0;
-        generic.damage_delta.minimum = 0.55;
+        generic.damage.minimum = 4.05;
         generic.range.minimum = 7.42;
         generic.range.maximum = 7.43;
         iss::SearchOptions generic_options;

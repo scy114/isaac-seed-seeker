@@ -240,10 +240,15 @@ EdenCriteria json_criteria(std::string_view body) {
     };
     range("red_hearts", criteria.red_hearts);
     range("soul_hearts", criteria.soul_hearts);
+    range("damage", criteria.damage);
+    range("move_speed", criteria.move_speed);
+    range("tears", criteria.tears);
+    range("range", criteria.range);
+    range("shot_speed", criteria.shot_speed);
+    range("luck", criteria.luck);
     range("damage_delta", criteria.damage_delta);
     range("move_speed_delta", criteria.move_speed_delta);
     range("tears_delta", criteria.tears_delta);
-    range("range", criteria.range);
     range("shot_speed_delta", criteria.shot_speed_delta);
     range("luck_delta", criteria.luck_delta);
     criteria.validate();
@@ -262,10 +267,15 @@ void append_start_json(std::ostream& output, const EdenStart& start, std::string
            << ",\"passive_id\":" << start.passive_id
            << ",\"red_hearts\":" << start.red_hearts
            << ",\"soul_hearts\":" << start.soul_hearts
+           << ",\"damage\":" << start.damage
+           << ",\"move_speed\":" << start.move_speed
+           << ",\"tears\":" << start.tears
+           << ",\"range\":" << start.range
+           << ",\"shot_speed\":" << start.shot_speed
+           << ",\"luck\":" << start.luck
            << ",\"damage_delta\":" << start.damage_delta
            << ",\"move_speed_delta\":" << start.move_speed_delta
            << ",\"tears_delta\":" << start.tears_delta
-           << ",\"range\":" << start.range
            << ",\"shot_speed_delta\":" << start.shot_speed_delta
            << ",\"luck_delta\":" << start.luck_delta << '}';
 }
@@ -394,15 +404,19 @@ public:
         std::ostringstream output;
         output << std::setprecision(10)
                << "seed\tseed_u32\tpocket_kind\tpocket_id\tactive_id\tpassive_id"
-                  "\tred_hearts\tsoul_hearts\tdamage_delta\tmove_speed_delta"
-                  "\ttears_delta\trange\tshot_speed_delta\tluck_delta\n";
+                  "\tred_hearts\tsoul_hearts\tdamage\tmove_speed\ttears\trange"
+                  "\tshot_speed\tluck\tdamage_delta\tmove_speed_delta\ttears_delta"
+                  "\tshot_speed_delta\tluck_delta\n";
         for (const auto& match : result_.matches) {
             output << match.label << '\t' << match.start.seed
                    << '\t' << pocket_kind_name(match.start.pocket_kind) << '\t' << match.start.pocket_id
                    << '\t' << match.start.active_id << '\t' << match.start.passive_id
                    << '\t' << match.start.red_hearts << '\t' << match.start.soul_hearts
+                   << '\t' << match.start.damage << '\t' << match.start.move_speed
+                   << '\t' << match.start.tears << '\t' << match.start.range
+                   << '\t' << match.start.shot_speed << '\t' << match.start.luck
                    << '\t' << match.start.damage_delta << '\t' << match.start.move_speed_delta
-                   << '\t' << match.start.tears_delta << '\t' << match.start.range
+                   << '\t' << match.start.tears_delta
                    << '\t' << match.start.shot_speed_delta << '\t' << match.start.luck_delta << '\n';
         }
         return output.str();

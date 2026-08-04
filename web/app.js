@@ -6,12 +6,12 @@ let pollTimer = null;
 const rangeFields = [
   ["red-hearts", "红心"],
   ["soul-hearts", "魂心"],
-  ["damage-delta", "伤害"],
-  ["move-speed-delta", "移速"],
-  ["tears-delta", "射速"],
+  ["damage", "伤害"],
+  ["move-speed", "移速"],
+  ["tears", "射速"],
   ["range", "射程"],
-  ["shot-speed-delta", "弹速"],
-  ["luck-delta", "幸运"],
+  ["shot-speed", "弹速"],
+  ["luck", "幸运"],
 ];
 
 const filterInputIds = [
@@ -189,9 +189,8 @@ function pocketLabel(match) {
   })[match.pocket_kind] || match.pocket_kind;
 }
 
-function formatDelta(value) {
-  const numeric = Number(value);
-  return `${numeric > 0 ? "+" : ""}${numeric.toFixed(4)}`;
+function formatStat(value) {
+  return Number(value).toFixed(4);
 }
 
 function appendCell(row, value, className) {
@@ -202,9 +201,8 @@ function appendCell(row, value, className) {
   return cell;
 }
 
-function appendDeltaCell(row, value) {
-  const numeric = Number(value);
-  return appendCell(row, formatDelta(numeric), numeric > 0 ? "delta-positive" : numeric < 0 ? "delta-negative" : "");
+function appendStatCell(row, value) {
+  return appendCell(row, formatStat(value));
 }
 
 async function updateStatus() {
@@ -256,12 +254,12 @@ async function loadResults() {
       appendCell(row, `#${match.active_id}`, "id-value");
       appendCell(row, `#${match.passive_id}`, "id-value");
       appendCell(row, `${match.red_hearts} 红 / ${match.soul_hearts} 魂`);
-      appendDeltaCell(row, match.damage_delta);
-      appendDeltaCell(row, match.move_speed_delta);
-      appendDeltaCell(row, match.tears_delta);
-      appendCell(row, Number(match.range).toFixed(4));
-      appendDeltaCell(row, match.shot_speed_delta);
-      appendDeltaCell(row, match.luck_delta);
+      appendStatCell(row, match.damage);
+      appendStatCell(row, match.move_speed);
+      appendStatCell(row, match.tears);
+      appendStatCell(row, match.range);
+      appendStatCell(row, match.shot_speed);
+      appendStatCell(row, match.luck);
       return row;
     }));
   }

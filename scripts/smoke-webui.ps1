@@ -76,7 +76,7 @@ try {
     if ($Results.matches[0].seed -ne "B74H HQPR") { throw "unexpected first seed" }
     if ($Results.total_count -ne 3 -or $Results.truncated) { throw "unexpected result metadata" }
     $TextResults = Invoke-RestMethod ($BaseUrl + "api/v1/search/results.txt")
-    if ($TextResults -notmatch "seed_u32" -or $TextResults -notmatch "damage_delta") {
+    if ($TextResults -notmatch "seed_u32" -or $TextResults -notmatch "`tdamage`t") {
         throw "TXT export is missing the generic result columns"
     }
     if (@($TextResults -split "`n" | Where-Object { $_ }).Count -ne 4) {
@@ -96,6 +96,9 @@ try {
     if ($Inspected.red_hearts -ne 2 -or [Math]::Abs($Inspected.range - 7.426721965) -gt 0.000001) {
         throw "inspect endpoint returned the wrong base rolls"
     }
+    if ([Math]::Abs($Inspected.damage - 4.056472253) -gt 0.000001 -or $null -eq $Inspected.tears) {
+        throw "inspect endpoint returned the wrong Found HUD stats"
+    }
 
     $GenericBody = @{
         pill_effect_ids = @(12)
@@ -103,7 +106,7 @@ try {
         passive_ids = @(393)
         red_hearts_min = 2
         red_hearts_max = 2
-        damage_delta_min = 0.55
+        damage_min = 4.05
         range_min = 7.42
         range_max = 7.43
         start = 1

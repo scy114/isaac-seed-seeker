@@ -11,7 +11,9 @@
 - `none`、`trinket`、`card`、`pill` 四种口袋状态互斥。
 - `pill_effect_ids` 是胶囊效果 ID，不是胶囊颜色 ID。
 - 红心、魂心和属性都是道具结算前的伊甸生成值。
-- `damage_delta`、`move_speed_delta`、`tears_delta`、`shot_speed_delta`、`luck_delta` 是相对基础角色模板的加算修正。
+- `damage`、`move_speed`、`tears`、`range`、`shot_speed`、`luck` 使用游戏 Found HUD 的真实数值口径。
+- 伤害、移速、弹速和幸运由角色模板基准叠加随机修正；`tears` 按 Repentance 泪延迟公式换算为每秒泪弹数。
+- JSON 结果仍返回 `damage_delta`、`move_speed_delta`、`tears_delta`、`shot_speed_delta`、`luck_delta`，旧版筛选参数也继续兼容，供脚本迁移和预测复核使用。
 - `range` 是从内部距离修正换算后的基础显示值，范围约为 5.0 到 8.0。
 - 所有区间边界均为闭区间。
 
@@ -48,8 +50,10 @@
 数值参数均使用 `--字段-min` / `--字段-max`：
 
 - `red-hearts`、`soul-hearts`
-- `damage-delta`、`move-speed-delta`、`tears-delta`
-- `range`、`shot-speed-delta`、`luck-delta`
+- `damage`、`move-speed`、`tears`
+- `range`、`shot-speed`、`luck`
+
+旧版 `damage-delta`、`move-speed-delta`、`tears-delta`、`shot-speed-delta`、`luck-delta` 参数仍可使用，但新界面和新脚本应优先使用真实面板值。
 
 ## Local HTTP
 
@@ -74,7 +78,7 @@
   "passive_ids": [393],
   "red_hearts_min": 2,
   "red_hearts_max": 2,
-  "damage_delta_min": 0.55,
+  "damage_min": 4.05,
   "range_min": 7.42,
   "range_max": 7.43,
   "start": 1,
