@@ -4,7 +4,20 @@
 
 第一阶段只服务伊甸：筛选随机开局属性、血量、资源、主动/被动道具以及口袋物品。其他角色、房间布局和深层楼层通过接口预留，但不进入 MVP 的完成定义。
 
-## Truth-first pipeline
+## Native product pipeline
+
+```text
+Embedded WebUI
+    -> localhost HTTP API
+    -> C++20 SearchSession
+    -> parallel Eden RNG kernel
+    -> built-in or imported GameProfile
+    -> downloadable results
+```
+
+玩家发行物不包含 Python/Node 运行时。HTML、CSS、JavaScript 作为 Windows `RCDATA` 嵌入 EXE；原生程序只监听 `127.0.0.1` 的动态端口。
+
+## Truth-first validation pipeline
 
 ```text
 SearchJob JSON
@@ -47,14 +60,11 @@ SearchJob JSON
 - 通过带固定前缀的单行 JSON 写入 `log.txt`。
 - `T` 开始，`Y` 停止；不主动修改存档文件或游戏资源。
 
-### Future predictive kernels
+### Native predictive kernel
 
 优先顺序：
 
-1. 种子编解码与范围裁剪。
-2. J460 伊甸基础属性。
-3. J460 伊甸起始道具与口袋物品。
-4. 可选 REPENTOGON 房间/楼层观察器。
+当前已实现种子编解码、J460 起始主动/被动/饰品、金色基础 ID 归一化和并行全域扫描。下一阶段只扩展通用伊甸开局字段：基础属性、血量、资源、卡牌和胶囊，不进入房间/楼层模拟。
 
 每一步都必须用实际游戏观测做正反例回归。
 

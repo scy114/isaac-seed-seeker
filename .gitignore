@@ -6,6 +6,7 @@ __pycache__/
 .venv/
 dist/
 build/
+output/
 *.egg-info/
 
 # Generated search artifacts

@@ -202,6 +202,18 @@ def _build_parallel_kernel(api: Mapping[str, Any]) -> Any:
     return scan_batch
 
 
+def _block_missing_proc_entries(table: Any, tables: Any) -> None:
+    """Make the packed fast table preserve exact ``None``-entry semantics.
+
+    The upstream packer represents a missing entry as an all-zero row.  The
+    fast loop can mistake that row for a real non-active item and stop before
+    reaching the actual passive item, producing false negatives.
+    """
+    for index in range(int(table.count)):
+        if table.get(index) is None:
+            tables.proc_blocked[index] = 1
+
+
 def search_j460(
     job: SearchJob,
     *,
@@ -236,6 +248,7 @@ def search_j460(
         api["numba"].set_num_threads(max(1, min(int(workers), maximum_threads)))
     table = api["load_proc_table"](proc_path)
     tables = api["pack_tables"](table, trinket_path)
+    _block_missing_proc_entries(table, tables)
 
     np = api["numpy"]
     scan_batch = _build_parallel_kernel(api)

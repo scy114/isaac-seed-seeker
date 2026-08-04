@@ -5,6 +5,7 @@ import pytest
 from isaac_seed_seeker.external_decoder import (
     DecoderSearchResult,
     ItemTarget,
+    _block_missing_proc_entries,
     render_candidate_job,
 )
 from isaac_seed_seeker.job import SearchJob
@@ -34,6 +35,22 @@ def test_item_target_matches_or_groups() -> None:
     assert target.matches_items({"active_id": 133, "passive_id": 81})
     assert not target.matches_items({"active_id": 105, "passive_id": 81})
     assert not target.matches_items({"active_id": 145, "passive_id": 331})
+
+
+def test_missing_proc_entries_are_blocked_for_fast_search() -> None:
+    class Table:
+        count = 4
+
+        @staticmethod
+        def get(index: int) -> object | None:
+            return None if index in {0, 2} else object()
+
+    class Packed:
+        proc_blocked = [0, 0, 0, 1]
+
+    packed = Packed()
+    _block_missing_proc_entries(Table(), packed)
+    assert packed.proc_blocked == [1, 0, 1, 1]
 
 
 def test_item_target_rejects_filters_the_adapter_cannot_predict() -> None:

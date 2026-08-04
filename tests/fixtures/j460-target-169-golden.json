@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "status": "decoder-exact; game-observer-validation-pending",
+  "profile": {
+    "id": "j460-full-unlock",
+    "game_version": "v1.9.7.17.J460",
+    "proc_sha256": "02e26398a02f46ee0b581f52bee8ad5e7133d6417dc9a8f967df114c63481faf",
+    "trinket_pool_sha256": "fe5d6a4c3ee6c04f68665cd6958426addf3f109d6ffffd12062ba33b283aba37",
+    "proc_semantic_sha256": "5698cf5c80a103c04974026f2dc18eedcd1207e0420f7f33371df94f9aed0aae",
+    "trinket_pool_semantic_sha256": "4c0513dd16c165ef9de01e4b425b7850b7b642e7a2a9256f677854a8f2a721d3"
+  },
+  "query": {
+    "range": [1, 4294967295],
+    "trinket_id": 169,
+    "active_any": [145, 133],
+    "passive_any": [81, 134, 187, 212, 665]
+  },
+  "original_upstream_fast_result": {
+    "count": 890,
+    "decoder_commit": "3ad022d047114a921550070ae3708384ff648178",
+    "ordered_tuple_sha256": "de2691c05152cdae77dcb152920ca93caa0180b390d6a94aef2f8b728d367595"
+  },
+  "corrected_result": {
+    "count": 901,
+    "ordered_tuple_sha256": "dda32727d8bc6e45591c50b1a5798a1b53486c40493da2e3fac826ede4f8ec06",
+    "ordered_u32_sha256": "7509ee8f70b4fc7b6c76804afd325e1ad06cb097534d5b3f4f3d16932c03782b",
+    "recovered_false_negatives": [
+      319314092,
+      385707447,
+      665083697,
+      1080602528,
+      1190319945,
+      1717018556,
+      2296536759,
+      3321677848,
+      3329586080,
+      4157422988,
+      4292488097
+    ]
+  }
+}
