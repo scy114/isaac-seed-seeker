@@ -8,7 +8,7 @@
 
 ```text
 SearchJob JSON
-    -> candidate generation / future predictive kernels
+    -> candidate generation / external predictive adapter
     -> generated_job.lua
     -> Repentance+ Lua observer
     -> tagged JSON lines in log.txt
@@ -57,6 +57,13 @@ SearchJob JSON
 4. 可选 REPENTOGON 房间/楼层观察器。
 
 每一步都必须用实际游戏观测做正反例回归。
+
+### External J460 adapter
+
+- 第三方目录保持在仓库之外或 Git 忽略的 `build/` 下，项目不复制其 RNG 实现。
+- adapter 先用饰品条件扫描一次，再对饰品命中项判断主动/被动 OR 集合，避免为笛卡尔积重复扫描。
+- `proc.json` 和 `trinket_pool.json` 属于 Profile 快照；全解锁只在提取快照的游戏状态成立。
+- adapter 输出必须经过同 Profile 的 Lua 观察器复核，不能直接标记为 verified。
 
 ## Extension boundaries
 

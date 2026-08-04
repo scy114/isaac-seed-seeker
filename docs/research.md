@@ -21,9 +21,11 @@
 ### KamiMisuzu/isaac-repentance-eden-seed-decoder
 
 - URL: https://github.com/KamiMisuzu/isaac-repentance-eden-seed-decoder
+- Reviewed commit: `3ad022d047114a921550070ae3708384ff648178`（2026-06-06）。
 - Declared license: README/`pyproject.toml` 声明 MIT，但仓库没有独立 LICENSE 文件。
 - Value: J460 命名实现、Python/Numba 搜索、Profile、Web UI、运行时表提取。
-- Decision: 用于识别验证点和模块边界；许可证文件澄清前不复制代码。
+- Caveat: README 声明适配 `v1.9.1.17`，本机日志为 `v1.9.7.17.J460`；不能仅凭内部函数名里的 J460 视为版本已验证。
+- Decision: 通过外部目录动态加载并记录 commit，不复制实现。其结果一律标记 `requires_game_observer`，直到用本机 Profile 的 golden observations 校准。
 
 ### HtheChemist/EdenGenerator
 
@@ -51,4 +53,5 @@
 - Profile 是搜索主键的一部分，不能只记录八字符种子。
 - 游戏内验证不是临时脚本，而是长期 correctness oracle。
 - 高速内核必须声明支持的 build，并用该 build 的 golden observations 验证。
+- 金色饰品在运行时使用高位标记；筛选按 `raw & 0x7FFF` 与基础饰品 ID 比较。
 - REPENTOGON 可以增强房间级观测，但基础伊甸筛选不应硬依赖它。

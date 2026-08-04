@@ -53,6 +53,7 @@ local function observe_eden(is_continued)
 
   local active_items, passive_items = collect_items(player)
   local start_seed = Game():GetSeeds():GetStartSeed()
+  local trinket_raw = player:GetTrinket(0)
   local observation = {
     schema_version = 1,
     profile_id = job.profile_id,
@@ -85,7 +86,9 @@ local function observe_eden(is_continued)
     pocket = {
       card = player:GetCard(0),
       pill = player:GetPill(0),
-      trinket = player:GetTrinket(0)
+      trinket = trinket_raw & 0x7FFF,
+      trinket_raw = trinket_raw,
+      trinket_golden = (trinket_raw & 0x8000) ~= 0 and 1 or 0
     }
   }
   return observation

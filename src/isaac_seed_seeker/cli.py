@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
+from .external_decoder import render_candidate_job, search_j460
 from .job import SearchJob
 from .logio import import_game_log, iter_jsonl, query_observations, write_jsonl
 from .lua_job import render_lua_job
@@ -55,6 +56,17 @@ def _build_parser() -> argparse.ArgumentParser:
     query.add_argument("observations")
     query.add_argument("--job", required=True)
     query.add_argument("--output", required=True)
+
+    search = commands.add_parser(
+        "search-j460", help="prefilter an Eden item target with an external J460 decoder"
+    )
+    search.add_argument("job")
+    search.add_argument("--decoder-dir", required=True)
+    search.add_argument("--proc-table", required=True)
+    search.add_argument("--trinket-pool", required=True)
+    search.add_argument("--start", type=lambda value: int(value, 0), default=1)
+    search.add_argument("--max-scan", type=int, default=5_000_000)
+    search.add_argument("--output", required=True)
     return parser
 
 
@@ -104,7 +116,26 @@ def main(argv: Sequence[str] | None = None) -> int:
             count = write_jsonl(args.output, matches)
             print(json.dumps({"matched": count, "output": args.output}))
             return 0
-    except (OSError, ValueError, json.JSONDecodeError) as error:
+
+        if args.command == "search-j460":
+            job = SearchJob.load(args.job)
+            result = search_j460(
+                job,
+                decoder_dir=args.decoder_dir,
+                proc_table=args.proc_table,
+                trinket_pool=args.trinket_pool,
+                start_u32=args.start,
+                max_scan=args.max_scan,
+            )
+            report = result.to_dict()
+            if result.matches:
+                _write_text(args.output, render_candidate_job(args.job, result))
+                report["output"] = args.output
+            else:
+                report["output"] = None
+            print(json.dumps(report, ensure_ascii=False))
+            return 0
+    except (ImportError, OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
     return 1

@@ -12,6 +12,16 @@
 - 把任务编译成 Lua Mod 可读取的候选表。
 - Lua Mod 自动切换候选种子并记录伊甸的属性、血量、资源、主动/被动道具与口袋物品。
 - 从 `log.txt` 导入 JSONL 观测，并在游戏外重复筛选。
+- 用外置 J460 解码器对“饰品 + 主动/被动 OR 条件”做一次范围预筛，并生成待实机复核任务。
+
+## 当前目标
+
+已固化在 `examples/eden-target-169.json`：
+
+- 饰品基础 ID 为 `169`；普通版和金色版都匹配。
+- 主动道具为 `145` 或 `133`。
+- 被动道具为 `81`、`134`、`187`、`212`、`665` 中任意一个。
+- 三组条件必须同时成立；运行时 Profile 假设为全解锁。
 
 ## 快速开始
 
@@ -50,8 +60,34 @@ python -m isaac_seed_seeker.cli query data\observations.jsonl `
   --output data\matches.jsonl
 ```
 
+## J460 高速预筛
+
+高速内核作为外部 adapter 接入，不复制第三方源码。搜索需要从同一游戏版本、同一解锁状态和同一 Mod 集合提取的 `proc.json` 与 `trinket_pool.json`。准备好两份快照后运行：
+
+```powershell
+$env:PYTHONPATH = "src"
+python -m isaac_seed_seeker.cli search-j460 `
+  examples\eden-target-169.json `
+  --decoder-dir build\external-eden-decoder `
+  --proc-table data\profiles\j460-full\proc.json `
+  --trinket-pool data\profiles\j460-full\trinket_pool.json `
+  --start 1 `
+  --max-scan 5000000 `
+  --output data\target-169-candidates.json
+```
+
+命令只扫描一个连续窗口，并在 JSON 输出中返回 `next_start_u32` 供续扫。发现候选后，将输出任务编译给观察器：
+
+```powershell
+python -m isaac_seed_seeker.cli compile-job `
+  data\target-169-candidates.json `
+  --profile data\profiles\local-j460.json
+```
+
+预筛结果的状态是 `requires_game_observer`；只有 Lua 观察器记录并由 `query` 再次命中后，才算当前 J460 Profile 的确认结果。
+
 ## 准确性边界
 
 游戏版本、存档解锁状态、难度和启用的 Mod 都可能改变结果。每条观测都会保留 Profile ID 和游戏版本；跨 Profile 的结果默认不应混用。
 
-当前没有复制第三方种子筛选器源码。第三方项目、许可证和版本差异记录在 [docs/research.md](docs/research.md)。
+当前没有复制第三方种子筛选器源码。项目本地忽略目录 `build/external-eden-decoder` 可保存固定提交的外部解码器；第三方项目、许可证和版本差异记录在 [docs/research.md](docs/research.md)。

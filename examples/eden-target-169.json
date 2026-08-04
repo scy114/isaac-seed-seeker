@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "eden-full-unlock-target-169",
+  "profile_id": "local-j460",
+  "character": "eden",
+  "candidates": {
+    "start": 1,
+    "end": 4294967295,
+    "step": 1,
+    "max_candidates": 100000
+  },
+  "filter": {
+    "trinket": 169,
+    "active_items": {
+      "any": [145, 133]
+    },
+    "passive_items": {
+      "any": [81, 134, 187, 212, 665]
+    }
+  },
+  "max_results": 20
+}

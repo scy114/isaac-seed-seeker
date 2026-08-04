@@ -6,6 +6,14 @@ from dataclasses import dataclass, field
 from typing import Any, Iterable, Mapping
 
 
+TRINKET_ID_MASK = 0x7FFF
+
+
+def base_trinket_id(value: int) -> int:
+    """Strip the golden-trinket flag while preserving the base trinket ID."""
+    return int(value) & TRINKET_ID_MASK
+
+
 def _as_int_set(value: object, field_name: str) -> frozenset[int]:
     if value is None:
         return frozenset()
@@ -186,6 +194,9 @@ class EdenFilter:
             return False
         for name in ("card", "pill", "trinket"):
             expected_id = getattr(self, name)
-            if expected_id is not None and observation.pocket.get(name, 0) != expected_id:
+            actual_id = observation.pocket.get(name, 0)
+            if name == "trinket":
+                actual_id = base_trinket_id(actual_id)
+            if expected_id is not None and actual_id != expected_id:
                 return False
         return True
