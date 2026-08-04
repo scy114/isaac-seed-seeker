@@ -73,6 +73,7 @@ python -m isaac_seed_seeker.cli search-j460 `
   --trinket-pool data\profiles\j460-full\trinket_pool.json `
   --start 1 `
   --max-scan 5000000 `
+  --workers 8 `
   --output data\target-169-candidates.json
 ```
 
@@ -85,6 +86,8 @@ python -m isaac_seed_seeker.cli compile-job `
 ```
 
 预筛结果的状态是 `requires_game_observer`；只有 Lua 观察器记录并由 `query` 再次命中后，才算当前 J460 Profile 的确认结果。
+
+全域枚举使用 `--all-matches --max-scan 4294967295`。`--batch-size` 控制并行批次内存，`--checkpoint` 会在每批完成后写入可检查的进度与累计命中。
 
 ## 准确性边界
 

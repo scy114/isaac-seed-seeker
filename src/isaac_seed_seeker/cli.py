@@ -66,6 +66,10 @@ def _build_parser() -> argparse.ArgumentParser:
     search.add_argument("--trinket-pool", required=True)
     search.add_argument("--start", type=lambda value: int(value, 0), default=1)
     search.add_argument("--max-scan", type=int, default=5_000_000)
+    search.add_argument("--workers", type=int)
+    search.add_argument("--batch-size", type=int, default=25_000_000)
+    search.add_argument("--all-matches", action="store_true")
+    search.add_argument("--checkpoint")
     search.add_argument("--output", required=True)
     return parser
 
@@ -119,6 +123,10 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         if args.command == "search-j460":
             job = SearchJob.load(args.job)
+
+            def report_batch(progress: object) -> None:
+                print(json.dumps(progress, ensure_ascii=False), file=sys.stderr, flush=True)
+
             result = search_j460(
                 job,
                 decoder_dir=args.decoder_dir,
@@ -126,6 +134,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                 trinket_pool=args.trinket_pool,
                 start_u32=args.start,
                 max_scan=args.max_scan,
+                workers=args.workers,
+                batch_size=args.batch_size,
+                all_matches=args.all_matches,
+                checkpoint=args.checkpoint,
+                on_batch=report_batch,
             )
             report = result.to_dict()
             if result.matches:

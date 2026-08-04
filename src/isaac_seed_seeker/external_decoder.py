@@ -13,7 +13,7 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 from .domain import base_trinket_id
 from .job import SearchJob
@@ -125,7 +125,81 @@ def _load_decoder(decoder_dir: Path) -> dict[str, Any]:
         "load_proc_table": predict.load_proc_table,
         "eden_starting_items": eden.eden_starting_items,
         "seed_label": seeds.custom_start_seed_label,
+        "p988_from_u32": fast.p988_from_u32,
+        "pocket_kind_and_ids": fast.pocket_kind_and_ids,
+        "treasure_item_ids": fast.treasure_item_ids,
+        "numpy": importlib.import_module("numpy"),
+        "numba": importlib.import_module("numba"),
     }
+
+
+def _build_parallel_kernel(api: Mapping[str, Any]) -> Any:
+    np = api["numpy"]
+    njit = api["numba"].njit
+    prange = api["numba"].prange
+    p988_from_u32 = api["p988_from_u32"]
+    pocket_kind_and_ids = api["pocket_kind_and_ids"]
+    treasure_item_ids = api["treasure_item_ids"]
+
+    @njit(parallel=True, cache=False)
+    def scan_batch(
+        start: int,
+        count: int,
+        trinket_id: int,
+        active_ids: Any,
+        passive_ids: Any,
+        proc_item_ids: Any,
+        proc_blocked: Any,
+        proc_passive: Any,
+        proc_count: int,
+        tri_raw: Any,
+        tri_ok: Any,
+        tri_count: int,
+        tri_shr: int,
+        tri_shl: int,
+        tri_fin: int,
+    ) -> Any:
+        matched = np.zeros(count, dtype=np.uint8)
+        for offset in prange(count):
+            seed_u32 = start + offset
+            p988 = p988_from_u32(seed_u32)
+            pocket_kind, pocket_id, _ = pocket_kind_and_ids(
+                p988,
+                seed_u32,
+                tri_raw,
+                tri_ok,
+                tri_count,
+                tri_shr,
+                tri_shl,
+                tri_fin,
+                1,
+            )
+            if pocket_kind != 1 or pocket_id != trinket_id:
+                continue
+            active_id, passive_id = treasure_item_ids(
+                p988,
+                proc_item_ids,
+                proc_blocked,
+                proc_passive,
+                proc_count,
+            )
+            active_ok = False
+            for index in range(active_ids.size):
+                if active_id == active_ids[index]:
+                    active_ok = True
+                    break
+            if not active_ok:
+                continue
+            passive_ok = False
+            for index in range(passive_ids.size):
+                if passive_id == passive_ids[index]:
+                    passive_ok = True
+                    break
+            if passive_ok:
+                matched[offset] = 1
+        return matched
+
+    return scan_batch
 
 
 def search_j460(
@@ -136,6 +210,11 @@ def search_j460(
     trinket_pool: str | Path,
     start_u32: int = 1,
     max_scan: int = 5_000_000,
+    workers: int | None = None,
+    batch_size: int = 25_000_000,
+    all_matches: bool = False,
+    checkpoint: str | Path | None = None,
+    on_batch: Callable[[Mapping[str, Any]], None] | None = None,
 ) -> DecoderSearchResult:
     """Search one contiguous seed window using the external decoder's fast kernel."""
     target = ItemTarget.from_job(job)
@@ -148,43 +227,110 @@ def search_j460(
         raise ValueError("start_u32 must be within 1..4294967295")
     if max_scan <= 0:
         raise ValueError("max_scan must be positive")
+    if batch_size <= 0:
+        raise ValueError("batch_size must be positive")
 
     api = _load_decoder(root)
+    if workers is not None:
+        maximum_threads = int(api["numba"].get_num_threads())
+        api["numba"].set_num_threads(max(1, min(int(workers), maximum_threads)))
     table = api["load_proc_table"](proc_path)
-    criteria = api["criteria"](trinket_id=target.trinket_id)
     tables = api["pack_tables"](table, trinket_path)
-    packed = api["pack_criteria"](criteria, tables)
 
-    last_u32 = min(UINT32_MAX, start_u32 + max_scan - 1)
+    np = api["numpy"]
+    scan_batch = _build_parallel_kernel(api)
+    active_ids = np.asarray(sorted(target.active_ids), dtype=np.int32)
+    passive_ids = np.asarray(sorted(target.passive_ids), dtype=np.int32)
+
+    range_last_u32 = min(UINT32_MAX, start_u32 + max_scan - 1)
+    last_u32 = start_u32 - 1
     matches: list[dict[str, Any]] = []
     started = time.perf_counter()
     scanned = 0
-    for seed_u32 in range(start_u32, last_u32 + 1):
-        scanned += 1
-        if not api["fast_match_seed"](seed_u32, packed):
-            continue
-        seed = api["seed_label"](seed_u32)
-        if seed is None:
-            continue
-        items = api["eden_starting_items"](
-            seed_u32,
-            table=table,
-            trinket_pool_path=trinket_path,
+    cursor = start_u32
+    decoder_commit = _decoder_commit(root)
+    while cursor <= range_last_u32:
+        count = min(batch_size, range_last_u32 - cursor + 1)
+        flags = scan_batch(
+            cursor,
+            count,
+            target.trinket_id,
+            active_ids,
+            passive_ids,
+            tables.proc_item_ids,
+            tables.proc_blocked,
+            tables.proc_passive,
+            tables.proc_count,
+            tables.tri_raw,
+            tables.tri_ok,
+            tables.tri_count,
+            tables.tri_shr,
+            tables.tri_shl,
+            tables.tri_fin,
         )
-        if not target.matches_items(items):
-            continue
-        matches.append(
-            {
-                "seed": seed,
-                "seed_u32": seed_u32,
-                "trinket_id": target.trinket_id,
-                "active_id": int(items["active_id"]),
-                "passive_id": int(items["passive_id"]),
-            }
-        )
-        if len(matches) >= job.max_results:
-            last_u32 = seed_u32
+        batch_last = cursor + count - 1
+        stopped = False
+        for offset in np.flatnonzero(flags):
+            seed_u32 = cursor + int(offset)
+            seed = api["seed_label"](seed_u32)
+            if seed is None:
+                continue
+            items = api["eden_starting_items"](
+                seed_u32,
+                table=table,
+                trinket_pool_path=trinket_path,
+            )
+            if not target.matches_items(items):
+                continue
+            matches.append(
+                {
+                    "seed": seed,
+                    "seed_u32": seed_u32,
+                    "trinket_id": target.trinket_id,
+                    "active_id": int(items["active_id"]),
+                    "passive_id": int(items["passive_id"]),
+                }
+            )
+            if not all_matches and len(matches) >= job.max_results:
+                batch_last = seed_u32
+                stopped = True
+                break
+
+        last_u32 = batch_last
+        scanned = last_u32 - start_u32 + 1
+        progress = {
+            "batch_start_u32": cursor,
+            "batch_last_u32": last_u32,
+            "scanned": scanned,
+            "matches": len(matches),
+            "elapsed_sec": round(time.perf_counter() - started, 3),
+        }
+        if checkpoint is not None:
+            checkpoint_path = Path(checkpoint)
+            checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+            checkpoint_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "job_id": job.id,
+                        "start_u32": start_u32,
+                        "last_u32": last_u32,
+                        "next_start_u32": last_u32 + 1 if last_u32 < UINT32_MAX else None,
+                        "scanned": scanned,
+                        "matches": matches,
+                        "decoder_commit": decoder_commit,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+        if on_batch is not None:
+            on_batch(progress)
+        if stopped:
             break
+        cursor += count
 
     next_start = last_u32 + 1 if last_u32 < UINT32_MAX else None
     return DecoderSearchResult(
@@ -194,7 +340,7 @@ def search_j460(
         next_start_u32=next_start,
         scanned=scanned,
         elapsed_sec=round(time.perf_counter() - started, 3),
-        decoder_commit=_decoder_commit(root),
+        decoder_commit=decoder_commit,
     )
 
 

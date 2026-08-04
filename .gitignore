@@ -11,7 +11,9 @@ build/
 # Generated search artifacts
 data/*.jsonl
 data/*.txt
+data/*.json
 data/profiles/*.json
+data/profiles/**/*.json
 mod/isaac_seed_seeker/generated_job.lua
 
 !.gitkeep
