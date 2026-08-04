@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "id": "eden-j460-smoke",
+  "profile_id": "local-j460",
+  "character": "eden",
+  "candidates": {
+    "start": 1,
+    "end": 5000,
+    "step": 1,
+    "max_candidates": 250
+  },
+  "filter": {
+    "damage": { "min": 3.5 },
+    "move_speed": { "min": 1.0 },
+    "passive_items": { "none": [36] }
+  },
+  "max_results": 20
+}

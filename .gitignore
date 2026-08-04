@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+dist/
+build/
+*.egg-info/
+
+# Generated search artifacts
+data/*.jsonl
+data/*.txt
+data/profiles/*.json
+mod/isaac_seed_seeker/generated_job.lua
+
+!.gitkeep

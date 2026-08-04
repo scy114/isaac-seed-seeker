@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "isaac-seed-seeker"
+version = "0.1.0"
+description = "Truth-first Eden seed filtering for The Binding of Isaac: Repentance+"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Isaac Seed Seeker contributors" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+isaac-seed-seeker = "isaac_seed_seeker.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+pythonpath = ["src"]
+testpaths = ["tests"]
