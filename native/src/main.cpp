@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <charconv>
+#include <cmath>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -87,6 +88,90 @@ std::vector<std::int32_t> parse_ids(const std::string& text, const std::string& 
     return result;
 }
 
+double parse_double(const std::string& text, const std::string& name) {
+    double value = 0.0;
+    const auto result = std::from_chars(text.data(), text.data() + text.size(), value);
+    if (result.ec != std::errc() || result.ptr != text.data() + text.size() || !std::isfinite(value)) {
+        throw std::invalid_argument("invalid number for --" + name + ": " + text);
+    }
+    return value;
+}
+
+bool has(const Arguments& arguments, const std::string& name) {
+    return arguments.values.contains(name);
+}
+
+iss::PocketKind parse_pocket_kind(const std::string& text) {
+    if (text == "none") return iss::PocketKind::none;
+    if (text == "trinket") return iss::PocketKind::trinket;
+    if (text == "card") return iss::PocketKind::card;
+    if (text == "pill") return iss::PocketKind::pill;
+    throw std::invalid_argument("invalid --pocket-kind: " + text);
+}
+
+void select_pocket_kind(iss::EdenCriteria& criteria, iss::PocketKind kind, const std::string& option) {
+    if (criteria.pocket_kind.has_value() && *criteria.pocket_kind != kind) {
+        throw std::invalid_argument("conflicting pocket kind from --" + option);
+    }
+    criteria.pocket_kind = kind;
+}
+
+iss::EdenCriteria parse_criteria(const Arguments& arguments) {
+    iss::EdenCriteria criteria;
+    if (has(arguments, "pocket-kind")) {
+        criteria.pocket_kind = parse_pocket_kind(required(arguments, "pocket-kind"));
+    }
+    if (has(arguments, "trinket")) {
+        select_pocket_kind(criteria, iss::PocketKind::trinket, "trinket");
+        criteria.pocket_ids.any_of = parse_ids(required(arguments, "trinket"), "trinket");
+    }
+    if (has(arguments, "card")) {
+        select_pocket_kind(criteria, iss::PocketKind::card, "card");
+        criteria.pocket_ids.any_of = parse_ids(required(arguments, "card"), "card");
+    }
+    if (has(arguments, "pill")) {
+        select_pocket_kind(criteria, iss::PocketKind::pill, "pill");
+        criteria.pocket_ids.any_of = parse_ids(required(arguments, "pill"), "pill");
+    }
+    if (has(arguments, "pocket")) {
+        criteria.pocket_ids.any_of = parse_ids(required(arguments, "pocket"), "pocket");
+    }
+    if (has(arguments, "pocket-exclude")) {
+        criteria.pocket_ids.none_of = parse_ids(required(arguments, "pocket-exclude"), "pocket-exclude");
+    }
+    if (has(arguments, "active")) {
+        criteria.active_items.any_of = parse_ids(required(arguments, "active"), "active");
+    }
+    if (has(arguments, "active-exclude")) {
+        criteria.active_items.none_of = parse_ids(required(arguments, "active-exclude"), "active-exclude");
+    }
+    if (has(arguments, "passive")) {
+        criteria.passive_items.any_of = parse_ids(required(arguments, "passive"), "passive");
+    }
+    if (has(arguments, "passive-exclude")) {
+        criteria.passive_items.none_of = parse_ids(required(arguments, "passive-exclude"), "passive-exclude");
+    }
+
+    const auto range = [&](const std::string& prefix, iss::NumberRange& target) {
+        if (has(arguments, prefix + "-min")) {
+            target.minimum = parse_double(required(arguments, prefix + "-min"), prefix + "-min");
+        }
+        if (has(arguments, prefix + "-max")) {
+            target.maximum = parse_double(required(arguments, prefix + "-max"), prefix + "-max");
+        }
+    };
+    range("red-hearts", criteria.red_hearts);
+    range("soul-hearts", criteria.soul_hearts);
+    range("damage-delta", criteria.damage_delta);
+    range("move-speed-delta", criteria.move_speed_delta);
+    range("tears-delta", criteria.tears_delta);
+    range("range", criteria.range);
+    range("shot-speed-delta", criteria.shot_speed_delta);
+    range("luck-delta", criteria.luck_delta);
+    criteria.validate();
+    return criteria;
+}
+
 iss::ProfileTables load_tables(const Arguments& arguments) {
     const auto proc = optional(arguments, "proc");
     const auto trinkets = optional(arguments, "trinkets");
@@ -112,7 +197,7 @@ std::string json_escape(std::string_view value) {
 
 void write_result(std::ostream& output, const iss::SearchResult& result, const iss::SearchOptions& options) {
     output << "{\n"
-           << "  \"schema_version\": 1,\n"
+           << "  \"schema_version\": 2,\n"
            << "  \"engine\": \"native-cpp\",\n"
            << "  \"start_u32\": " << options.start << ",\n"
            << "  \"end_u32\": " << options.end << ",\n"
@@ -121,14 +206,29 @@ void write_result(std::ostream& output, const iss::SearchResult& result, const i
            << "  \"elapsed_seconds\": " << std::fixed << std::setprecision(6)
            << result.elapsed_seconds << ",\n"
            << "  \"count\": " << result.matches.size() << ",\n"
+           << "  \"total_count\": " << result.total_matches << ",\n"
+           << "  \"truncated\": " << (result.truncated() ? "true" : "false") << ",\n"
            << "  \"matches\": [\n";
+    output << std::defaultfloat << std::setprecision(10);
     for (std::size_t index = 0; index < result.matches.size(); ++index) {
         const auto& match = result.matches[index];
+        const auto& start = match.start;
         output << "    {\"seed\": \"" << json_escape(match.label)
-               << "\", \"seed_u32\": " << match.seed
-               << ", \"trinket_id\": " << match.trinket_id
-               << ", \"active_id\": " << match.active_id
-               << ", \"passive_id\": " << match.passive_id << "}";
+               << "\", \"seed_u32\": " << start.seed
+               << ", \"pocket_kind\": \"" << iss::pocket_kind_name(start.pocket_kind)
+               << "\", \"pocket_id\": " << start.pocket_id
+               << ", \"trinket_id\": "
+               << (start.pocket_kind == iss::PocketKind::trinket ? start.pocket_id : 0)
+               << ", \"active_id\": " << start.active_id
+               << ", \"passive_id\": " << start.passive_id
+               << ", \"red_hearts\": " << start.red_hearts
+               << ", \"soul_hearts\": " << start.soul_hearts
+               << ", \"damage_delta\": " << start.damage_delta
+               << ", \"move_speed_delta\": " << start.move_speed_delta
+               << ", \"tears_delta\": " << start.tears_delta
+               << ", \"range\": " << start.range
+               << ", \"shot_speed_delta\": " << start.shot_speed_delta
+               << ", \"luck_delta\": " << start.luck_delta << "}";
         output << (index + 1 == result.matches.size() ? "\n" : ",\n");
     }
     output << "  ]\n}\n";
@@ -142,7 +242,13 @@ void print_usage() {
         << "Search a range:\n"
         << "  IsaacSeedSeeker search "
            "--trinket 169 --active 145,133 --passive 81,134,187,212,665 "
-           "[--start 1] [--end 4294967295] [--threads 8] [--block-size 1000000] [--output matches.json]\n";
+           "[--start 1] [--end 4294967295] [--threads 8] [--output matches.json]\n\n"
+        << "Generic filters (categories are AND; comma-separated IDs are OR):\n"
+        << "  --pocket-kind none|trinket|card|pill; --pocket/--card/--pill ID[,ID]\n"
+        << "  --active ID[,ID]; --passive ID[,ID]; each also supports -exclude\n"
+        << "  --red-hearts-min/max, --soul-hearts-min/max, --damage-delta-min/max,\n"
+        << "  --move-speed-delta-min/max, --tears-delta-min/max, --range-min/max,\n"
+        << "  --shot-speed-delta-min/max, --luck-delta-min/max, --max-results N\n";
 }
 
 }  // namespace
@@ -164,30 +270,37 @@ int main(int argc, char** argv) {
         if (arguments.command == "inspect") {
             const auto seed = parse_u32(required(arguments, "seed"), "seed");
             const auto start = iss::predict_eden_start(seed, tables);
+            std::cout << std::setprecision(10);
             std::cout << "{\"seed\":\"" << iss::seed_to_string(seed)
                       << "\",\"seed_u32\":" << seed
                       << ",\"a5\":" << start.a5
                       << ",\"p988\":" << start.p988
-                      << ",\"pocket_kind\":" << static_cast<int>(start.pocket_kind)
+                      << ",\"pocket_kind\":\"" << iss::pocket_kind_name(start.pocket_kind) << "\""
                       << ",\"pocket_id\":" << start.pocket_id
                       << ",\"active_id\":" << start.active_id
-                      << ",\"passive_id\":" << start.passive_id << "}\n";
+                      << ",\"passive_id\":" << start.passive_id
+                      << ",\"red_hearts\":" << start.red_hearts
+                      << ",\"soul_hearts\":" << start.soul_hearts
+                      << ",\"damage_delta\":" << start.damage_delta
+                      << ",\"move_speed_delta\":" << start.move_speed_delta
+                      << ",\"tears_delta\":" << start.tears_delta
+                      << ",\"range\":" << start.range
+                      << ",\"shot_speed_delta\":" << start.shot_speed_delta
+                      << ",\"luck_delta\":" << start.luck_delta << "}\n";
             return 0;
         }
         if (arguments.command != "search") {
             throw std::invalid_argument("unknown command: " + arguments.command);
         }
 
-        iss::ItemCriteria criteria;
-        criteria.trinket_id = static_cast<std::int32_t>(parse_u32(required(arguments, "trinket"), "trinket"));
-        criteria.active_any = parse_ids(required(arguments, "active"), "active");
-        criteria.passive_any = parse_ids(required(arguments, "passive"), "passive");
+        const auto criteria = parse_criteria(arguments);
 
         iss::SearchOptions options;
         options.start = parse_u32(optional(arguments, "start", "1"), "start");
         options.end = parse_u32(optional(arguments, "end", "4294967295"), "end");
         options.threads = std::min(64U, parse_unsigned(optional(arguments, "threads", "0"), "threads"));
         options.block_size = parse_u32(optional(arguments, "block-size", "1000000"), "block-size");
+        options.max_results = parse_u32(optional(arguments, "max-results", "10000"), "max-results");
 
         const auto result = iss::search(tables, criteria, options);
         const auto output_path = optional(arguments, "output");
@@ -199,7 +312,8 @@ int main(int argc, char** argv) {
                 throw std::runtime_error("cannot write output: " + output_path);
             }
             write_result(output, result, options);
-            std::cout << "matches=" << result.matches.size()
+            std::cout << "matches=" << result.total_matches
+                      << " stored=" << result.matches.size()
                       << " scanned=" << result.scanned
                       << " elapsed=" << std::fixed << std::setprecision(3)
                       << result.elapsed_seconds << "s output=" << output_path << "\n";

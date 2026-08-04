@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 #include <array>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -18,6 +19,22 @@ void require(bool condition, const std::string& message) {
     if (!condition) {
         throw std::runtime_error(message);
     }
+}
+
+void require_near(double actual, double expected, const std::string& message) {
+    if (std::abs(actual - expected) > 1.0e-7) {
+        throw std::runtime_error(message + ": expected " + std::to_string(expected)
+                                 + ", got " + std::to_string(actual));
+    }
+}
+
+iss::EdenCriteria original_target() {
+    iss::EdenCriteria result;
+    result.pocket_kind = iss::PocketKind::trinket;
+    result.pocket_ids.any_of = {169};
+    result.active_items.any_of = {145, 133};
+    result.passive_items.any_of = {81, 134, 187, 212, 665};
+    return result;
 }
 
 }  // namespace
@@ -47,6 +64,34 @@ int main(int argc, char** argv) {
         require(builtin_start.pocket_id == 169, "builtin trinket mismatch");
         require(builtin_start.active_id == 145, "builtin active mismatch");
         require(builtin_start.passive_id == 134, "builtin passive mismatch");
+        require_near(builtin_start.red_hearts, 1.0, "builtin red hearts mismatch");
+        require_near(builtin_start.soul_hearts, 1.0, "builtin soul hearts mismatch");
+        require_near(builtin_start.damage_delta, -0.5756501241492851, "builtin damage mismatch");
+        require_near(builtin_start.move_speed_delta, 0.0026879816750493835, "builtin speed mismatch");
+        require_near(builtin_start.tears_delta, 0.27383407490872536, "builtin tears mismatch");
+        require_near(builtin_start.range, 7.310333206531665, "builtin range mismatch");
+        require_near(builtin_start.shot_speed_delta, -0.0916349254782613, "builtin shot speed mismatch");
+        require_near(builtin_start.luck_delta, -0.4185999840698891, "builtin luck mismatch");
+
+        const auto pill_start = iss::predict_eden_start(2U, builtin);
+        require(pill_start.pocket_kind == iss::PocketKind::pill, "pill pocket kind mismatch");
+        require(pill_start.pocket_id == 12, "pill effect mismatch");
+        require(pill_start.active_id == 639, "pill seed active mismatch");
+        require(pill_start.passive_id == 393, "pill seed passive mismatch");
+        require_near(pill_start.red_hearts, 2.0, "pill seed red hearts mismatch");
+        require_near(pill_start.soul_hearts, 0.0, "pill seed soul hearts mismatch");
+        require_near(pill_start.damage_delta, 0.5564722532531445, "pill seed damage mismatch");
+        require_near(pill_start.range, 7.4267219649934215, "pill seed range mismatch");
+        const auto horse_pill_start = iss::predict_eden_start(60U, builtin);
+        require(horse_pill_start.pocket_kind == iss::PocketKind::pill, "horse pill kind mismatch");
+        require(horse_pill_start.pocket_id == 63, "horse pill effect mismatch");
+
+        const auto card_start = iss::predict_eden_start(5U, builtin);
+        require(card_start.pocket_kind == iss::PocketKind::card, "card pocket kind mismatch");
+        require(card_start.pocket_id == 2, "normal card ID mismatch");
+        const auto reversed_card_start = iss::predict_eden_start(7U, builtin);
+        require(reversed_card_start.pocket_kind == iss::PocketKind::card, "reversed card kind mismatch");
+        require(reversed_card_start.pocket_id == 58, "reversed card ID mismatch");
 
         struct GoldenStart {
             std::uint32_t seed;
@@ -65,7 +110,7 @@ int main(int argc, char** argv) {
             GoldenStart{65439425U, 145, 212},
             GoldenStart{49946388U, 145, 665},
         };
-        const iss::ItemCriteria target{169, {145, 133}, {81, 134, 187, 212, 665}};
+        const auto target = original_target();
         for (const auto& golden : golden_starts) {
             const auto actual = iss::predict_eden_start(golden.seed, builtin);
             require(actual.pocket_kind == iss::PocketKind::trinket, "golden pocket kind mismatch");
@@ -107,9 +152,43 @@ int main(int argc, char** argv) {
             10'161'220U, 12'520'235U, 18'741'439U, 23'668'499U, 24'042'022U,
         };
         require(regression.matches.size() == expected_seeds.size(), "range regression count mismatch");
+        require(regression.total_matches == expected_seeds.size(), "range regression total mismatch");
         for (std::size_t index = 0; index < expected_seeds.size(); ++index) {
-            require(regression.matches[index].seed == expected_seeds[index], "range regression seed mismatch");
+            require(regression.matches[index].start.seed == expected_seeds[index], "range regression seed mismatch");
         }
+
+        iss::EdenCriteria generic;
+        generic.pocket_kind = iss::PocketKind::pill;
+        generic.pocket_ids.any_of = {12};
+        generic.active_items.any_of = {639};
+        generic.passive_items.any_of = {393};
+        generic.red_hearts.minimum = 2.0;
+        generic.red_hearts.maximum = 2.0;
+        generic.damage_delta.minimum = 0.55;
+        generic.range.minimum = 7.42;
+        generic.range.maximum = 7.43;
+        iss::SearchOptions generic_options;
+        generic_options.end = 100U;
+        generic_options.threads = 2;
+        const auto generic_result = iss::search(builtin, generic, generic_options);
+        require(generic_result.total_matches == 1, "generic criteria count mismatch");
+        require(generic_result.matches.size() == 1, "generic criteria stored result mismatch");
+        require(generic_result.matches.front().start.seed == 2U, "generic criteria seed mismatch");
+
+        iss::EdenCriteria capped;
+        capped.pocket_kind = iss::PocketKind::none;
+        iss::SearchOptions capped_options;
+        capped_options.end = 100U;
+        capped_options.threads = 2;
+        capped_options.block_size = 7U;
+        capped_options.max_results = 3U;
+        const auto capped_result = iss::search(builtin, capped, capped_options);
+        require(capped_result.total_matches > capped_result.matches.size(), "result cap did not truncate");
+        require(capped_result.matches.size() == 3, "result cap stored wrong count");
+        require(capped_result.truncated(), "truncated flag mismatch");
+        require(capped_result.matches[0].start.seed < capped_result.matches[1].start.seed
+                    && capped_result.matches[1].start.seed < capped_result.matches[2].start.seed,
+                "capped results are not sorted");
 
         iss::SearchOptions exception_options;
         exception_options.end = 10'000U;

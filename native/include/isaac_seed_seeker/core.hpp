@@ -4,7 +4,9 @@
 #include <cstdint>
 #include <filesystem>
 #include <functional>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace isaac_seed_seeker {
@@ -15,6 +17,8 @@ enum class PocketKind : std::uint8_t {
     card = 2,
     pill = 3,
 };
+
+std::string_view pocket_kind_name(PocketKind kind) noexcept;
 
 struct CollectibleEntry {
     std::int32_t item_id = 0;
@@ -49,14 +53,57 @@ struct EdenStart {
     std::int32_t pocket_id = 0;
     std::int32_t active_id = 0;
     std::int32_t passive_id = 0;
+
+    // Health is expressed in full-heart units.  Stats are Eden's random
+    // additive modifiers before either starting collectible is applied.
+    double red_hearts = 0.0;
+    double soul_hearts = 0.0;
+    double damage_delta = 0.0;
+    double move_speed_delta = 0.0;
+    double tears_delta = 0.0;
+    double range = 6.5;
+    double shot_speed_delta = 0.0;
+    double luck_delta = 0.0;
 };
 
-struct ItemCriteria {
-    std::int32_t trinket_id = 0;
-    std::vector<std::int32_t> active_any;
-    std::vector<std::int32_t> passive_any;
+struct NumberRange {
+    std::optional<double> minimum;
+    std::optional<double> maximum;
+
+    [[nodiscard]] bool configured() const noexcept;
+    [[nodiscard]] bool matches(double value) const noexcept;
+    void validate(std::string_view name) const;
+};
+
+struct IdSetCriteria {
+    std::vector<std::int32_t> any_of;
+    std::vector<std::int32_t> none_of;
+
+    [[nodiscard]] bool configured() const noexcept;
+    [[nodiscard]] bool matches(std::int32_t value) const noexcept;
+    void validate(std::string_view name, std::int32_t minimum_id = 1) const;
+};
+
+struct EdenCriteria {
+    std::optional<PocketKind> pocket_kind;
+    IdSetCriteria pocket_ids;
+    IdSetCriteria active_items;
+    IdSetCriteria passive_items;
+
+    NumberRange red_hearts;
+    NumberRange soul_hearts;
+    NumberRange damage_delta;
+    NumberRange move_speed_delta;
+    NumberRange tears_delta;
+    NumberRange range;
+    NumberRange shot_speed_delta;
+    NumberRange luck_delta;
 
     void validate() const;
+    [[nodiscard]] bool configured() const noexcept;
+    [[nodiscard]] bool needs_pocket() const noexcept;
+    [[nodiscard]] bool needs_items() const noexcept;
+    [[nodiscard]] bool needs_base_rolls() const noexcept;
 };
 
 struct SearchOptions {
@@ -64,28 +111,31 @@ struct SearchOptions {
     std::uint32_t end = 0xffffffffU;
     std::uint32_t block_size = 1'000'000;
     unsigned threads = 0;
+    std::size_t max_results = 10'000;
 };
 
 struct Match {
-    std::uint32_t seed = 0;
     std::string label;
-    std::int32_t trinket_id = 0;
-    std::int32_t active_id = 0;
-    std::int32_t passive_id = 0;
+    EdenStart start;
 };
 
 struct SearchProgress {
     std::uint64_t scanned = 0;
     std::uint64_t total = 0;
-    std::size_t matches = 0;
+    std::uint64_t matches = 0;
     double elapsed_seconds = 0.0;
 };
 
 struct SearchResult {
     std::vector<Match> matches;
+    std::uint64_t total_matches = 0;
     std::uint64_t scanned = 0;
     double elapsed_seconds = 0.0;
     unsigned threads = 0;
+
+    [[nodiscard]] bool truncated() const noexcept {
+        return total_matches > matches.size();
+    }
 };
 
 using ProgressCallback = std::function<void(const SearchProgress&)>;
@@ -97,11 +147,11 @@ std::uint32_t p988_from_a5(std::uint32_t a5) noexcept;
 std::uint32_t p988_from_seed(std::uint32_t seed) noexcept;
 
 EdenStart predict_eden_start(std::uint32_t seed, const ProfileTables& tables);
-bool matches(const EdenStart& start, const ItemCriteria& criteria) noexcept;
+bool matches(const EdenStart& start, const EdenCriteria& criteria) noexcept;
 
 SearchResult search(
     const ProfileTables& tables,
-    const ItemCriteria& criteria,
+    const EdenCriteria& criteria,
     const SearchOptions& options,
     const ProgressCallback& progress = {},
     const std::atomic_bool* cancel = nullptr

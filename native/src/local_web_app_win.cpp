@@ -18,6 +18,7 @@
 #include <charconv>
 #include <chrono>
 #include <climits>
+#include <cmath>
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
@@ -80,6 +81,23 @@ std::size_t find_json_value(std::string_view text, std::string_view key) {
     return position;
 }
 
+std::optional<std::size_t> find_optional_json_value(std::string_view text, std::string_view key) {
+    const std::string needle = "\"" + std::string(key) + "\"";
+    const auto found = text.find(needle);
+    if (found == std::string_view::npos) {
+        return std::nullopt;
+    }
+    auto position = text.find(':', found + needle.size());
+    if (position == std::string_view::npos) {
+        throw std::invalid_argument("malformed JSON field: " + std::string(key));
+    }
+    ++position;
+    while (position < text.size() && std::string_view(" \t\r\n").find(text[position]) != std::string_view::npos) {
+        ++position;
+    }
+    return position;
+}
+
 std::uint32_t json_u32(std::string_view text, std::string_view key) {
     const auto position = find_json_value(text, key);
     std::uint64_t value = 0;
@@ -118,6 +136,140 @@ std::vector<std::int32_t> json_id_array(std::string_view text, std::string_view 
     return values;
 }
 
+std::optional<std::uint32_t> optional_json_u32(std::string_view text, std::string_view key) {
+    const auto position = find_optional_json_value(text, key);
+    if (!position.has_value()) return std::nullopt;
+    std::uint64_t value = 0;
+    const auto parsed = std::from_chars(text.data() + *position, text.data() + text.size(), value);
+    if (parsed.ec != std::errc() || value > 0xffffffffULL) {
+        throw std::invalid_argument("invalid JSON uint32 field: " + std::string(key));
+    }
+    return static_cast<std::uint32_t>(value);
+}
+
+std::optional<double> optional_json_number(std::string_view text, std::string_view key) {
+    const auto position = find_optional_json_value(text, key);
+    if (!position.has_value()) return std::nullopt;
+    double value = 0.0;
+    const auto parsed = std::from_chars(text.data() + *position, text.data() + text.size(), value);
+    if (parsed.ec != std::errc() || !std::isfinite(value)) {
+        throw std::invalid_argument("invalid JSON number field: " + std::string(key));
+    }
+    return value;
+}
+
+std::optional<std::string> optional_json_string(std::string_view text, std::string_view key) {
+    const auto position = find_optional_json_value(text, key);
+    if (!position.has_value()) return std::nullopt;
+    if (*position >= text.size() || text[*position] != '"') {
+        throw std::invalid_argument("JSON field must be a string: " + std::string(key));
+    }
+    const auto end = text.find('"', *position + 1);
+    if (end == std::string_view::npos) {
+        throw std::invalid_argument("unterminated JSON string field: " + std::string(key));
+    }
+    return std::string(text.substr(*position + 1, end - *position - 1));
+}
+
+std::optional<std::vector<std::int32_t>> optional_json_id_array(
+    std::string_view text,
+    std::string_view key
+) {
+    if (!find_optional_json_value(text, key).has_value()) return std::nullopt;
+    return json_id_array(text, key);
+}
+
+PocketKind parse_pocket_kind(std::string_view text) {
+    if (text == "none") return PocketKind::none;
+    if (text == "trinket") return PocketKind::trinket;
+    if (text == "card") return PocketKind::card;
+    if (text == "pill") return PocketKind::pill;
+    throw std::invalid_argument("invalid pocket_kind");
+}
+
+void select_pocket_kind(EdenCriteria& criteria, PocketKind kind, std::string_view field) {
+    if (criteria.pocket_kind.has_value() && *criteria.pocket_kind != kind) {
+        throw std::invalid_argument("conflicting pocket kind in JSON field: " + std::string(field));
+    }
+    criteria.pocket_kind = kind;
+}
+
+EdenCriteria json_criteria(std::string_view body) {
+    EdenCriteria criteria;
+    if (const auto kind = optional_json_string(body, "pocket_kind")) {
+        criteria.pocket_kind = parse_pocket_kind(*kind);
+    }
+    if (const auto legacy = optional_json_u32(body, "trinket_id")) {
+        select_pocket_kind(criteria, PocketKind::trinket, "trinket_id");
+        criteria.pocket_ids.any_of = {static_cast<std::int32_t>(*legacy)};
+    }
+    if (const auto values = optional_json_id_array(body, "trinket_ids")) {
+        select_pocket_kind(criteria, PocketKind::trinket, "trinket_ids");
+        criteria.pocket_ids.any_of = *values;
+    }
+    if (const auto values = optional_json_id_array(body, "card_ids")) {
+        select_pocket_kind(criteria, PocketKind::card, "card_ids");
+        criteria.pocket_ids.any_of = *values;
+    }
+    if (const auto values = optional_json_id_array(body, "pill_effect_ids")) {
+        select_pocket_kind(criteria, PocketKind::pill, "pill_effect_ids");
+        criteria.pocket_ids.any_of = *values;
+    }
+    if (const auto values = optional_json_id_array(body, "pocket_ids")) {
+        criteria.pocket_ids.any_of = *values;
+    }
+    if (const auto values = optional_json_id_array(body, "pocket_exclude_ids")) {
+        criteria.pocket_ids.none_of = *values;
+    }
+    if (const auto values = optional_json_id_array(body, "active_ids")) {
+        criteria.active_items.any_of = *values;
+    }
+    if (const auto values = optional_json_id_array(body, "active_exclude_ids")) {
+        criteria.active_items.none_of = *values;
+    }
+    if (const auto values = optional_json_id_array(body, "passive_ids")) {
+        criteria.passive_items.any_of = *values;
+    }
+    if (const auto values = optional_json_id_array(body, "passive_exclude_ids")) {
+        criteria.passive_items.none_of = *values;
+    }
+
+    const auto range = [&](std::string_view prefix, NumberRange& target) {
+        target.minimum = optional_json_number(body, std::string(prefix) + "_min");
+        target.maximum = optional_json_number(body, std::string(prefix) + "_max");
+    };
+    range("red_hearts", criteria.red_hearts);
+    range("soul_hearts", criteria.soul_hearts);
+    range("damage_delta", criteria.damage_delta);
+    range("move_speed_delta", criteria.move_speed_delta);
+    range("tears_delta", criteria.tears_delta);
+    range("range", criteria.range);
+    range("shot_speed_delta", criteria.shot_speed_delta);
+    range("luck_delta", criteria.luck_delta);
+    criteria.validate();
+    return criteria;
+}
+
+void append_start_json(std::ostream& output, const EdenStart& start, std::string_view label) {
+    output << "{\"seed\":\"" << json_escape(label)
+           << "\",\"seed_u32\":" << start.seed
+           << ",\"a5\":" << start.a5
+           << ",\"p988\":" << start.p988
+           << ",\"pocket_kind\":\"" << pocket_kind_name(start.pocket_kind)
+           << "\",\"pocket_id\":" << start.pocket_id
+           << ",\"trinket_id\":" << (start.pocket_kind == PocketKind::trinket ? start.pocket_id : 0)
+           << ",\"active_id\":" << start.active_id
+           << ",\"passive_id\":" << start.passive_id
+           << ",\"red_hearts\":" << start.red_hearts
+           << ",\"soul_hearts\":" << start.soul_hearts
+           << ",\"damage_delta\":" << start.damage_delta
+           << ",\"move_speed_delta\":" << start.move_speed_delta
+           << ",\"tears_delta\":" << start.tears_delta
+           << ",\"range\":" << start.range
+           << ",\"shot_speed_delta\":" << start.shot_speed_delta
+           << ",\"luck_delta\":" << start.luck_delta << '}';
+}
+
 class SearchSession {
 public:
     ~SearchSession() {
@@ -125,7 +277,7 @@ public:
         join_previous();
     }
 
-    void start(ItemCriteria criteria, SearchOptions options) {
+    void start(EdenCriteria criteria, SearchOptions options) {
         if (state_.load(std::memory_order_acquire) == SessionState::running) {
             throw std::runtime_error("a search is already running");
         }
@@ -162,7 +314,7 @@ public:
                         &cancel_
                     );
                     scanned_.store(result.scanned, std::memory_order_relaxed);
-                    match_count_.store(result.matches.size(), std::memory_order_relaxed);
+                    match_count_.store(result.total_matches, std::memory_order_relaxed);
                     elapsed_millis_.store(
                         static_cast<std::uint64_t>(result.elapsed_seconds * 1000.0),
                         std::memory_order_relaxed
@@ -223,15 +375,15 @@ public:
     std::string results_json() const {
         std::lock_guard lock(mutex_);
         std::ostringstream output;
-        output << "{\"count\":" << result_.matches.size() << ",\"matches\":[";
+        output << std::setprecision(10);
+        output << "{\"count\":" << result_.matches.size()
+               << ",\"total_count\":" << result_.total_matches
+               << ",\"truncated\":" << (result_.truncated() ? "true" : "false")
+               << ",\"matches\":[";
         for (std::size_t index = 0; index < result_.matches.size(); ++index) {
             const auto& match = result_.matches[index];
             if (index != 0) output << ',';
-            output << "{\"seed\":\"" << match.label
-                   << "\",\"seed_u32\":" << match.seed
-                   << ",\"trinket_id\":" << match.trinket_id
-                   << ",\"active_id\":" << match.active_id
-                   << ",\"passive_id\":" << match.passive_id << '}';
+            append_start_json(output, match.start, match.label);
         }
         output << "]}";
         return output.str();
@@ -241,7 +393,9 @@ public:
         std::lock_guard lock(mutex_);
         std::ostringstream output;
         for (const auto& match : result_.matches) {
-            output << match.label << '\t' << match.active_id << '\t' << match.passive_id << '\n';
+            output << match.label << '\t' << pocket_kind_name(match.start.pocket_kind)
+                   << '\t' << match.start.pocket_id << '\t' << match.start.active_id
+                   << '\t' << match.start.passive_id << '\n';
         }
         return output.str();
     }
@@ -259,7 +413,7 @@ private:
     std::atomic<SessionState> state_{SessionState::idle};
     std::atomic<std::uint64_t> scanned_{0};
     std::atomic<std::uint64_t> total_{0};
-    std::atomic<std::size_t> match_count_{0};
+    std::atomic<std::uint64_t> match_count_{0};
     std::atomic<std::uint64_t> elapsed_millis_{0};
     SearchResult result_;
     std::string error_;
@@ -488,6 +642,13 @@ int run_local_web_app(bool open_browser) {
                 respond(client, 200, "OK", "text/javascript; charset=utf-8", app_js);
             } else if (request.method == "GET" && request.path == "/api/v1/profile") {
                 respond(client, 200, "OK", "application/json; charset=utf-8", profile_json());
+            } else if (request.method == "POST" && request.path == "/api/v1/inspect") {
+                const auto seed = json_u32(request.body, "seed_u32");
+                const auto start = predict_eden_start(seed, builtin_j460_profile());
+                std::ostringstream output;
+                output << std::setprecision(10);
+                append_start_json(output, start, seed_to_string(seed));
+                respond(client, 200, "OK", "application/json; charset=utf-8", output.str());
             } else if (request.method == "GET" && request.path == "/api/v1/search/status") {
                 respond(client, 200, "OK", "application/json; charset=utf-8", session.status_json());
             } else if (request.method == "GET" && request.path == "/api/v1/search/results") {
@@ -502,15 +663,13 @@ int run_local_web_app(bool open_browser) {
                     "Content-Disposition: attachment; filename=isaac-seeds.txt\r\n"
                 );
             } else if (request.method == "POST" && request.path == "/api/v1/search") {
-                ItemCriteria criteria;
-                criteria.trinket_id = static_cast<std::int32_t>(json_u32(request.body, "trinket_id"));
-                criteria.active_any = json_id_array(request.body, "active_ids");
-                criteria.passive_any = json_id_array(request.body, "passive_ids");
+                auto criteria = json_criteria(request.body);
                 SearchOptions options;
                 options.start = json_u32(request.body, "start");
                 options.end = json_u32(request.body, "end");
                 options.threads = std::min(64U, json_u32(request.body, "threads"));
                 options.block_size = 1'000'000;
+                options.max_results = optional_json_u32(request.body, "max_results").value_or(10'000U);
                 session.start(std::move(criteria), options);
                 respond(client, 202, "Accepted", "application/json; charset=utf-8", session.status_json());
             } else if (request.method == "POST" && request.path == "/api/v1/search/cancel") {

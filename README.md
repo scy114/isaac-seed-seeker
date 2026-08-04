@@ -8,6 +8,8 @@
 
 - 双击单个 EXE，自动打开本地 WebUI。
 - 输入任意饰品 ID、主动道具 OR 集合和被动道具 OR 集合。
+- 原生后端可组合筛选口袋物类型、卡牌 ID、胶囊效果 ID、主动/被动道具 ID，以及基础血量和六项随机属性区间。
+- 不同筛选类别之间为 AND，同一 ID 列表内部为 OR；各 ID 类别也支持排除列表。
 - 普通/金色饰品统一按基础 ID 匹配。
 - 多线程扫描任意 `uint32` 区间或全部 `2^32 - 1` 个可搜索值。
 - 实时进度、速度、命中数、停止按钮和 TXT 导出。
@@ -15,7 +17,9 @@
 - CLI 单种子检查与 JSON 搜索输出。
 - 静态链接 MinGW 运行库；当前 EXE 约 3.2 MB，只依赖 Windows 系统 DLL。
 
-WebUI 当前聚焦“饰品 AND 主动组 AND 被动组”。属性、血量、资源、卡牌、胶囊以及用户 Profile 提取仍在后续通用伊甸搜索范围内；不扩展完整楼层、房间或掉落模拟。
+WebUI 当前仍聚焦“饰品 AND 主动组 AND 被动组”，尚未把通用后端的全部输入项画出来。原生 CLI 与本地 HTTP API 已支持基础血量、基础随机属性、卡牌和胶囊；资源、道具结算后的最终属性、用户 Profile 提取仍在后续范围内。本项目不扩展完整楼层、房间或掉落模拟。
+
+这里的“属性”严格指伊甸生成阶段的随机基础值：`damage_delta`、`move_speed_delta`、`tears_delta`、`shot_speed_delta`、`luck_delta` 是加算修正，`range` 是以 6.5 为基准换算后的显示值。它们都不包含两个开局道具带来的效果；血量也不包含开局道具追加的心。胶囊使用效果 ID，不是颜色 ID。
 
 ## 当前目标与修正结果
 
@@ -60,7 +64,21 @@ C++ 全域扫描在当前机器的 Release 检查中以 8 线程耗时约 18–1
   --end 4294967295 `
   --threads 8 `
   --output data\target-169-native.json
+
+# 通用组合示例：胶囊效果 12、指定主动/被动、2 红心、伤害修正至少 0.55
+.\build\native\IsaacSeedSeeker.exe search `
+  --pill 12 `
+  --active 639 `
+  --passive 393 `
+  --red-hearts-min 2 `
+  --red-hearts-max 2 `
+  --damage-delta-min 0.55 `
+  --range-min 7.42 `
+  --range-max 7.43 `
+  --end 100
 ```
+
+CLI 完整参数和本地 HTTP 请求字段见 [`docs/native-api.md`](docs/native-api.md)。搜索结果默认只保留种子值最小的 10,000 条，但仍会扫描完整范围并返回真实 `total_count`；可用 `--max-results` 或 HTTP 的 `max_results` 调整。
 
 仓库也提供标准 `CMakeLists.txt`，用于后续 MSVC/GitHub Actions Release 构建。
 

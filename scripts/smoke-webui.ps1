@@ -69,9 +69,53 @@ try {
     if ($Status.scanned -ne 20000000) { throw "unexpected scan count: $($Status.scanned)" }
     if ($Results.count -ne 3) { throw "unexpected match count: $($Results.count)" }
     if ($Results.matches[0].seed -ne "B74H HQPR") { throw "unexpected first seed" }
+    if ($Results.total_count -ne 3 -or $Results.truncated) { throw "unexpected result metadata" }
     $TextResults = Invoke-RestMethod ($BaseUrl + "api/v1/search/results.txt")
     if (@($TextResults -split "`n" | Where-Object { $_ }).Count -ne 3) {
         throw "TXT export did not contain three matches"
+    }
+
+    $InspectBody = @{seed_u32 = 2} | ConvertTo-Json -Compress
+    $Inspected = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/inspect") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $InspectBody
+    if ($Inspected.pocket_kind -ne "pill" -or $Inspected.pocket_id -ne 12) {
+        throw "inspect endpoint returned the wrong pocket item"
+    }
+    if ($Inspected.red_hearts -ne 2 -or [Math]::Abs($Inspected.range - 7.426721965) -gt 0.000001) {
+        throw "inspect endpoint returned the wrong base rolls"
+    }
+
+    $GenericBody = @{
+        pill_effect_ids = @(12)
+        active_ids = @(639)
+        passive_ids = @(393)
+        red_hearts_min = 2
+        red_hearts_max = 2
+        damage_delta_min = 0.55
+        range_min = 7.42
+        range_max = 7.43
+        start = 1
+        end = 100
+        threads = 2
+        max_results = 10
+    } | ConvertTo-Json -Compress
+    Invoke-RestMethod `
+        ($BaseUrl + "api/v1/search") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $GenericBody | Out-Null
+    do {
+        Start-Sleep -Milliseconds 50
+        $GenericStatus = Invoke-RestMethod ($BaseUrl + "api/v1/search/status")
+    } while ($GenericStatus.state -eq "running")
+    $GenericResults = Invoke-RestMethod ($BaseUrl + "api/v1/search/results")
+    if ($GenericResults.total_count -ne 1 -or $GenericResults.matches[0].seed_u32 -ne 2) {
+        throw "generic search endpoint returned the wrong seed"
     }
 
     $CancelBody = @{
