@@ -31,6 +31,11 @@ try {
     }
     $BaseUrl = $Matches[1]
     $Headers = @{"X-Isaac-Token" = $Matches[2]}
+    $Page = Invoke-WebRequest $Url -UseBasicParsing
+    $ClientScript = Invoke-WebRequest ($BaseUrl + "app.js") -UseBasicParsing
+    if ($Page.Content -notmatch 'id="red-hearts-min"' -or $ClientScript.Content -notmatch "pill_effect_ids") {
+        throw "embedded WebUI does not expose the generic Eden filters"
+    }
     $Profile = Invoke-RestMethod ($BaseUrl + "api/v1/profile")
     $UnauthorizedBlocked = $false
     try {
@@ -71,8 +76,11 @@ try {
     if ($Results.matches[0].seed -ne "B74H HQPR") { throw "unexpected first seed" }
     if ($Results.total_count -ne 3 -or $Results.truncated) { throw "unexpected result metadata" }
     $TextResults = Invoke-RestMethod ($BaseUrl + "api/v1/search/results.txt")
-    if (@($TextResults -split "`n" | Where-Object { $_ }).Count -ne 3) {
-        throw "TXT export did not contain three matches"
+    if ($TextResults -notmatch "seed_u32" -or $TextResults -notmatch "damage_delta") {
+        throw "TXT export is missing the generic result columns"
+    }
+    if (@($TextResults -split "`n" | Where-Object { $_ }).Count -ne 4) {
+        throw "TXT export did not contain a header and three matches"
     }
 
     $InspectBody = @{seed_u32 = 2} | ConvertTo-Json -Compress

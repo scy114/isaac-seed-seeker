@@ -392,10 +392,18 @@ public:
     std::string results_text() const {
         std::lock_guard lock(mutex_);
         std::ostringstream output;
+        output << std::setprecision(10)
+               << "seed\tseed_u32\tpocket_kind\tpocket_id\tactive_id\tpassive_id"
+                  "\tred_hearts\tsoul_hearts\tdamage_delta\tmove_speed_delta"
+                  "\ttears_delta\trange\tshot_speed_delta\tluck_delta\n";
         for (const auto& match : result_.matches) {
-            output << match.label << '\t' << pocket_kind_name(match.start.pocket_kind)
-                   << '\t' << match.start.pocket_id << '\t' << match.start.active_id
-                   << '\t' << match.start.passive_id << '\n';
+            output << match.label << '\t' << match.start.seed
+                   << '\t' << pocket_kind_name(match.start.pocket_kind) << '\t' << match.start.pocket_id
+                   << '\t' << match.start.active_id << '\t' << match.start.passive_id
+                   << '\t' << match.start.red_hearts << '\t' << match.start.soul_hearts
+                   << '\t' << match.start.damage_delta << '\t' << match.start.move_speed_delta
+                   << '\t' << match.start.tears_delta << '\t' << match.start.range
+                   << '\t' << match.start.shot_speed_delta << '\t' << match.start.luck_delta << '\n';
         }
         return output.str();
     }
