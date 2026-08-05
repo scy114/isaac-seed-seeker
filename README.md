@@ -33,14 +33,13 @@ Isaac Seed Seeker 使用原生 C++ 内核枚举种子，并通过本地 WebUI �
 
 ## 安装
 
-项目目前处于公开测试阶段，首个 Windows x64 发行包尚未上传。后续发行包将发布至 [GitHub Releases](https://github.com/scy114/isaac-seed-seeker/releases)。
+当前公开测试版本为 [v0.1.0](https://github.com/scy114/isaac-seed-seeker/releases/tag/v0.1.0)。
 
-发行包的使用方式如下：
-
-1. 下载并完整解压 Windows x64 ZIP；
-2. 运行 `IsaacSeedSeeker.exe`；
-3. 程序将在默认浏览器中打开本地 WebUI；
-4. 使用完毕后，通过页面底部的“关闭本地程序”结束进程。
+1. 从 [GitHub Releases](https://github.com/scy114/isaac-seed-seeker/releases) 下载 `IsaacSeedSeeker-v0.1.0-windows-x64.zip`；
+2. 完整解压 ZIP；
+3. 运行 `IsaacSeedSeeker.exe`；
+4. 程序将在默认浏览器中打开本地 WebUI；
+5. 使用完毕后，通过页面底部的“关闭本地程序”结束进程。
 
 发行包无需另行安装 Python、Node.js 或编译工具链。请勿直接在压缩包预览窗口中运行程序。
 
@@ -125,14 +124,6 @@ Isaac Seed Seeker 使用原生 C++ 内核枚举种子，并通过本地 WebUI �
 ```powershell
 .\scripts\package-windows.ps1
 ```
-
-## 开发文档
-
-- [原生 CLI 与本地 API](docs/native-api.md)
-- [项目结构](docs/architecture.md)
-- [道具名称目录](docs/item-catalog.md)
-- [RNG 研究与验证记录](docs/research.md)
-- [后续功能调研](docs/research-floor1-and-post-item-stats.md)
 
 ## 问题反馈
 
