@@ -113,8 +113,8 @@ button, select { cursor: pointer; }
   text-rendering: optimizeSpeed;
   text-shadow: 2px 2px 0 #120a08;
 }
-.lead-zh { font-size: 18px; letter-spacing: .08em; }
-.lead-en { color: #8f7c6f; font-size: 11px; letter-spacing: .08em; }
+.lead-zh { font-size: 22px; letter-spacing: .08em; }
+.lead-en { color: #8f7c6f; font-size: 14px; letter-spacing: .08em; }
 
 .profile-card {
   position: absolute;
