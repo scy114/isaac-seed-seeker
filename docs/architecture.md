@@ -16,7 +16,7 @@ Embedded WebUI
     -> downloadable results
 ```
 
-玩家发行物不包含 Python/Node 运行时。HTML、CSS、JavaScript 作为 Windows `RCDATA` 嵌入 EXE；原生程序只监听 `127.0.0.1` 的动态端口。
+玩家发行物不包含 Python/Node 运行时。通用主页和实验性疗法专页作为 Windows `RCDATA` 嵌入 EXE，共用 CSS、JavaScript、目录和搜索 API；原生程序只监听 `127.0.0.1` 的动态端口。
 
 ## Truth-first validation pipeline
 

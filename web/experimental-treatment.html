@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>实验性疗法 · Isaac Seed Seeker</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body data-page="treatment">
+  <canvas id="basement-room" aria-hidden="true"></canvas>
+  <main class="shell treatment-shell">
+    <header class="hero treatment-hero">
+      <div class="treatment-hero-copy">
+        <a class="back-link" id="generic-page-link" href="/">← 返回通用伊甸搜索</a>
+        <div class="treatment-title-row">
+          <img class="treatment-hero-icon" src="/game-assets/passive/240.png" alt="实验性疗法道具图标" data-game-icon>
+          <div>
+            <p class="step">Q1 · #240</p>
+            <h1>实验性疗法</h1>
+            <p class="treatment-title-en" lang="en">Experimental Treatment</p>
+            <p class="treatment-tagline">看看这针会把伊甸变成什么样</p>
+          </div>
+        </div>
+      </div>
+      <aside class="profile-card">
+        <span class="profile-label">当前存档表</span>
+        <strong id="profile-name">正在读取…</strong>
+        <small id="profile-detail"></small>
+      </aside>
+    </header>
+
+    <section class="panel form-panel treatment-form-panel">
+      <div class="section-title search-heading">
+        <div>
+          <p class="step">TREATMENT</p>
+          <h2>指定这针改变什么</h2>
+          <p class="section-copy">被动道具固定为实验性疗法。其他开局条件仍然可以自由组合。</p>
+          <p class="catalog-state" id="catalog-state">正在载入离线名称目录…</p>
+        </div>
+        <div class="preset-actions" aria-label="筛选操作">
+          <button class="chip" id="clear-filters" type="button">清空附加条件</button>
+        </div>
+      </div>
+
+      <form id="search-form">
+        <section class="filter-group" aria-labelledby="treatment-pocket-heading">
+          <div class="group-heading">
+            <div><span class="group-number">A</span><h3 id="treatment-pocket-heading">口袋物</h3></div>
+            <p>饰品、卡牌、胶囊和“没有口袋物”互斥。</p>
+          </div>
+          <div class="field-grid three-columns">
+            <label>
+              <span>口袋物类型</span>
+              <select id="pocket-kind">
+                <option value="">不限</option>
+                <option value="trinket">饰品</option>
+                <option value="card">卡牌</option>
+                <option value="pill">胶囊效果</option>
+                <option value="none">没有口袋物</option>
+              </select>
+              <small>先选类型，再选择对应条目</small>
+            </label>
+            <div class="catalog-field">
+              <label id="pocket-ids-label" for="pocket-ids-query">饰品（任意一个）</label>
+              <input id="pocket-ids" placeholder="名称、俗称、拼音或 ID">
+              <small id="pocket-ids-help">普通与金色饰品按基础 ID 匹配</small>
+            </div>
+            <div class="catalog-field subtle-field">
+              <label for="pocket-exclude-ids-query">排除这些条目</label>
+              <input id="pocket-exclude-ids" placeholder="名称、俗称、拼音或 ID">
+              <small>命中后再排除，通常可以留空</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="filter-group" aria-labelledby="treatment-items-heading">
+          <div class="group-heading">
+            <div><span class="group-number">B</span><h3 id="treatment-items-heading">开局道具</h3></div>
+            <p>被动已经锁定为黄针，只需决定主动道具。</p>
+          </div>
+          <div class="field-grid three-columns treatment-item-grid">
+            <div class="locked-item-card">
+              <img src="/game-assets/passive/240.png" alt="" data-game-icon>
+              <span><small>固定被动</small><strong>实验性疗法</strong><b>Q1 · #240</b></span>
+            </div>
+            <div class="catalog-field">
+              <label for="active-ids-query">主动道具（任意一个）</label>
+              <input id="active-ids" placeholder="名称、俗称、拼音或 ID">
+              <small>留空表示不限主动道具</small>
+            </div>
+            <div class="catalog-field subtle-field">
+              <label for="active-exclude-ids-query">排除主动道具</label>
+              <input id="active-exclude-ids" placeholder="名称、俗称、拼音或 ID">
+              <small>命中这些主动时排除</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="filter-group" aria-labelledby="treatment-base-heading">
+          <div class="group-heading">
+            <div><span class="group-number">C</span><h3 id="treatment-base-heading">黄针前的伊甸</h3></div>
+            <p>资源与基础属性均为实验性疗法结算前的数值。</p>
+          </div>
+          <div class="range-grid">
+            <div class="range-field"><span>红心</span><small>0–3 颗</small><div><input id="red-hearts-min" type="number" step="1" min="0" max="3" placeholder="最小"><b>—</b><input id="red-hearts-max" type="number" step="1" min="0" max="3" placeholder="最大"></div></div>
+            <div class="range-field"><span>魂心</span><small>0–3 颗</small><div><input id="soul-hearts-min" type="number" step="1" min="0" max="3" placeholder="最小"><b>—</b><input id="soul-hearts-max" type="number" step="1" min="0" max="3" placeholder="最大"></div></div>
+            <div class="range-field"><span>硬币</span><small>0–5 枚</small><div><input id="coins-min" type="number" step="1" min="0" max="5" placeholder="最小"><b>—</b><input id="coins-max" type="number" step="1" min="0" max="5" placeholder="最大"></div></div>
+            <div class="range-field"><span>钥匙</span><small>0–1 把</small><div><input id="keys-min" type="number" step="1" min="0" max="1" placeholder="最小"><b>—</b><input id="keys-max" type="number" step="1" min="0" max="1" placeholder="最大"></div></div>
+            <div class="range-field"><span>炸弹</span><small>0–2 枚</small><div><input id="bombs-min" type="number" step="1" min="0" max="2" placeholder="最小"><b>—</b><input id="bombs-max" type="number" step="1" min="0" max="2" placeholder="最大"></div></div>
+            <div class="range-field"><span>伤害</span><small>约 2.50～4.50</small><div><input id="damage-min" type="number" step="any" placeholder="最小"><b>—</b><input id="damage-max" type="number" step="any" placeholder="最大"></div></div>
+            <div class="range-field"><span>移速</span><small>约 0.85～1.15</small><div><input id="move-speed-min" type="number" step="any" placeholder="最小"><b>—</b><input id="move-speed-max" type="number" step="any" placeholder="最大"></div></div>
+            <div class="range-field"><span>射速</span><small>Found HUD</small><div><input id="tears-min" type="number" step="any" placeholder="最小"><b>—</b><input id="tears-max" type="number" step="any" placeholder="最大"></div></div>
+            <div class="range-field"><span>基础射程</span><small>约 5.00～8.00</small><div><input id="range-min" type="number" step="any" placeholder="最小"><b>—</b><input id="range-max" type="number" step="any" placeholder="最大"></div></div>
+            <div class="range-field"><span>弹速</span><small>约 0.75～1.25</small><div><input id="shot-speed-min" type="number" step="any" placeholder="最小"><b>—</b><input id="shot-speed-max" type="number" step="any" placeholder="最大"></div></div>
+            <div class="range-field"><span>幸运</span><small>约 -1.00～1.00</small><div><input id="luck-min" type="number" step="any" placeholder="最小"><b>—</b><input id="luck-max" type="number" step="any" placeholder="最大"></div></div>
+          </div>
+        </section>
+
+        <section class="filter-group treatment-direction-group" aria-labelledby="treatment-directions-heading">
+          <div class="group-heading">
+            <div><span class="group-number">D</span><h3 id="treatment-directions-heading">这针往哪边推？</h3></div>
+            <p>黄针会让 4 项上升、2 项下降、1 项不变。</p>
+          </div>
+          <div class="direction-grid">
+            <div class="direction-field" data-direction-field="health"><span>心之容器</span><input id="experimental-health" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div></div>
+            <div class="direction-field" data-direction-field="move-speed"><span>移速</span><input id="experimental-move-speed" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div></div>
+            <div class="direction-field" data-direction-field="tears"><span>射速</span><input id="experimental-tears" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div></div>
+            <div class="direction-field" data-direction-field="damage"><span>伤害</span><input id="experimental-damage" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div></div>
+            <div class="direction-field" data-direction-field="range"><span>射程</span><input id="experimental-range" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div></div>
+            <div class="direction-field" data-direction-field="shot-speed"><span>弹速</span><input id="experimental-shot-speed" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div></div>
+            <div class="direction-field" data-direction-field="luck"><span>幸运</span><input id="experimental-luck" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div></div>
+          </div>
+        </section>
+
+        <details class="post-stats-panel">
+          <summary><span>精确限制黄针结算后的面板</span><small>可选 · 需要时展开</small></summary>
+          <div class="range-grid post-item-ranges">
+            <div class="range-field"><span>结算后伤害</span><small>真实面板</small><div><input id="post-damage-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-damage-max" type="number" step="any" placeholder="最大"></div></div>
+            <div class="range-field"><span>结算后移速</span><small>真实面板</small><div><input id="post-move-speed-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-move-speed-max" type="number" step="any" placeholder="最大"></div></div>
+            <div class="range-field"><span>结算后射速</span><small>Found HUD</small><div><input id="post-tears-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-tears-max" type="number" step="any" placeholder="最大"></div></div>
+            <div class="range-field"><span>结算后射程</span><small>真实面板</small><div><input id="post-range-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-range-max" type="number" step="any" placeholder="最大"></div></div>
+            <div class="range-field"><span>结算后弹速</span><small>真实面板</small><div><input id="post-shot-speed-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-shot-speed-max" type="number" step="any" placeholder="最大"></div></div>
+            <div class="range-field"><span>结算后幸运</span><small>真实面板</small><div><input id="post-luck-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-luck-max" type="number" step="any" placeholder="最大"></div></div>
+          </div>
+        </details>
+
+        <details class="search-settings">
+          <summary>扫描设置 <small>默认会检查全部 2³²−1 个可用值</small></summary>
+          <div class="field-grid three-columns">
+            <label><span>起点</span><input id="range-start" inputmode="numeric" value="1"></label>
+            <label><span>终点</span><input id="range-end" inputmode="numeric" value="4294967295"></label>
+            <label><span>线程</span><input id="threads" inputmode="numeric" value="8"><small>0 为自动，最多 64</small></label>
+          </div>
+        </details>
+
+        <div class="submit-row">
+          <div><strong id="criteria-summary">当前：实验性疗法</strong><small>被动 #240 始终作为必要条件。</small></div>
+          <div class="actions"><button class="secondary" id="cancel-button" type="button" disabled>停止</button><button class="primary" id="start-button" type="submit">开始扫描</button></div>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel progress-panel">
+      <div class="section-title compact"><div><p class="step">ROLLING</p><h2 id="state-label">等待开始</h2></div><strong id="percent-label">0.00%</strong></div>
+      <div class="progress-track"><div id="progress-bar"></div></div>
+      <div class="metrics">
+        <div><span>已扫描</span><strong id="scanned-value">0</strong></div><div><span>命中</span><strong id="matches-value">0</strong></div><div><span>耗时</span><strong id="elapsed-value">0.0 秒</strong></div><div><span>速度</span><strong id="speed-value">—</strong></div>
+      </div>
+      <p class="error" id="error-message" hidden></p>
+    </section>
+
+    <section class="panel results-panel treatment-results-panel">
+      <div class="section-title compact results-heading">
+        <div><p class="step">FOUND</p><h2>黄针开局</h2><p id="results-summary" class="section-copy">完成搜索后在这里显示结果。</p></div>
+        <div class="results-actions">
+          <label class="result-limit"><span>内存载入上限</span><input id="max-results" inputmode="numeric" type="number" min="1" max="10000" value="1000"><small>下次扫描生效，最多 10,000 条</small></label>
+          <a class="download disabled" id="download-link" href="#" download="experimental-treatment-seeds.txt">导出当前结果 TXT</a>
+        </div>
+      </div>
+      <div class="results-toolbar">
+        <div><strong id="view-sort-status">按种子数值从低到高 ↑</strong><small id="view-sort-detail">每项属性同时显示黄针结算前后数值。</small></div>
+        <div class="results-toolbar-actions"><button class="secondary compact-action" id="global-resort-button" type="button" hidden>重新扫描全局 Top‑N</button><label class="page-size-label"><span>每页</span><select id="page-size"><option value="25">25</option><option value="50" selected>50</option><option value="100">100</option></select></label></div>
+      </div>
+      <div class="table-wrap treatment-table-wrap">
+        <table class="treatment-results-table">
+          <thead><tr>
+            <th data-sort-key="seed" aria-sort="none"><button class="table-sort" type="button">种子 <span class="sort-indicator"></span></button></th>
+            <th>口袋物</th><th>主动</th><th>上升</th><th>下降</th><th>不变</th><th>资源</th><th>伤害</th><th>移速</th><th>射速</th><th>射程</th><th>弹速</th><th>幸运</th>
+          </tr></thead>
+          <tbody id="results-body"><tr><td colspan="13" class="empty">还没有搜索结果</td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pagination"><button class="secondary compact-action" id="previous-page" type="button" disabled>上一页</button><span id="page-status">第 0 / 0 页</span><button class="secondary compact-action" id="next-page" type="button" disabled>下一页</button></div>
+    </section>
+
+    <footer><span>非官方伊甸种子工具 · 游戏内结果为准</span><button id="shutdown-button" type="button">关闭本地程序</button></footer>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -4,9 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Isaac Seed Seeker</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/style.css">
 </head>
-<body>
+<body data-page="generic">
   <canvas id="basement-room" aria-hidden="true"></canvas>
   <main class="shell">
     <header class="hero">
@@ -37,6 +38,16 @@
           <button class="chip" id="clear-filters" type="button">清空条件</button>
         </div>
       </div>
+
+      <a class="special-search-card" id="treatment-page-link" href="/experimental-treatment.html">
+        <img src="/game-assets/passive/240.png" alt="" data-game-icon>
+        <span class="special-search-copy">
+          <small>特殊开局 · SPECIAL START</small>
+          <strong>实验性疗法</strong>
+          <span>筛选黄针的属性增减与结算后面板</span>
+        </span>
+        <b>进入专页 →</b>
+      </a>
 
       <form id="search-form">
         <section class="filter-group" aria-labelledby="pocket-heading">
@@ -150,31 +161,6 @@
           <p class="inline-note">属性使用游戏 Found HUD 口径，但不包含主动/被动道具带来的加成；胶囊按本局随机映射后的原始效果 ID 筛选，命中结果同时显示颜色。</p>
         </section>
 
-        <section class="filter-group" aria-labelledby="treatment-heading">
-          <div class="group-heading">
-            <div><span class="group-number">D</span><h3 id="treatment-heading">实验性疗法（黄针）</h3></div>
-            <p>仅计算开局被动道具 ID 240；填写任一条件后会自动只匹配黄针开局。</p>
-          </div>
-          <div class="field-grid three-columns treatment-directions">
-            <label><span>心之容器</span><select id="experimental-health"><option value="">不限</option><option value="up">上升</option><option value="down">下降</option><option value="unchanged">不变</option></select></label>
-            <label><span>移速</span><select id="experimental-move-speed"><option value="">不限</option><option value="up">上升</option><option value="down">下降</option><option value="unchanged">不变</option></select></label>
-            <label><span>射速</span><select id="experimental-tears"><option value="">不限</option><option value="up">上升</option><option value="down">下降</option><option value="unchanged">不变</option></select></label>
-            <label><span>伤害</span><select id="experimental-damage"><option value="">不限</option><option value="up">上升</option><option value="down">下降</option><option value="unchanged">不变</option></select></label>
-            <label><span>射程</span><select id="experimental-range"><option value="">不限</option><option value="up">上升</option><option value="down">下降</option><option value="unchanged">不变</option></select></label>
-            <label><span>弹速</span><select id="experimental-shot-speed"><option value="">不限</option><option value="up">上升</option><option value="down">下降</option><option value="unchanged">不变</option></select></label>
-            <label><span>幸运</span><select id="experimental-luck"><option value="">不限</option><option value="up">上升</option><option value="down">下降</option><option value="unchanged">不变</option></select></label>
-          </div>
-          <div class="range-grid post-item-ranges">
-            <div class="range-field"><span>结算后伤害</span><small>真实面板</small><div><input id="post-damage-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-damage-max" type="number" step="any" placeholder="最大"></div></div>
-            <div class="range-field"><span>结算后移速</span><small>真实面板</small><div><input id="post-move-speed-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-move-speed-max" type="number" step="any" placeholder="最大"></div></div>
-            <div class="range-field"><span>结算后射速</span><small>Found HUD</small><div><input id="post-tears-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-tears-max" type="number" step="any" placeholder="最大"></div></div>
-            <div class="range-field"><span>结算后射程</span><small>真实面板</small><div><input id="post-range-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-range-max" type="number" step="any" placeholder="最大"></div></div>
-            <div class="range-field"><span>结算后弹速</span><small>真实面板</small><div><input id="post-shot-speed-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-shot-speed-max" type="number" step="any" placeholder="最大"></div></div>
-            <div class="range-field"><span>结算后幸运</span><small>真实面板</small><div><input id="post-luck-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-luck-max" type="number" step="any" placeholder="最大"></div></div>
-          </div>
-          <p class="inline-note">黄针固定让 4 项上升、2 项下降、1 项不变。页面同时保留基础属性，结果栏会列出本局的变化方向和结算后数值。</p>
-        </section>
-
         <details class="search-settings">
           <summary>扫描设置 <small>默认会检查全部 2³²−1 个可用值</small></summary>
           <div class="field-grid three-columns">
@@ -249,7 +235,6 @@
               <th>口袋物</th>
               <th data-sort-key="active_quality" aria-sort="none"><button class="table-sort" type="button" title="品质相同按主动道具 ID 升序">主动 · 品质 <span class="sort-indicator"></span></button></th>
               <th data-sort-key="passive_quality" aria-sort="none"><button class="table-sort" type="button" title="品质相同按被动道具 ID 升序">被动 · 品质 <span class="sort-indicator"></span></button></th>
-              <th>黄针结果</th>
               <th data-sort-key="total_quality" aria-sort="none"><button class="table-sort" type="button" title="总品质相同先按主动 ID，再按被动 ID 升序">总品质 <span class="sort-indicator"></span></button></th>
               <th data-sort-key="health" aria-sort="none"><button class="table-sort" type="button" title="先比较红心，红心相同再比较魂心">血量 <span class="sort-indicator"></span></button></th>
               <th data-sort-key="coins" aria-sort="none"><button class="table-sort" type="button">钱 <span class="sort-indicator"></span></button></th>
@@ -263,7 +248,7 @@
               <th data-sort-key="luck" aria-sort="none"><button class="table-sort" type="button">幸运 <span class="sort-indicator"></span></button></th>
             </tr>
           </thead>
-          <tbody id="results-body"><tr><td colspan="16" class="empty">还没有搜索结果</td></tr></tbody>
+          <tbody id="results-body"><tr><td colspan="15" class="empty">还没有搜索结果</td></tr></tbody>
         </table>
       </div>
       <div class="pagination" id="pagination">

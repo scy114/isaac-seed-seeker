@@ -41,8 +41,10 @@ try {
         throw "server URL did not contain a session token"
     }
     $BaseUrl = $Matches[1]
-    $Headers = @{"X-Isaac-Token" = $Matches[2]}
+    $Token = $Matches[2]
+    $Headers = @{"X-Isaac-Token" = $Token}
     $Page = Invoke-WebRequest $Url -UseBasicParsing
+    $TreatmentPage = Invoke-WebRequest ($BaseUrl + "experimental-treatment.html?token=" + $Token) -UseBasicParsing
     $ClientScript = Invoke-WebRequest ($BaseUrl + "app.js") -UseBasicParsing
     $IsaacFont = Invoke-WebRequest ($BaseUrl + "assets/isaacsans.ttf") -UseBasicParsing
     $LanaPixelFont = Invoke-WebRequest ($BaseUrl + "assets/lanapixel.ttf") -UseBasicParsing
@@ -50,12 +52,18 @@ try {
     if (
         $Page.Content -notmatch 'id="red-hearts-min"' -or
         $Page.Content -notmatch 'id="coins-min"' -or
-        $Page.Content -notmatch 'id="experimental-damage"' -or
+        $Page.Content -notmatch 'id="treatment-page-link"' -or
         $Page.Content -notmatch 'data-sort-key="damage"' -or
+        $TreatmentPage.Content -notmatch 'data-page="treatment"' -or
+        $TreatmentPage.Content -notmatch 'id="experimental-damage"' -or
+        $TreatmentPage.Content -notmatch 'id="post-damage-min"' -or
+        $TreatmentPage.Content -notmatch 'id="generic-page-link"' -or
+        $TreatmentPage.Content -notmatch 'class="treatment-tagline"' -or
         $Page.Content -notmatch 'id="page-size"' -or
         $Page.Content -notmatch 'id="catalog-state"' -or
         $ClientScript.Content -notmatch "pill_effect_ids" -or
         $ClientScript.Content -notmatch "post_item_stats_available" -or
+        $ClientScript.Content -notmatch "treatmentMode" -or
         $ClientScript.Content -notmatch "sort_direction" -or
         $ClientScript.Content -notmatch "compareMatches" -or
         $ClientScript.Content -notmatch "class CatalogPicker" -or
@@ -65,6 +73,11 @@ try {
         $SeekerTitle.RawContentLength -lt 100000
     ) {
         throw "embedded WebUI does not expose the generic Eden filters"
+    }
+    if ($Page.Content -match 'id="experimental-damage"' -or
+        $Page.Content -match 'id="post-damage-min"' -or
+        $Page.Content -match '<th>黄针结果</th>') {
+        throw "generic WebUI still embeds the Experimental Treatment controls"
     }
     if (
         $Page.Content -match 'id="preset-target"' -or

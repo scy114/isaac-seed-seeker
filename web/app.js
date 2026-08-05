@@ -1,5 +1,7 @@
 const $ = (selector) => document.querySelector(selector);
 const number = new Intl.NumberFormat("zh-CN");
+const pageMode = document.body.dataset.page || "generic";
+const treatmentMode = pageMode === "treatment";
 const sessionToken = new URLSearchParams(window.location.search).get("token") || "";
 let pollTimer = null;
 let pocketCatalogKind = null;
@@ -383,7 +385,7 @@ class CatalogPicker {
   }
 }
 
-const rangeFields = [
+const baseRangeFields = [
   ["red-hearts", "红心"],
   ["soul-hearts", "魂心"],
   ["coins", "钱"],
@@ -395,6 +397,9 @@ const rangeFields = [
   ["range", "射程"],
   ["shot-speed", "弹速"],
   ["luck", "幸运"],
+];
+
+const postTreatmentRangeFields = [
   ["post-damage", "黄针结算后伤害"],
   ["post-move-speed", "黄针结算后移速"],
   ["post-tears", "黄针结算后射速"],
@@ -403,8 +408,13 @@ const rangeFields = [
   ["post-luck", "黄针结算后幸运"],
 ];
 
+const rangeFields = [
+  ...baseRangeFields,
+  ...(treatmentMode ? postTreatmentRangeFields : []),
+];
+
 const treatmentDirectionFields = [
-  ["health", "血量"],
+  ["health", "心容器"],
   ["move-speed", "移速"],
   ["tears", "射速"],
   ["damage", "伤害"],
@@ -430,12 +440,16 @@ const sortLabels = {
   bombs: "炸弹",
 };
 
+const resultColumnCount = treatmentMode ? 13 : 15;
+
 const filterInputIds = [
   "pocket-ids", "pocket-exclude-ids",
   "active-ids", "active-exclude-ids",
-  "passive-ids", "passive-exclude-ids",
+  ...(treatmentMode ? [] : ["passive-ids", "passive-exclude-ids"]),
   ...rangeFields.flatMap(([name]) => [`${name}-min`, `${name}-max`]),
-  ...treatmentDirectionFields.map(([name]) => `experimental-${name}`),
+  ...(treatmentMode
+    ? treatmentDirectionFields.map(([name]) => `experimental-${name}`)
+    : []),
 ];
 
 function setPickerIds(inputId, ids, notify = false) {
@@ -453,8 +467,10 @@ function mountCatalogPickers() {
     ["pocket-exclude-ids", pocketKind, true],
     ["active-ids", "active", false],
     ["active-exclude-ids", "active", true],
-    ["passive-ids", "passive", false],
-    ["passive-exclude-ids", "passive", true],
+    ...(treatmentMode ? [] : [
+      ["passive-ids", "passive", false],
+      ["passive-exclude-ids", "passive", true],
+    ]),
   ];
   for (const [inputId, kind, exclude] of configurations) {
     if (!catalogPickers.has(inputId)) {
@@ -534,20 +550,23 @@ function updatePocketControls(clearOnKindChange = false) {
 }
 
 function selectedCriteriaLabels() {
-  const labels = [];
+  const labels = treatmentMode ? ["实验性疗法"] : [];
   const kind = $("#pocket-kind").value;
   const pocketNames = {none: "无口袋物", trinket: "饰品", card: "卡牌", pill: "胶囊"};
   if (kind) labels.push(pocketNames[kind]);
   else if ($("#pocket-ids").value.trim()) labels.push("口袋物");
   if ($("#active-ids").value.trim() || $("#active-exclude-ids").value.trim()) labels.push("主动");
-  if ($("#passive-ids").value.trim() || $("#passive-exclude-ids").value.trim()) labels.push("被动");
+  if (!treatmentMode
+      && ($("#passive-ids").value.trim() || $("#passive-exclude-ids").value.trim())) {
+    labels.push("被动");
+  }
   const statCount = rangeFields.filter(([name]) =>
     $(`#${name}-min`).value.trim() || $(`#${name}-max`).value.trim()
   ).length;
   if (statCount) labels.push(`${statCount} 项数值`);
-  const directionCount = treatmentDirectionFields.filter(([name]) =>
-    $(`#experimental-${name}`).value
-  ).length;
+  const directionCount = treatmentMode
+    ? treatmentDirectionFields.filter(([name]) => $(`#experimental-${name}`).value).length
+    : 0;
   if (directionCount) labels.push(`${directionCount} 项黄针方向`);
   return labels;
 }
@@ -559,12 +578,39 @@ function updateCriteriaSummary() {
     : "当前没有筛选条件";
 }
 
+function syncDirectionButtons() {
+  if (!treatmentMode) return;
+  document.querySelectorAll(".direction-field[data-direction-field]").forEach((field) => {
+    const input = $(`#experimental-${field.dataset.directionField}`);
+    field.querySelectorAll("button[data-value]").forEach((button) => {
+      const selected = button.dataset.value === input.value;
+      button.setAttribute("aria-pressed", String(selected));
+    });
+  });
+}
+
+function initializePageLinks() {
+  const withToken = (path) => {
+    const url = new URL(path, window.location.origin);
+    if (sessionToken) url.searchParams.set("token", sessionToken);
+    return `${url.pathname}${url.search}`;
+  };
+  const treatmentLink = $("#treatment-page-link");
+  if (treatmentLink) treatmentLink.href = withToken("/experimental-treatment.html");
+  const genericLink = $("#generic-page-link");
+  if (genericLink) genericLink.href = withToken("/");
+  document.querySelectorAll("img[data-game-icon]").forEach((image) => {
+    image.addEventListener("error", () => image.classList.add("is-missing"), {once: true});
+  });
+}
+
 function clearFilters() {
   $("#pocket-kind").value = "";
   filterInputIds.forEach((id) => {
     if (catalogPickers.has(id)) setPickerIds(id, []);
     else $(`#${id}`).value = "";
   });
+  syncDirectionButtons();
   updatePocketControls(false);
   updateCriteriaSummary();
 }
@@ -588,8 +634,12 @@ function buildSearchPayload() {
   }
   setOptionalIds(payload, "active_ids", "#active-ids", "主动道具 ID");
   setOptionalIds(payload, "active_exclude_ids", "#active-exclude-ids", "排除主动道具 ID");
-  setOptionalIds(payload, "passive_ids", "#passive-ids", "被动道具 ID");
-  setOptionalIds(payload, "passive_exclude_ids", "#passive-exclude-ids", "排除被动道具 ID");
+  if (treatmentMode) {
+    payload.passive_ids = [240];
+  } else {
+    setOptionalIds(payload, "passive_ids", "#passive-ids", "被动道具 ID");
+    setOptionalIds(payload, "passive_exclude_ids", "#passive-exclude-ids", "排除被动道具 ID");
+  }
 
   rangeFields.forEach(([name, label]) => {
     const minimum = parseOptionalNumber($(`#${name}-min`).value, `${label}最小值`);
@@ -601,10 +651,12 @@ function buildSearchPayload() {
     if (maximum !== null) payload[`${name.replaceAll("-", "_")}_max`] = maximum;
   });
 
-  treatmentDirectionFields.forEach(([name]) => {
-    const value = $(`#experimental-${name}`).value;
-    if (value) payload[`experimental_${name.replaceAll("-", "_")}`] = value;
-  });
+  if (treatmentMode) {
+    treatmentDirectionFields.forEach(([name]) => {
+      const value = $(`#experimental-${name}`).value;
+      if (value) payload[`experimental_${name.replaceAll("-", "_")}`] = value;
+    });
+  }
 
   const integerRangeLimits = {
     "red-hearts": [0, 3],
@@ -737,15 +789,7 @@ function appendPocketCell(row, match) {
   return appendCell(row, pocketLabel(match), "id-value");
 }
 
-function appendTreatmentCell(row, match) {
-  const cell = document.createElement("td");
-  cell.className = "treatment-cell";
-  if (!match.post_item_stats_available) {
-    cell.textContent = "—";
-    row.appendChild(cell);
-    return cell;
-  }
-
+function treatmentDirections(match) {
   const up = [];
   const down = [];
   const unchanged = [];
@@ -755,26 +799,54 @@ function appendTreatmentCell(row, match) {
     else if ((match.experimental_treatment_down_mask & bit) !== 0) down.push(label);
     else unchanged.push(label);
   });
+  return {up, down, unchanged};
+}
 
-  const directions = document.createElement("span");
-  directions.className = "treatment-direction-summary";
-  const upCopy = document.createElement("strong");
-  upCopy.className = "delta-positive";
-  upCopy.textContent = `↑ ${up.join("、")}`;
-  const downCopy = document.createElement("strong");
-  downCopy.className = "delta-negative";
-  downCopy.textContent = `↓ ${down.join("、")}`;
-  const sameCopy = document.createElement("small");
-  sameCopy.textContent = `＝ ${unchanged.join("、")}`;
-  directions.append(upCopy, downCopy, sameCopy);
-
-  const stats = document.createElement("small");
-  stats.className = "treatment-stats";
-  stats.textContent = `伤 ${formatStat(match.post_damage)} · 移 ${formatStat(match.post_move_speed)} · 射 ${formatStat(match.post_tears)} · 程 ${formatStat(match.post_range)} · 弹 ${formatStat(match.post_shot_speed)} · 运 ${formatStat(match.post_luck)}`;
-  stats.title = "黄针结算后的伤害、移速、射速、射程、弹速和幸运";
-  cell.append(directions, stats);
+function appendDirectionCell(row, values, kind) {
+  const cell = document.createElement("td");
+  cell.className = `direction-result direction-result-${kind}`;
+  if (!values.length) {
+    cell.textContent = "—";
+  } else {
+    values.forEach((value) => {
+      const badge = document.createElement("span");
+      badge.textContent = value;
+      cell.appendChild(badge);
+    });
+  }
   row.appendChild(cell);
   return cell;
+}
+
+function appendTransitionStatCell(row, before, after) {
+  const cell = document.createElement("td");
+  cell.className = "transition-stat";
+  const wrapper = document.createElement("span");
+  wrapper.className = "transition-stat-copy";
+  const beforeCopy = document.createElement("small");
+  beforeCopy.textContent = formatStat(before);
+  const arrow = document.createElement("strong");
+  const difference = Number(after) - Number(before);
+  const direction = difference > 1.0e-9 ? "up" : (difference < -1.0e-9 ? "down" : "same");
+  arrow.className = `transition-${direction}`;
+  arrow.textContent = direction === "up" ? "↑" : (direction === "down" ? "↓" : "＝");
+  const afterCopy = document.createElement("b");
+  afterCopy.textContent = formatStat(after);
+  wrapper.append(beforeCopy, arrow, afterCopy);
+  cell.appendChild(wrapper);
+  row.appendChild(cell);
+  return cell;
+}
+
+function appendSeedCell(row, match) {
+  const seedCell = document.createElement("td");
+  seedCell.className = "seed-cell";
+  const seed = document.createElement("strong");
+  seed.textContent = match.seed;
+  const raw = document.createElement("small");
+  raw.textContent = number.format(match.seed_u32);
+  seedCell.append(seed, raw);
+  row.appendChild(seedCell);
 }
 
 function compareAscending(left, right) {
@@ -834,20 +906,12 @@ function updateSortHeaders() {
   $("#view-sort-status").textContent = `${currentOrderLabel()} ${currentSortDirection === "asc" ? "↑" : "↓"}`;
 }
 
-function createResultRow(match) {
+function createGenericResultRow(match) {
   const row = document.createElement("tr");
-  const seedCell = document.createElement("td");
-  seedCell.className = "seed-cell";
-  const seed = document.createElement("strong");
-  seed.textContent = match.seed;
-  const raw = document.createElement("small");
-  raw.textContent = number.format(match.seed_u32);
-  seedCell.append(seed, raw);
-  row.appendChild(seedCell);
+  appendSeedCell(row, match);
   appendPocketCell(row, match);
   appendNamedItemCell(row, "active", match.active_id, `Q${match.active_quality} · #${match.active_id}`, "主动");
   appendNamedItemCell(row, "passive", match.passive_id, `Q${match.passive_quality} · #${match.passive_id}`, "被动");
-  appendTreatmentCell(row, match);
   appendCell(row, `Q${match.total_quality}`, "quality-value");
   appendCell(row, `${match.red_hearts} 红 / ${match.soul_hearts} 魂`);
   appendCell(row, match.coins);
@@ -862,6 +926,29 @@ function createResultRow(match) {
   return row;
 }
 
+function createTreatmentResultRow(match) {
+  const row = document.createElement("tr");
+  appendSeedCell(row, match);
+  appendPocketCell(row, match);
+  appendNamedItemCell(row, "active", match.active_id, `Q${match.active_quality} · #${match.active_id}`, "主动");
+  const directions = treatmentDirections(match);
+  appendDirectionCell(row, directions.up, "up");
+  appendDirectionCell(row, directions.down, "down");
+  appendDirectionCell(row, directions.unchanged, "same");
+  appendCell(row, `${match.coins}¢ · ${match.keys}钥 · ${match.bombs}弹`, "resource-result");
+  appendTransitionStatCell(row, match.damage, match.post_damage);
+  appendTransitionStatCell(row, match.move_speed, match.post_move_speed);
+  appendTransitionStatCell(row, match.tears, match.post_tears);
+  appendTransitionStatCell(row, match.range, match.post_range);
+  appendTransitionStatCell(row, match.shot_speed, match.post_shot_speed);
+  appendTransitionStatCell(row, match.luck, match.post_luck);
+  return row;
+}
+
+function createResultRow(match) {
+  return treatmentMode ? createTreatmentResultRow(match) : createGenericResultRow(match);
+}
+
 function renderResults() {
   updateSortHeaders();
   const matches = currentResult?.matches || [];
@@ -872,9 +959,9 @@ function renderResults() {
   const pageMatches = matches.slice(firstIndex, firstIndex + pageSize);
   const body = $("#results-body");
   if (!currentResult) {
-    body.innerHTML = '<tr><td colspan="16" class="empty">还没有搜索结果</td></tr>';
+    body.innerHTML = `<tr><td colspan="${resultColumnCount}" class="empty">还没有搜索结果</td></tr>`;
   } else if (!matches.length) {
-    body.innerHTML = '<tr><td colspan="16" class="empty">没有命中当前条件</td></tr>';
+    body.innerHTML = `<tr><td colspan="${resultColumnCount}" class="empty">没有命中当前条件</td></tr>`;
   } else {
     body.replaceChildren(...pageMatches.map(createResultRow));
   }
@@ -887,7 +974,9 @@ function renderResults() {
 
   if (!currentResult) {
     $("#results-summary").textContent = "完成搜索后在这里显示结果。";
-    $("#view-sort-detail").textContent = "结果会保存在浏览器内存中，表格只渲染当前页。";
+    $("#view-sort-detail").textContent = treatmentMode
+      ? "黄针前后属性会并排显示，表格只渲染当前页。"
+      : "结果会保存在浏览器内存中，表格只渲染当前页。";
     $("#global-resort-button").hidden = true;
     $("#download-link").classList.add("disabled");
     return;
@@ -897,7 +986,9 @@ function renderResults() {
   const exactGlobalOrder = backendOrderIsCurrent();
   if (!currentResult.truncated) {
     $("#results-summary").textContent = `共命中并载入 ${number.format(currentResult.total_count)} 条，已按${order}排序。`;
-    $("#view-sort-detail").textContent = "当前内存中包含全部命中，点击任意列都会立即进行精确全量排序。";
+    $("#view-sort-detail").textContent = treatmentMode
+      ? "当前内存中包含全部命中；每项面板显示黄针结算前 → 结算后。"
+      : "当前内存中包含全部命中，点击任意列都会立即进行精确全量排序。";
   } else if (exactGlobalOrder) {
     $("#results-summary").textContent = `总命中 ${number.format(currentResult.total_count)} 条，已载入按${order}选出的全局前 ${number.format(matches.length)} 条。`;
     $("#view-sort-detail").textContent = "当前载入的是完整扫描得到的全局 Top‑N；点击其他列会先即时重排这批结果。";
@@ -981,7 +1072,7 @@ async function beginSearch(payload) {
   currentResult = null;
   currentPage = 1;
   renderResults();
-  $("#results-body").innerHTML = '<tr><td colspan="16" class="empty">扫描进行中…</td></tr>';
+  $("#results-body").innerHTML = `<tr><td colspan="${resultColumnCount}" class="empty">扫描进行中…</td></tr>`;
   $("#results-summary").textContent = "正在计算候选种子。";
   $("#view-sort-detail").textContent = `扫描完成后将按${currentOrderLabel()}载入结果。`;
   $("#download-link").classList.add("disabled");
@@ -1009,6 +1100,19 @@ $("#pocket-kind").addEventListener("change", () => {
 });
 
 $("#search-form").addEventListener("input", updateCriteriaSummary);
+
+if (treatmentMode) {
+  document.querySelectorAll(".direction-field[data-direction-field]").forEach((field) => {
+    const input = $(`#experimental-${field.dataset.directionField}`);
+    field.querySelectorAll("button[data-value]").forEach((button) => {
+      button.addEventListener("click", () => {
+        input.value = button.dataset.value;
+        syncDirectionButtons();
+        input.dispatchEvent(new Event("input", {bubbles: true}));
+      });
+    });
+  });
+}
 
 document.querySelectorAll("th[data-sort-key]").forEach((header) => {
   header.querySelector(".table-sort").addEventListener("click", () => {
@@ -1067,7 +1171,7 @@ $("#download-link").addEventListener("click", (event) => {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = "isaac-seeds.txt";
+  anchor.download = treatmentMode ? "experimental-treatment-seeds.txt" : "isaac-seeds.txt";
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
@@ -1088,6 +1192,8 @@ document.addEventListener("pointerdown", (event) => {
 });
 
 updatePocketControls(false);
+initializePageLinks();
+syncDirectionButtons();
 updateCriteriaSummary();
 renderResults();
 initializeBasementBackdrop().catch(() => {

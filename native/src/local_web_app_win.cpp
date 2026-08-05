@@ -955,6 +955,7 @@ int run_local_web_app(bool open_browser) {
     const auto isaac_sans_font = load_resource(IDR_ISAAC_SANS_FONT);
     const auto seeker_title = load_resource(IDR_SEEKER_TITLE);
     const auto lana_pixel_font = load_resource(IDR_LANA_PIXEL_FONT);
+    const auto treatment_html = load_resource(IDR_WEB_TREATMENT);
     const GameIconCatalog game_icons;
     SearchSession session;
     std::cout << "Isaac Seed Seeker: " << url << std::endl;
@@ -989,6 +990,10 @@ int run_local_web_app(bool open_browser) {
                 respond(client, 403, "Forbidden", "application/json; charset=utf-8", "{\"error\":\"invalid session token\"}");
             } else if (request.method == "GET" && (request.path == "/" || request.path.starts_with("/?"))) {
                 respond(client, 200, "OK", "text/html; charset=utf-8", index_html);
+            } else if (request.method == "GET"
+                       && (request.path == "/experimental-treatment.html"
+                           || request.path.starts_with("/experimental-treatment.html?"))) {
+                respond(client, 200, "OK", "text/html; charset=utf-8", treatment_html);
             } else if (request.method == "GET" && request.path == "/style.css") {
                 respond(client, 200, "OK", "text/css; charset=utf-8", style_css);
             } else if (request.method == "GET" && request.path == "/app.js") {
