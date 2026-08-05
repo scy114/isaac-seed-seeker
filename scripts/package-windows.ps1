@@ -58,6 +58,7 @@ $UsageFileName += ".txt"
 Copy-Item -LiteralPath $BuiltExe -Destination $PackagedExe
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "docs\quick-start.zh-CN.txt") -Destination (Join-Path $StageDir $UsageFileName)
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "packaging\windows\NOTICE.txt") -Destination (Join-Path $StageDir "NOTICE.txt")
+Copy-Item -LiteralPath (Join-Path $ProjectRoot "LICENSE") -Destination (Join-Path $StageDir "LICENSE.txt")
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "assets\fonts\LICENSE-LanaPixel.txt") -Destination (Join-Path $LicensesDir "LanaPixel-OFL-1.1.txt")
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "assets\fonts\LICENSE-IsaacSans.txt") -Destination (Join-Path $LicensesDir "IsaacSans-Public-Domain.txt")
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "data\catalog\NOTICE.md") -Destination (Join-Path $LicensesDir "Item-Catalog-CC0.md")
@@ -94,6 +95,10 @@ try {
     $ExtractedExe = Join-Path $VerifyRoot "$PackageName\IsaacSeedSeeker.exe"
     if (-not (Test-Path -LiteralPath $ExtractedExe -PathType Leaf)) {
         throw "The archive is missing IsaacSeedSeeker.exe"
+    }
+    $ExtractedLicense = Join-Path $VerifyRoot "$PackageName\LICENSE.txt"
+    if (-not (Test-Path -LiteralPath $ExtractedLicense -PathType Leaf)) {
+        throw "The archive is missing LICENSE.txt"
     }
     $ExtractedHash = (Get-FileHash -LiteralPath $ExtractedExe -Algorithm SHA256).Hash.ToLowerInvariant()
     if ($ExtractedHash -ne $ExeHash) {

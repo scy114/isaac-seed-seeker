@@ -9,6 +9,7 @@ description = "Truth-first Eden seed filtering for The Binding of Isaac: Repenta
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "Isaac Seed Seeker contributors" }]
+license = { file = "LICENSE" }
 dependencies = []
 
 [project.optional-dependencies]

@@ -3,6 +3,8 @@ Isaac Seed Seeker - Distribution Notice
 
 Isaac Seed Seeker is an unofficial fan-made utility and is not affiliated with or endorsed by Edmund McMillen, Nicalis, or Valve.
 
+Original project code is licensed under the MIT License. The full license is included in LICENSE.txt.
+
 The package does not redistribute extracted game artwork. When available, the application reads item icons and background assets from the player's own local Steam installation.
 
 Bundled third-party resources:
@@ -21,4 +23,3 @@ Bundled third-party resources:
    Provenance is included in LICENSES/Item-Catalog-CC0.md.
 
 Research acknowledgements and upstream project links are documented in the source repository README and docs/research.md. No source files from those upstream projects are included in this distribution.
-
