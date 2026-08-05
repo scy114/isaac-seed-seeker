@@ -13,6 +13,7 @@
 #include <shellapi.h>
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cctype>
 #include <charconv>
@@ -199,10 +200,20 @@ SortKey parse_sort_key(std::string_view text) {
     if (text == "range") return SortKey::range;
     if (text == "shot_speed") return SortKey::shot_speed;
     if (text == "luck") return SortKey::luck;
+    if (text == "coins") return SortKey::coins;
+    if (text == "keys") return SortKey::keys;
+    if (text == "bombs") return SortKey::bombs;
     if (text == "active_quality") return SortKey::active_quality;
     if (text == "passive_quality") return SortKey::passive_quality;
     if (text == "total_quality") return SortKey::total_quality;
     throw std::invalid_argument("invalid sort_key");
+}
+
+ExperimentalTreatmentDirection parse_treatment_direction(std::string_view text) {
+    if (text == "up") return ExperimentalTreatmentDirection::up;
+    if (text == "down") return ExperimentalTreatmentDirection::down;
+    if (text == "unchanged") return ExperimentalTreatmentDirection::unchanged;
+    throw std::invalid_argument("invalid Experimental Treatment direction");
 }
 
 SortDirection parse_sort_direction(std::string_view text) {
@@ -264,6 +275,9 @@ EdenCriteria json_criteria(std::string_view body) {
     };
     range("red_hearts", criteria.red_hearts);
     range("soul_hearts", criteria.soul_hearts);
+    range("coins", criteria.coins);
+    range("keys", criteria.keys);
+    range("bombs", criteria.bombs);
     range("damage", criteria.damage);
     range("move_speed", criteria.move_speed);
     range("tears", criteria.tears);
@@ -275,6 +289,22 @@ EdenCriteria json_criteria(std::string_view body) {
     range("tears_delta", criteria.tears_delta);
     range("shot_speed_delta", criteria.shot_speed_delta);
     range("luck_delta", criteria.luck_delta);
+    range("post_damage", criteria.post_damage);
+    range("post_move_speed", criteria.post_move_speed);
+    range("post_tears", criteria.post_tears);
+    range("post_range", criteria.post_range);
+    range("post_shot_speed", criteria.post_shot_speed);
+    range("post_luck", criteria.post_luck);
+    constexpr std::array treatment_fields{
+        "experimental_health", "experimental_move_speed", "experimental_tears",
+        "experimental_damage", "experimental_range", "experimental_shot_speed",
+        "experimental_luck",
+    };
+    for (std::size_t index = 0; index < treatment_fields.size(); ++index) {
+        if (const auto value = optional_json_string(body, treatment_fields[index])) {
+            criteria.experimental_treatment_directions[index] = parse_treatment_direction(*value);
+        }
+    }
     criteria.validate();
     return criteria;
 }
@@ -295,6 +325,9 @@ void append_start_json(std::ostream& output, const EdenStart& start, std::string
            << ",\"total_quality\":" << start.active_quality + start.passive_quality
            << ",\"red_hearts\":" << start.red_hearts
            << ",\"soul_hearts\":" << start.soul_hearts
+           << ",\"coins\":" << start.coins
+           << ",\"keys\":" << start.keys
+           << ",\"bombs\":" << start.bombs
            << ",\"damage\":" << start.damage
            << ",\"move_speed\":" << start.move_speed
            << ",\"tears\":" << start.tears
@@ -305,7 +338,19 @@ void append_start_json(std::ostream& output, const EdenStart& start, std::string
            << ",\"move_speed_delta\":" << start.move_speed_delta
            << ",\"tears_delta\":" << start.tears_delta
            << ",\"shot_speed_delta\":" << start.shot_speed_delta
-           << ",\"luck_delta\":" << start.luck_delta << '}';
+           << ",\"luck_delta\":" << start.luck_delta
+           << ",\"post_item_stats_available\":"
+           << (start.post_item_stats_available ? "true" : "false")
+           << ",\"experimental_treatment_up_mask\":"
+           << static_cast<unsigned>(start.experimental_treatment_up_mask)
+           << ",\"experimental_treatment_down_mask\":"
+           << static_cast<unsigned>(start.experimental_treatment_down_mask)
+           << ",\"post_damage\":" << start.post_damage
+           << ",\"post_move_speed\":" << start.post_move_speed
+           << ",\"post_tears\":" << start.post_tears
+           << ",\"post_range\":" << start.post_range
+           << ",\"post_shot_speed\":" << start.post_shot_speed
+           << ",\"post_luck\":" << start.post_luck << '}';
 }
 
 class SearchSession {
@@ -436,9 +481,11 @@ public:
         output << std::setprecision(10)
                << "seed\tseed_u32\tpocket_kind\tpocket_id\tpill_color\tactive_id\tpassive_id"
                   "\tactive_quality\tpassive_quality\ttotal_quality"
-                  "\tred_hearts\tsoul_hearts\tdamage\tmove_speed\ttears\trange"
+                  "\tred_hearts\tsoul_hearts\tcoins\tkeys\tbombs\tdamage\tmove_speed\ttears\trange"
                   "\tshot_speed\tluck\tdamage_delta\tmove_speed_delta\ttears_delta"
-                  "\tshot_speed_delta\tluck_delta\n";
+                  "\tshot_speed_delta\tluck_delta\tpost_item_stats_available"
+                  "\texperimental_treatment_up_mask\texperimental_treatment_down_mask"
+                  "\tpost_damage\tpost_move_speed\tpost_tears\tpost_range\tpost_shot_speed\tpost_luck\n";
         for (const auto& match : result_.matches) {
             output << match.label << '\t' << match.start.seed
                    << '\t' << pocket_kind_name(match.start.pocket_kind) << '\t' << match.start.pocket_id
@@ -447,12 +494,20 @@ public:
                    << '\t' << match.start.active_quality << '\t' << match.start.passive_quality
                    << '\t' << match.start.active_quality + match.start.passive_quality
                    << '\t' << match.start.red_hearts << '\t' << match.start.soul_hearts
+                   << '\t' << match.start.coins << '\t' << match.start.keys
+                   << '\t' << match.start.bombs
                    << '\t' << match.start.damage << '\t' << match.start.move_speed
                    << '\t' << match.start.tears << '\t' << match.start.range
                    << '\t' << match.start.shot_speed << '\t' << match.start.luck
                    << '\t' << match.start.damage_delta << '\t' << match.start.move_speed_delta
                    << '\t' << match.start.tears_delta
-                   << '\t' << match.start.shot_speed_delta << '\t' << match.start.luck_delta << '\n';
+                   << '\t' << match.start.shot_speed_delta << '\t' << match.start.luck_delta
+                   << '\t' << (match.start.post_item_stats_available ? 1 : 0)
+                   << '\t' << static_cast<unsigned>(match.start.experimental_treatment_up_mask)
+                   << '\t' << static_cast<unsigned>(match.start.experimental_treatment_down_mask)
+                   << '\t' << match.start.post_damage << '\t' << match.start.post_move_speed
+                   << '\t' << match.start.post_tears << '\t' << match.start.post_range
+                   << '\t' << match.start.post_shot_speed << '\t' << match.start.post_luck << '\n';
         }
         return output.str();
     }

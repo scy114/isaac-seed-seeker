@@ -96,6 +96,22 @@ int main(int argc, char** argv) {
         require_near(card_with_items.soul_hearts, 0.0, "card seed soul hearts mismatch");
         require_near(card_with_items.damage_delta, -0.6225863096, "card seed damage mismatch");
         require_near(card_with_items.range, 7.194700883, "card seed range mismatch");
+        require(card_with_items.coins == 0, "card seed coins mismatch");
+        require(card_with_items.keys == 0, "card seed keys mismatch");
+        require(card_with_items.bombs == 1, "card seed bombs mismatch");
+
+        const auto key_start = iss::predict_eden_start(1U, builtin);
+        require(key_start.coins == 0, "key seed coins mismatch");
+        require(key_start.keys == 1, "key seed keys mismatch");
+        require(key_start.bombs == 0, "key seed bombs mismatch");
+        const auto coin_start = iss::predict_eden_start(8U, builtin);
+        require(coin_start.coins == 2, "coin seed coins mismatch");
+        require(coin_start.keys == 0, "coin seed keys mismatch");
+        require(coin_start.bombs == 0, "coin seed bombs mismatch");
+        require(iss::predict_eden_start(18U, builtin).coins == 5,
+                "maximum starting coins mismatch");
+        require(iss::predict_eden_start(33U, builtin).bombs == 2,
+                "maximum starting bombs mismatch");
 
         const auto pill_start = iss::predict_eden_start(5U, builtin);
         require(pill_start.pocket_kind == iss::PocketKind::pill, "pill pocket kind mismatch");
@@ -135,6 +151,60 @@ int main(int argc, char** argv) {
         const auto special_card_start = iss::predict_eden_start(117U, builtin);
         require(special_card_start.pocket_kind == iss::PocketKind::card, "special card kind mismatch");
         require(special_card_start.pocket_id == 43, "special card ID mismatch");
+
+        const auto experimental_treatment = iss::predict_eden_start(20U, builtin);
+        require(experimental_treatment.passive_id == 240,
+                "Experimental Treatment passive mismatch");
+        require(experimental_treatment.post_item_stats_available,
+                "Experimental Treatment post-item stats missing");
+        require(experimental_treatment.experimental_treatment_up_mask == 77,
+                "Experimental Treatment up mask mismatch");
+        require(experimental_treatment.experimental_treatment_down_mask == 34,
+                "Experimental Treatment down mask mismatch");
+        require_near(experimental_treatment.post_damage, 5.0035222145,
+                     "Experimental Treatment post damage mismatch");
+        require_near(experimental_treatment.post_move_speed, 0.8481249463,
+                     "Experimental Treatment post speed mismatch");
+        require_near(experimental_treatment.post_tears, 2.803615803,
+                     "Experimental Treatment post tears mismatch");
+        require_near(experimental_treatment.post_range, 6.012483505,
+                     "Experimental Treatment post range mismatch");
+        require_near(experimental_treatment.post_shot_speed, 0.9717903773,
+                     "Experimental Treatment post shot speed mismatch");
+        require_near(experimental_treatment.post_luck, 0.4833137638,
+                     "Experimental Treatment post luck mismatch");
+
+        iss::EdenCriteria treatment_criteria;
+        treatment_criteria.experimental_treatment_directions[
+            static_cast<std::size_t>(iss::ExperimentalTreatmentStat::health)
+        ] = iss::ExperimentalTreatmentDirection::up;
+        treatment_criteria.experimental_treatment_directions[
+            static_cast<std::size_t>(iss::ExperimentalTreatmentStat::damage)
+        ] = iss::ExperimentalTreatmentDirection::up;
+        treatment_criteria.experimental_treatment_directions[
+            static_cast<std::size_t>(iss::ExperimentalTreatmentStat::range)
+        ] = iss::ExperimentalTreatmentDirection::unchanged;
+        treatment_criteria.post_damage.minimum = 5.0;
+        treatment_criteria.post_damage.maximum = 5.01;
+        treatment_criteria.validate();
+        iss::SearchOptions treatment_options;
+        treatment_options.start = 20U;
+        treatment_options.end = 20U;
+        treatment_options.threads = 1;
+        const auto treatment_result = iss::search(builtin, treatment_criteria, treatment_options);
+        require(treatment_result.total_matches == 1,
+                "Experimental Treatment fast search path mismatch");
+
+        auto invalid_treatment = treatment_criteria;
+        invalid_treatment.passive_items.none_of = {240};
+        bool rejected_treatment_conflict = false;
+        try {
+            invalid_treatment.validate();
+        } catch (const std::invalid_argument&) {
+            rejected_treatment_conflict = true;
+        }
+        require(rejected_treatment_conflict,
+                "conflicting Experimental Treatment criteria were accepted");
 
         constexpr std::uint32_t reported_card_false_positive = 230'816'840U;
         require(iss::seed_to_string(reported_card_false_positive) == "AJ1J HPQF",
@@ -240,6 +310,47 @@ int main(int argc, char** argv) {
         require(generic_result.total_matches == 1, "generic criteria count mismatch");
         require(generic_result.matches.size() == 1, "generic criteria stored result mismatch");
         require(generic_result.matches.front().start.seed == 2U, "generic criteria seed mismatch");
+
+        iss::EdenCriteria resource_criteria;
+        resource_criteria.coins.minimum = 2.0;
+        resource_criteria.coins.maximum = 2.0;
+        iss::SearchOptions resource_options;
+        resource_options.end = 10U;
+        resource_options.threads = 1;
+        const auto resource_result = iss::search(builtin, resource_criteria, resource_options);
+        require(resource_result.total_matches == 1, "coin criteria count mismatch");
+        require(resource_result.matches.front().start.seed == 8U,
+                "coin criteria seed mismatch");
+        auto invalid_resources = resource_criteria;
+        invalid_resources.coins.minimum = 2.5;
+        bool rejected_fractional_resource = false;
+        try {
+            invalid_resources.validate();
+        } catch (const std::invalid_argument&) {
+            rejected_fractional_resource = true;
+        }
+        require(rejected_fractional_resource, "fractional resource bound was accepted");
+
+        iss::EdenCriteria resource_sort_criteria;
+        resource_sort_criteria.coins.minimum = 0.0;
+        iss::SearchOptions resource_sort_options;
+        resource_sort_options.end = 30U;
+        resource_sort_options.threads = 2;
+        resource_sort_options.max_results = 5U;
+        resource_sort_options.sort_key = iss::SortKey::coins;
+        resource_sort_options.sort_direction = iss::SortDirection::descending;
+        const auto resource_sorted = iss::search(
+            builtin,
+            resource_sort_criteria,
+            resource_sort_options
+        );
+        require(resource_sorted.matches.front().start.coins == 5,
+                "coin sort did not retain maximum starting coins");
+        for (std::size_t index = 1; index < resource_sorted.matches.size(); ++index) {
+            require(resource_sorted.matches[index - 1].start.coins
+                        >= resource_sorted.matches[index].start.coins,
+                    "coin results are not descending");
+        }
 
         iss::EdenCriteria reported_card;
         reported_card.pocket_kind = iss::PocketKind::card;

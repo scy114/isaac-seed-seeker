@@ -386,9 +386,28 @@ class CatalogPicker {
 const rangeFields = [
   ["red-hearts", "红心"],
   ["soul-hearts", "魂心"],
+  ["coins", "钱"],
+  ["keys", "钥匙"],
+  ["bombs", "炸弹"],
   ["damage", "伤害"],
   ["move-speed", "移速"],
   ["tears", "射速"],
+  ["range", "射程"],
+  ["shot-speed", "弹速"],
+  ["luck", "幸运"],
+  ["post-damage", "黄针结算后伤害"],
+  ["post-move-speed", "黄针结算后移速"],
+  ["post-tears", "黄针结算后射速"],
+  ["post-range", "黄针结算后射程"],
+  ["post-shot-speed", "黄针结算后弹速"],
+  ["post-luck", "黄针结算后幸运"],
+];
+
+const treatmentDirectionFields = [
+  ["health", "血量"],
+  ["move-speed", "移速"],
+  ["tears", "射速"],
+  ["damage", "伤害"],
   ["range", "射程"],
   ["shot-speed", "弹速"],
   ["luck", "幸运"],
@@ -406,6 +425,9 @@ const sortLabels = {
   active_quality: "主动道具品质",
   passive_quality: "被动道具品质",
   total_quality: "开局道具总品质",
+  coins: "钱",
+  keys: "钥匙",
+  bombs: "炸弹",
 };
 
 const filterInputIds = [
@@ -413,6 +435,7 @@ const filterInputIds = [
   "active-ids", "active-exclude-ids",
   "passive-ids", "passive-exclude-ids",
   ...rangeFields.flatMap(([name]) => [`${name}-min`, `${name}-max`]),
+  ...treatmentDirectionFields.map(([name]) => `experimental-${name}`),
 ];
 
 function setPickerIds(inputId, ids, notify = false) {
@@ -521,7 +544,11 @@ function selectedCriteriaLabels() {
   const statCount = rangeFields.filter(([name]) =>
     $(`#${name}-min`).value.trim() || $(`#${name}-max`).value.trim()
   ).length;
-  if (statCount) labels.push(`${statCount} 项属性`);
+  if (statCount) labels.push(`${statCount} 项数值`);
+  const directionCount = treatmentDirectionFields.filter(([name]) =>
+    $(`#experimental-${name}`).value
+  ).length;
+  if (directionCount) labels.push(`${directionCount} 项黄针方向`);
   return labels;
 }
 
@@ -574,11 +601,27 @@ function buildSearchPayload() {
     if (maximum !== null) payload[`${name.replaceAll("-", "_")}_max`] = maximum;
   });
 
-  for (const name of ["red-hearts", "soul-hearts"]) {
+  treatmentDirectionFields.forEach(([name]) => {
+    const value = $(`#experimental-${name}`).value;
+    if (value) payload[`experimental_${name.replaceAll("-", "_")}`] = value;
+  });
+
+  const integerRangeLimits = {
+    "red-hearts": [0, 3],
+    "soul-hearts": [0, 3],
+    coins: [0, 5],
+    keys: [0, 1],
+    bombs: [0, 2],
+  };
+  for (const [name, [minimum, maximum]] of Object.entries(integerRangeLimits)) {
     for (const bound of ["min", "max"]) {
       const input = $(`#${name}-${bound}`);
-      if (input.value.trim() && !Number.isInteger(Number(input.value))) {
-        throw new Error("红心和魂心必须填写整数颗数");
+      if (input.value.trim()) {
+        const value = Number(input.value);
+        if (!Number.isInteger(value) || value < minimum || value > maximum) {
+          const label = rangeFields.find(([field]) => field === name)[1];
+          throw new Error(`${label}必须填写 ${minimum}～${maximum} 的整数`);
+        }
       }
     }
   }
@@ -694,6 +737,46 @@ function appendPocketCell(row, match) {
   return appendCell(row, pocketLabel(match), "id-value");
 }
 
+function appendTreatmentCell(row, match) {
+  const cell = document.createElement("td");
+  cell.className = "treatment-cell";
+  if (!match.post_item_stats_available) {
+    cell.textContent = "—";
+    row.appendChild(cell);
+    return cell;
+  }
+
+  const up = [];
+  const down = [];
+  const unchanged = [];
+  treatmentDirectionFields.forEach(([, label], index) => {
+    const bit = 1 << index;
+    if ((match.experimental_treatment_up_mask & bit) !== 0) up.push(label);
+    else if ((match.experimental_treatment_down_mask & bit) !== 0) down.push(label);
+    else unchanged.push(label);
+  });
+
+  const directions = document.createElement("span");
+  directions.className = "treatment-direction-summary";
+  const upCopy = document.createElement("strong");
+  upCopy.className = "delta-positive";
+  upCopy.textContent = `↑ ${up.join("、")}`;
+  const downCopy = document.createElement("strong");
+  downCopy.className = "delta-negative";
+  downCopy.textContent = `↓ ${down.join("、")}`;
+  const sameCopy = document.createElement("small");
+  sameCopy.textContent = `＝ ${unchanged.join("、")}`;
+  directions.append(upCopy, downCopy, sameCopy);
+
+  const stats = document.createElement("small");
+  stats.className = "treatment-stats";
+  stats.textContent = `伤 ${formatStat(match.post_damage)} · 移 ${formatStat(match.post_move_speed)} · 射 ${formatStat(match.post_tears)} · 程 ${formatStat(match.post_range)} · 弹 ${formatStat(match.post_shot_speed)} · 运 ${formatStat(match.post_luck)}`;
+  stats.title = "黄针结算后的伤害、移速、射速、射程、弹速和幸运";
+  cell.append(directions, stats);
+  row.appendChild(cell);
+  return cell;
+}
+
 function compareAscending(left, right) {
   if (left === right) return 0;
   return left < right ? -1 : 1;
@@ -764,8 +847,12 @@ function createResultRow(match) {
   appendPocketCell(row, match);
   appendNamedItemCell(row, "active", match.active_id, `Q${match.active_quality} · #${match.active_id}`, "主动");
   appendNamedItemCell(row, "passive", match.passive_id, `Q${match.passive_quality} · #${match.passive_id}`, "被动");
+  appendTreatmentCell(row, match);
   appendCell(row, `Q${match.total_quality}`, "quality-value");
   appendCell(row, `${match.red_hearts} 红 / ${match.soul_hearts} 魂`);
+  appendCell(row, match.coins);
+  appendCell(row, match.keys);
+  appendCell(row, match.bombs);
   appendStatCell(row, match.damage);
   appendStatCell(row, match.move_speed);
   appendStatCell(row, match.tears);
@@ -785,9 +872,9 @@ function renderResults() {
   const pageMatches = matches.slice(firstIndex, firstIndex + pageSize);
   const body = $("#results-body");
   if (!currentResult) {
-    body.innerHTML = '<tr><td colspan="12" class="empty">还没有搜索结果</td></tr>';
+    body.innerHTML = '<tr><td colspan="16" class="empty">还没有搜索结果</td></tr>';
   } else if (!matches.length) {
-    body.innerHTML = '<tr><td colspan="12" class="empty">没有命中当前条件</td></tr>';
+    body.innerHTML = '<tr><td colspan="16" class="empty">没有命中当前条件</td></tr>';
   } else {
     body.replaceChildren(...pageMatches.map(createResultRow));
   }
@@ -837,8 +924,11 @@ function resultText(matches) {
   const header = [
     "seed", "seed_u32", "pocket_kind", "pocket_id", "pill_color", "active_id", "passive_id",
     "active_quality", "passive_quality", "total_quality", "red_hearts", "soul_hearts",
+    "coins", "keys", "bombs",
     "damage", "move_speed", "tears", "range", "shot_speed", "luck",
     "damage_delta", "move_speed_delta", "tears_delta", "shot_speed_delta", "luck_delta",
+    "post_item_stats_available", "experimental_treatment_up_mask", "experimental_treatment_down_mask",
+    "post_damage", "post_move_speed", "post_tears", "post_range", "post_shot_speed", "post_luck",
   ];
   const lines = matches.map((match) => header.map((field) => match[field]).join("\t"));
   return `${header.join("\t")}\r\n${lines.join("\r\n")}\r\n`;
@@ -891,7 +981,7 @@ async function beginSearch(payload) {
   currentResult = null;
   currentPage = 1;
   renderResults();
-  $("#results-body").innerHTML = '<tr><td colspan="12" class="empty">扫描进行中…</td></tr>';
+  $("#results-body").innerHTML = '<tr><td colspan="16" class="empty">扫描进行中…</td></tr>';
   $("#results-summary").textContent = "正在计算候选种子。";
   $("#view-sort-detail").textContent = `扫描完成后将按${currentOrderLabel()}载入结果。`;
   $("#download-link").classList.add("disabled");

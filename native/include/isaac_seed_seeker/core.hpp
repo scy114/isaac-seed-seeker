@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <array>
 #include <cstdint>
 #include <filesystem>
 #include <functional>
@@ -29,9 +30,28 @@ enum class SortKey : std::uint8_t {
     range,
     shot_speed,
     luck,
+    coins,
+    keys,
+    bombs,
     active_quality,
     passive_quality,
     total_quality,
+};
+
+enum class ExperimentalTreatmentStat : std::uint8_t {
+    health = 0,
+    move_speed = 1,
+    tears = 2,
+    damage = 3,
+    range = 4,
+    shot_speed = 5,
+    luck = 6,
+};
+
+enum class ExperimentalTreatmentDirection : std::uint8_t {
+    up = 0,
+    down = 1,
+    unchanged = 2,
 };
 
 enum class SortDirection : std::uint8_t {
@@ -82,6 +102,9 @@ struct EdenStart {
     std::int32_t passive_id = 0;
     std::int32_t active_quality = 0;
     std::int32_t passive_quality = 0;
+    std::int32_t coins = 0;
+    std::int32_t keys = 0;
+    std::int32_t bombs = 0;
 
     // Health is expressed in full-heart units.  The primary stat fields are
     // the pre-item values shown by Found HUD.  Raw Eden modifiers are retained
@@ -99,6 +122,20 @@ struct EdenStart {
     double tears_delta = 0.0;
     double shot_speed_delta = 0.0;
     double luck_delta = 0.0;
+
+    // Experimental Treatment (collectible 240) is intentionally modeled as
+    // a narrow post-processor instead of a generic item-effect engine.  Bits
+    // use ExperimentalTreatmentStat values.  Post-item values are meaningful
+    // only when post_item_stats_available is true.
+    bool post_item_stats_available = false;
+    std::uint8_t experimental_treatment_up_mask = 0;
+    std::uint8_t experimental_treatment_down_mask = 0;
+    double post_damage = 3.5;
+    double post_move_speed = 1.0;
+    double post_tears = 30.0 / 11.0;
+    double post_range = 6.5;
+    double post_shot_speed = 1.0;
+    double post_luck = 0.0;
 };
 
 struct NumberRange {
@@ -133,6 +170,18 @@ struct EdenCriteria {
     NumberRange range;
     NumberRange shot_speed;
     NumberRange luck;
+    NumberRange coins;
+    NumberRange keys;
+    NumberRange bombs;
+
+    NumberRange post_damage;
+    NumberRange post_move_speed;
+    NumberRange post_tears;
+    NumberRange post_range;
+    NumberRange post_shot_speed;
+    NumberRange post_luck;
+    std::array<std::optional<ExperimentalTreatmentDirection>, 7>
+        experimental_treatment_directions{};
 
     // Legacy raw-modifier filters.  New callers should use the Found HUD
     // fields above; these remain valid so existing scripts do not break.
@@ -147,6 +196,7 @@ struct EdenCriteria {
     [[nodiscard]] bool needs_pocket() const noexcept;
     [[nodiscard]] bool needs_items() const noexcept;
     [[nodiscard]] bool needs_base_rolls() const noexcept;
+    [[nodiscard]] bool needs_post_item_rolls() const noexcept;
 };
 
 struct SearchOptions {

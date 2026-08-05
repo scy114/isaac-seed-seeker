@@ -461,7 +461,7 @@ button:disabled,
 .page-size-label span { margin: 0; }
 .page-size-label select { width: 78px; padding: 7px 9px; }
 .table-wrap { max-height: 520px; overflow: auto; border: 1px solid var(--line); }
-table { width: 100%; min-width: 1280px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+table { width: 100%; min-width: 1760px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 th,
 td { padding: 11px 12px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
 th { position: sticky; z-index: 1; top: 0; color: #bdb4aa; background: #211d1a; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
@@ -479,6 +479,11 @@ tbody tr:hover { background: #191614; }
 .item-cell-copy small { color: #897f75; font-size: 10px; }
 .id-value { color: #e2d4c1; }
 .quality-value { color: #e5b96f; font-weight: 800; text-align: center; }
+.treatment-cell { min-width: 300px; white-space: normal; }
+.treatment-direction-summary { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.treatment-direction-summary strong,
+.treatment-direction-summary small { font-size: 11px; }
+.treatment-stats { display: block; margin-top: 4px; color: #8f857a; font-family: var(--font-mono); font-size: 10px; white-space: nowrap; }
 .delta-positive { color: #90bf91; }
 .delta-negative { color: #dc8b81; }
 .empty { padding: 42px; color: var(--muted) !important; text-align: center; font-weight: 400 !important; }

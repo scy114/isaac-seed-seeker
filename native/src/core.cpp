@@ -56,6 +56,86 @@ std::uint32_t eden_step(std::uint32_t seed) noexcept {
     return mix(seed, qword_eden, dword_eden);
 }
 
+using LinearTransform = std::array<std::uint32_t, 32>;
+
+constexpr std::uint32_t xorshift_step(
+    std::uint32_t value,
+    std::uint8_t shift_right,
+    std::uint8_t shift_left,
+    std::uint8_t shift_final
+) noexcept {
+    value ^= value >> shift_right;
+    value ^= value << shift_left;
+    return value ^ (value >> shift_final);
+}
+
+constexpr LinearTransform xorshift_transform(
+    std::uint8_t shift_right,
+    std::uint8_t shift_left,
+    std::uint8_t shift_final
+) noexcept {
+    LinearTransform result{};
+    for (std::size_t bit = 0; bit < result.size(); ++bit) {
+        result[bit] = xorshift_step(
+            std::uint32_t{1} << bit,
+            shift_right,
+            shift_left,
+            shift_final
+        );
+    }
+    return result;
+}
+
+constexpr std::uint32_t apply_transform(
+    const LinearTransform& transform,
+    std::uint32_t value
+) noexcept {
+    std::uint32_t result = 0;
+    for (std::size_t bit = 0; bit < transform.size(); ++bit) {
+        if ((value & (std::uint32_t{1} << bit)) != 0) {
+            result ^= transform[bit];
+        }
+    }
+    return result;
+}
+
+constexpr LinearTransform compose_transform(
+    const LinearTransform& outer,
+    const LinearTransform& inner
+) noexcept {
+    LinearTransform result{};
+    for (std::size_t bit = 0; bit < result.size(); ++bit) {
+        result[bit] = apply_transform(outer, inner[bit]);
+    }
+    return result;
+}
+
+constexpr LinearTransform power_transform(LinearTransform base, std::uint32_t exponent) noexcept {
+    LinearTransform result{};
+    for (std::size_t bit = 0; bit < result.size(); ++bit) {
+        result[bit] = std::uint32_t{1} << bit;
+    }
+    while (exponent != 0) {
+        if ((exponent & 1U) != 0) {
+            result = compose_transform(base, result);
+        }
+        exponent >>= 1U;
+        if (exponent != 0) {
+            base = compose_transform(base, base);
+        }
+    }
+    return result;
+}
+
+constexpr auto experimental_treatment_collectible_transform = power_transform(
+    xorshift_transform(1, 19, 3),
+    241
+);
+
+constexpr std::uint8_t treatment_bit(ExperimentalTreatmentStat stat) noexcept {
+    return static_cast<std::uint8_t>(1U << static_cast<std::uint8_t>(stat));
+}
+
 std::uint32_t card_step(std::uint32_t seed) noexcept {
     auto value = seed ^ (seed >> 3U);
     value ^= value << 3U;
@@ -335,8 +415,14 @@ void roll_base_start(EdenStart& result) noexcept {
         if ((branch & 1U) != 0) {
             stat_state = eden_step(stat_state);
             const auto remainder = stat_state % 3U;
-            if (remainder == 0U || remainder == 2U) {
+            if (remainder == 0U) {
                 stat_state = eden_step(stat_state);
+                result.coins = static_cast<std::int32_t>(stat_state % 5U + 1U);
+            } else if (remainder == 1U) {
+                result.keys = 1;
+            } else {
+                stat_state = eden_step(stat_state);
+                result.bombs = static_cast<std::int32_t>(stat_state % 2U + 1U);
             }
         }
     }
@@ -359,6 +445,73 @@ void roll_base_start(EdenStart& result) noexcept {
     result.tears = fire_rate_from_tears_modifier(result.tears_delta);
     result.shot_speed = 1.0 + result.shot_speed_delta;
     result.luck = result.luck_delta;
+}
+
+void apply_experimental_treatment(EdenStart& result) noexcept {
+    if (result.passive_id != 240) {
+        return;
+    }
+
+    result.post_item_stats_available = true;
+    result.post_damage = result.damage;
+    result.post_move_speed = result.move_speed;
+    result.post_tears = result.tears;
+    result.post_range = result.range;
+    result.post_shot_speed = result.shot_speed;
+    result.post_luck = result.luck;
+
+    // EntityPlayer:GetCollectibleRNG(240): one player-init RNG step followed
+    // by the collectible transform advanced ID + 1 times.  The resulting RNG
+    // shuffles seven stats; the first four rise, the next two fall, and the
+    // final one is unchanged.
+    const auto collectible_seed = apply_transform(
+        experimental_treatment_collectible_transform,
+        xorshift_step(result.a5, 1, 11, 16)
+    );
+    auto state = collectible_seed;
+    std::array<ExperimentalTreatmentStat, 7> stats{
+        ExperimentalTreatmentStat::health,
+        ExperimentalTreatmentStat::move_speed,
+        ExperimentalTreatmentStat::tears,
+        ExperimentalTreatmentStat::damage,
+        ExperimentalTreatmentStat::range,
+        ExperimentalTreatmentStat::shot_speed,
+        ExperimentalTreatmentStat::luck,
+    };
+    for (std::size_t remaining = stats.size(); remaining > 1; --remaining) {
+        state = xorshift_step(state, 5, 9, 7);
+        const auto picked = static_cast<std::size_t>(state % remaining);
+        std::swap(stats[remaining - 1], stats[picked]);
+    }
+    for (std::size_t index = 0; index < 4; ++index) {
+        result.experimental_treatment_up_mask |= treatment_bit(stats[index]);
+    }
+    for (std::size_t index = 4; index < 6; ++index) {
+        result.experimental_treatment_down_mask |= treatment_bit(stats[index]);
+    }
+
+    const auto direction = [&](ExperimentalTreatmentStat stat) {
+        const auto bit = treatment_bit(stat);
+        if ((result.experimental_treatment_up_mask & bit) != 0) return 1.0;
+        if ((result.experimental_treatment_down_mask & bit) != 0) return -1.0;
+        return 0.0;
+    };
+    result.post_damage += direction(ExperimentalTreatmentStat::damage);
+    result.post_move_speed = std::clamp(
+        result.post_move_speed + 0.2 * direction(ExperimentalTreatmentStat::move_speed),
+        0.1,
+        2.0
+    );
+    result.post_tears = std::max(
+        0.0,
+        result.post_tears + 0.5 * direction(ExperimentalTreatmentStat::tears)
+    );
+    result.post_range += 2.5 * direction(ExperimentalTreatmentStat::range);
+    result.post_shot_speed = std::max(
+        0.6,
+        result.post_shot_speed + 0.2 * direction(ExperimentalTreatmentStat::shot_speed)
+    );
+    result.post_luck += direction(ExperimentalTreatmentStat::luck);
 }
 
 struct RolledItems {
@@ -444,6 +597,9 @@ bool matches_items(const EdenStart& start, const EdenCriteria& criteria) noexcep
 bool matches_base_start(const EdenStart& start, const EdenCriteria& criteria) noexcept {
     return criteria.red_hearts.matches(start.red_hearts)
         && criteria.soul_hearts.matches(start.soul_hearts)
+        && criteria.coins.matches(start.coins)
+        && criteria.keys.matches(start.keys)
+        && criteria.bombs.matches(start.bombs)
         && criteria.damage.matches(start.damage)
         && criteria.move_speed.matches(start.move_speed)
         && criteria.tears.matches(start.tears)
@@ -457,10 +613,40 @@ bool matches_base_start(const EdenStart& start, const EdenCriteria& criteria) no
         && criteria.luck_delta.matches(start.luck_delta);
 }
 
+bool matches_post_item_start(const EdenStart& start, const EdenCriteria& criteria) noexcept {
+    if (!criteria.needs_post_item_rolls()) {
+        return true;
+    }
+    if (!start.post_item_stats_available) {
+        return false;
+    }
+    if (!criteria.post_damage.matches(start.post_damage)
+        || !criteria.post_move_speed.matches(start.post_move_speed)
+        || !criteria.post_tears.matches(start.post_tears)
+        || !criteria.post_range.matches(start.post_range)
+        || !criteria.post_shot_speed.matches(start.post_shot_speed)
+        || !criteria.post_luck.matches(start.post_luck)) {
+        return false;
+    }
+    for (std::size_t index = 0; index < criteria.experimental_treatment_directions.size(); ++index) {
+        const auto required = criteria.experimental_treatment_directions[index];
+        if (!required.has_value()) continue;
+        const auto bit = static_cast<std::uint8_t>(1U << index);
+        const auto actual = (start.experimental_treatment_up_mask & bit) != 0
+            ? ExperimentalTreatmentDirection::up
+            : ((start.experimental_treatment_down_mask & bit) != 0
+                ? ExperimentalTreatmentDirection::down
+                : ExperimentalTreatmentDirection::unchanged);
+        if (actual != *required) return false;
+    }
+    return true;
+}
+
 bool sort_needs_base_rolls(SortKey key) noexcept {
     return key == SortKey::health || key == SortKey::damage || key == SortKey::move_speed
         || key == SortKey::tears || key == SortKey::range || key == SortKey::shot_speed
-        || key == SortKey::luck;
+        || key == SortKey::luck || key == SortKey::coins || key == SortKey::keys
+        || key == SortKey::bombs;
 }
 
 bool sort_needs_item_rolls(SortKey key) noexcept {
@@ -514,6 +700,15 @@ struct MatchOrder {
             case SortKey::luck:
                 if (a.luck != b.luck) return directed_before(a.luck, b.luck, direction);
                 break;
+            case SortKey::coins:
+                if (a.coins != b.coins) return directed_before(a.coins, b.coins, direction);
+                break;
+            case SortKey::keys:
+                if (a.keys != b.keys) return directed_before(a.keys, b.keys, direction);
+                break;
+            case SortKey::bombs:
+                if (a.bombs != b.bombs) return directed_before(a.bombs, b.bombs, direction);
+                break;
             case SortKey::active_quality:
                 if (a.active_quality != b.active_quality) {
                     return directed_before(a.active_quality, b.active_quality, direction);
@@ -561,6 +756,9 @@ std::string_view sort_key_name(SortKey key) noexcept {
         case SortKey::range: return "range";
         case SortKey::shot_speed: return "shot_speed";
         case SortKey::luck: return "luck";
+        case SortKey::coins: return "coins";
+        case SortKey::keys: return "keys";
+        case SortKey::bombs: return "bombs";
         case SortKey::active_quality: return "active_quality";
         case SortKey::passive_quality: return "passive_quality";
         case SortKey::total_quality: return "total_quality";
@@ -628,6 +826,24 @@ void EdenCriteria::validate() const {
     }
     red_hearts.validate("red hearts");
     soul_hearts.validate("soul hearts");
+    coins.validate("coins");
+    keys.validate("keys");
+    bombs.validate("bombs");
+    const auto validate_resource = [](const NumberRange& range, std::string_view name, double limit) {
+        const auto invalid = [limit](const std::optional<double>& value) {
+            return value.has_value()
+                && (*value < 0.0 || *value > limit || std::trunc(*value) != *value);
+        };
+        if (invalid(range.minimum) || invalid(range.maximum)) {
+            throw std::invalid_argument(
+                std::string(name) + " bounds must be whole numbers between 0 and "
+                + std::to_string(static_cast<int>(limit))
+            );
+        }
+    };
+    validate_resource(coins, "coins", 5.0);
+    validate_resource(keys, "keys", 1.0);
+    validate_resource(bombs, "bombs", 2.0);
     damage.validate("damage");
     move_speed.validate("move speed");
     tears.validate("tears");
@@ -639,6 +855,24 @@ void EdenCriteria::validate() const {
     tears_delta.validate("tears delta");
     shot_speed_delta.validate("shot speed delta");
     luck_delta.validate("luck delta");
+    post_damage.validate("post-item damage");
+    post_move_speed.validate("post-item move speed");
+    post_tears.validate("post-item tears");
+    post_range.validate("post-item range");
+    post_shot_speed.validate("post-item shot speed");
+    post_luck.validate("post-item luck");
+    if (needs_post_item_rolls()) {
+        if (contains(passive_items.none_of, 240)) {
+            throw std::invalid_argument(
+                "Experimental Treatment criteria cannot exclude passive item 240"
+            );
+        }
+        if (!passive_items.any_of.empty() && !contains(passive_items.any_of, 240)) {
+            throw std::invalid_argument(
+                "post-item criteria currently require passive item 240"
+            );
+        }
+    }
 }
 
 bool EdenCriteria::configured() const noexcept {
@@ -652,17 +886,30 @@ bool EdenCriteria::needs_pocket() const noexcept {
 }
 
 bool EdenCriteria::needs_items() const noexcept {
-    return active_items.configured() || passive_items.configured();
+    return active_items.configured() || passive_items.configured() || needs_post_item_rolls();
 }
 
 bool EdenCriteria::needs_base_rolls() const noexcept {
     return red_hearts.configured() || soul_hearts.configured()
+        || coins.configured() || keys.configured() || bombs.configured()
         || damage.configured() || move_speed.configured()
         || tears.configured() || range.configured()
         || shot_speed.configured() || luck.configured()
         || damage_delta.configured() || move_speed_delta.configured()
         || tears_delta.configured()
-        || shot_speed_delta.configured() || luck_delta.configured();
+        || shot_speed_delta.configured() || luck_delta.configured()
+        || needs_post_item_rolls();
+}
+
+bool EdenCriteria::needs_post_item_rolls() const noexcept {
+    return post_damage.configured() || post_move_speed.configured()
+        || post_tears.configured() || post_range.configured()
+        || post_shot_speed.configured() || post_luck.configured()
+        || std::any_of(
+            experimental_treatment_directions.begin(),
+            experimental_treatment_directions.end(),
+            [](const auto& value) { return value.has_value(); }
+        );
 }
 
 std::uint32_t seed_checksum(std::uint32_t seed) noexcept {
@@ -719,13 +966,15 @@ EdenStart predict_eden_start(std::uint32_t seed, const ProfileTables& tables) {
     result.active_quality = items.active_quality;
     result.passive_quality = items.passive_quality;
     roll_base_start(result);
+    apply_experimental_treatment(result);
     return result;
 }
 
 bool matches(const EdenStart& start, const EdenCriteria& criteria) noexcept {
     return matches_pocket(start, criteria)
         && matches_items(start, criteria)
-        && matches_base_start(start, criteria);
+        && matches_base_start(start, criteria)
+        && matches_post_item_start(start, criteria);
 }
 
 SearchResult search(
@@ -816,6 +1065,12 @@ SearchResult search(
                                 if (!criteria.active_items.matches(items.active_id)
                                     || !criteria.passive_items.matches(items.passive_id)) {
                                     continue;
+                                }
+                                if (criteria.needs_post_item_rolls()) {
+                                    apply_experimental_treatment(sort_start);
+                                    if (!matches_post_item_start(sort_start, criteria)) {
+                                        continue;
+                                    }
                                 }
                             }
                             const auto label = seed_to_string(seed);

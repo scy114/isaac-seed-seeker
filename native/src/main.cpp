@@ -118,10 +118,23 @@ iss::SortKey parse_sort_key(const std::string& text) {
     if (text == "range") return iss::SortKey::range;
     if (text == "shot-speed") return iss::SortKey::shot_speed;
     if (text == "luck") return iss::SortKey::luck;
+    if (text == "coins") return iss::SortKey::coins;
+    if (text == "keys") return iss::SortKey::keys;
+    if (text == "bombs") return iss::SortKey::bombs;
     if (text == "active-quality") return iss::SortKey::active_quality;
     if (text == "passive-quality") return iss::SortKey::passive_quality;
     if (text == "total-quality") return iss::SortKey::total_quality;
     throw std::invalid_argument("invalid --sort: " + text);
+}
+
+iss::ExperimentalTreatmentDirection parse_treatment_direction(
+    const std::string& text,
+    const std::string& option
+) {
+    if (text == "up") return iss::ExperimentalTreatmentDirection::up;
+    if (text == "down") return iss::ExperimentalTreatmentDirection::down;
+    if (text == "unchanged") return iss::ExperimentalTreatmentDirection::unchanged;
+    throw std::invalid_argument("invalid --" + option + ": expected up|down|unchanged");
 }
 
 iss::SortDirection parse_sort_direction(const std::string& text) {
@@ -183,6 +196,9 @@ iss::EdenCriteria parse_criteria(const Arguments& arguments) {
     };
     range("red-hearts", criteria.red_hearts);
     range("soul-hearts", criteria.soul_hearts);
+    range("coins", criteria.coins);
+    range("keys", criteria.keys);
+    range("bombs", criteria.bombs);
     range("damage", criteria.damage);
     range("move-speed", criteria.move_speed);
     range("tears", criteria.tears);
@@ -194,6 +210,26 @@ iss::EdenCriteria parse_criteria(const Arguments& arguments) {
     range("tears-delta", criteria.tears_delta);
     range("shot-speed-delta", criteria.shot_speed_delta);
     range("luck-delta", criteria.luck_delta);
+    range("post-damage", criteria.post_damage);
+    range("post-move-speed", criteria.post_move_speed);
+    range("post-tears", criteria.post_tears);
+    range("post-range", criteria.post_range);
+    range("post-shot-speed", criteria.post_shot_speed);
+    range("post-luck", criteria.post_luck);
+    constexpr std::array treatment_options{
+        "experimental-health", "experimental-move-speed", "experimental-tears",
+        "experimental-damage", "experimental-range", "experimental-shot-speed",
+        "experimental-luck",
+    };
+    for (std::size_t index = 0; index < treatment_options.size(); ++index) {
+        const std::string option = treatment_options[index];
+        if (has(arguments, option)) {
+            criteria.experimental_treatment_directions[index] = parse_treatment_direction(
+                required(arguments, option),
+                option
+            );
+        }
+    }
     criteria.validate();
     return criteria;
 }
@@ -256,6 +292,9 @@ void write_result(std::ostream& output, const iss::SearchResult& result, const i
                << ", \"total_quality\": " << start.active_quality + start.passive_quality
                << ", \"red_hearts\": " << start.red_hearts
                << ", \"soul_hearts\": " << start.soul_hearts
+               << ", \"coins\": " << start.coins
+               << ", \"keys\": " << start.keys
+               << ", \"bombs\": " << start.bombs
                << ", \"damage\": " << start.damage
                << ", \"move_speed\": " << start.move_speed
                << ", \"tears\": " << start.tears
@@ -266,7 +305,19 @@ void write_result(std::ostream& output, const iss::SearchResult& result, const i
                << ", \"move_speed_delta\": " << start.move_speed_delta
                << ", \"tears_delta\": " << start.tears_delta
                << ", \"shot_speed_delta\": " << start.shot_speed_delta
-               << ", \"luck_delta\": " << start.luck_delta << "}";
+               << ", \"luck_delta\": " << start.luck_delta
+               << ", \"post_item_stats_available\": "
+               << (start.post_item_stats_available ? "true" : "false")
+               << ", \"experimental_treatment_up_mask\": "
+               << static_cast<unsigned>(start.experimental_treatment_up_mask)
+               << ", \"experimental_treatment_down_mask\": "
+               << static_cast<unsigned>(start.experimental_treatment_down_mask)
+               << ", \"post_damage\": " << start.post_damage
+               << ", \"post_move_speed\": " << start.post_move_speed
+               << ", \"post_tears\": " << start.post_tears
+               << ", \"post_range\": " << start.post_range
+               << ", \"post_shot_speed\": " << start.post_shot_speed
+               << ", \"post_luck\": " << start.post_luck << "}";
         output << (index + 1 == result.matches.size() ? "\n" : ",\n");
     }
     output << "  ]\n}\n";
@@ -284,10 +335,14 @@ void print_usage() {
         << "Generic filters (categories are AND; comma-separated IDs are OR):\n"
         << "  --pocket-kind none|trinket|card|pill; --pocket/--card/--pill ID[,ID]\n"
         << "  --active ID[,ID]; --passive ID[,ID]; each also supports -exclude\n"
-        << "  --red-hearts-min/max, --soul-hearts-min/max, --damage-min/max,\n"
+         << "  --red-hearts-min/max, --soul-hearts-min/max, --coins-min/max,\n"
+         << "  --keys-min/max, --bombs-min/max, --damage-min/max,\n"
          << "  --move-speed-min/max, --tears-min/max, --range-min/max,\n"
          << "  --shot-speed-min/max, --luck-min/max, --max-results N\n"
+         << "  --post-damage-min/max ... --post-luck-min/max (Experimental Treatment only)\n"
+         << "  --experimental-damage up|down|unchanged (same for all seven stats)\n"
          << "  --sort seed|health|damage|move-speed|tears|range|shot-speed|luck|\n"
+         << "         coins|keys|bombs|\n"
          << "         active-quality|passive-quality|total-quality; --direction asc|desc\n";
 }
 
@@ -325,6 +380,9 @@ int main(int argc, char** argv) {
                       << ",\"total_quality\":" << start.active_quality + start.passive_quality
                       << ",\"red_hearts\":" << start.red_hearts
                       << ",\"soul_hearts\":" << start.soul_hearts
+                      << ",\"coins\":" << start.coins
+                      << ",\"keys\":" << start.keys
+                      << ",\"bombs\":" << start.bombs
                       << ",\"damage\":" << start.damage
                       << ",\"move_speed\":" << start.move_speed
                       << ",\"tears\":" << start.tears
@@ -335,7 +393,19 @@ int main(int argc, char** argv) {
                       << ",\"move_speed_delta\":" << start.move_speed_delta
                       << ",\"tears_delta\":" << start.tears_delta
                       << ",\"shot_speed_delta\":" << start.shot_speed_delta
-                      << ",\"luck_delta\":" << start.luck_delta << "}\n";
+                      << ",\"luck_delta\":" << start.luck_delta
+                      << ",\"post_item_stats_available\":"
+                      << (start.post_item_stats_available ? "true" : "false")
+                      << ",\"experimental_treatment_up_mask\":"
+                      << static_cast<unsigned>(start.experimental_treatment_up_mask)
+                      << ",\"experimental_treatment_down_mask\":"
+                      << static_cast<unsigned>(start.experimental_treatment_down_mask)
+                      << ",\"post_damage\":" << start.post_damage
+                      << ",\"post_move_speed\":" << start.post_move_speed
+                      << ",\"post_tears\":" << start.post_tears
+                      << ",\"post_range\":" << start.post_range
+                      << ",\"post_shot_speed\":" << start.post_shot_speed
+                      << ",\"post_luck\":" << start.post_luck << "}\n";
             return 0;
         }
         if (arguments.command != "search") {

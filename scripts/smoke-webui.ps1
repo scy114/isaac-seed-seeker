@@ -49,10 +49,13 @@ try {
     $SeekerTitle = Invoke-WebRequest ($BaseUrl + "assets/isaac-seed-seeker-title.png") -UseBasicParsing
     if (
         $Page.Content -notmatch 'id="red-hearts-min"' -or
+        $Page.Content -notmatch 'id="coins-min"' -or
+        $Page.Content -notmatch 'id="experimental-damage"' -or
         $Page.Content -notmatch 'data-sort-key="damage"' -or
         $Page.Content -notmatch 'id="page-size"' -or
         $Page.Content -notmatch 'id="catalog-state"' -or
         $ClientScript.Content -notmatch "pill_effect_ids" -or
+        $ClientScript.Content -notmatch "post_item_stats_available" -or
         $ClientScript.Content -notmatch "sort_direction" -or
         $ClientScript.Content -notmatch "compareMatches" -or
         $ClientScript.Content -notmatch "class CatalogPicker" -or
@@ -158,7 +161,9 @@ try {
     if ($Results.matches[0].seed -ne "B74H HQPR") { throw "unexpected first seed" }
     if ($Results.total_count -ne 3 -or $Results.truncated) { throw "unexpected result metadata" }
     $TextResults = Invoke-RestMethod ($BaseUrl + "api/v1/search/results.txt")
-    if ($TextResults -notmatch "seed_u32" -or $TextResults -notmatch "`tdamage`t") {
+    if ($TextResults -notmatch "seed_u32" -or $TextResults -notmatch "`tcoins`t" -or
+        $TextResults -notmatch "`tdamage`t" -or
+        $TextResults -notmatch "`tpost_item_stats_available`t") {
         throw "TXT export is missing the generic result columns"
     }
     if (@($TextResults -split "`n" | Where-Object { $_ }).Count -ne 4) {
@@ -179,7 +184,9 @@ try {
         $Inspected.total_quality -ne ($Inspected.active_quality + $Inspected.passive_quality)) {
         throw "inspect endpoint returned invalid item qualities"
     }
-    if ($Inspected.red_hearts -ne 2 -or [Math]::Abs($Inspected.range - 7.194700883) -gt 0.000001) {
+    if ($Inspected.red_hearts -ne 2 -or $Inspected.coins -ne 0 -or
+        $Inspected.keys -ne 0 -or $Inspected.bombs -ne 1 -or
+        [Math]::Abs($Inspected.range - 7.194700883) -gt 0.000001) {
         throw "inspect endpoint returned the wrong base rolls"
     }
     if ([Math]::Abs($Inspected.damage - 2.877413690) -gt 0.000001 -or $null -eq $Inspected.tears) {
@@ -202,6 +209,8 @@ try {
         card_ids = @(12)
         active_ids = @(639)
         passive_ids = @(393)
+        bombs_min = 1
+        bombs_max = 1
         red_hearts_min = 2
         red_hearts_max = 2
         damage_min = 2.87
@@ -225,6 +234,47 @@ try {
     $GenericResults = Invoke-RestMethod ($BaseUrl + "api/v1/search/results")
     if ($GenericResults.total_count -ne 1 -or $GenericResults.matches[0].seed_u32 -ne 2) {
         throw "generic search endpoint returned the wrong seed"
+    }
+
+    $TreatmentInspectBody = @{seed_u32 = 20} | ConvertTo-Json -Compress
+    $TreatmentInspected = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/inspect") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $TreatmentInspectBody
+    if ($TreatmentInspected.passive_id -ne 240 -or
+        -not $TreatmentInspected.post_item_stats_available -or
+        $TreatmentInspected.experimental_treatment_up_mask -ne 77 -or
+        $TreatmentInspected.experimental_treatment_down_mask -ne 34 -or
+        [Math]::Abs($TreatmentInspected.post_damage - 5.0035222145) -gt 0.000001) {
+        throw "inspect endpoint returned the wrong Experimental Treatment roll"
+    }
+
+    $TreatmentBody = @{
+        experimental_health = "up"
+        experimental_damage = "up"
+        experimental_range = "unchanged"
+        post_damage_min = 5.0
+        post_damage_max = 5.01
+        start = 20
+        end = 20
+        threads = 1
+        max_results = 10
+    } | ConvertTo-Json -Compress
+    Invoke-RestMethod `
+        ($BaseUrl + "api/v1/search") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $TreatmentBody | Out-Null
+    do {
+        Start-Sleep -Milliseconds 50
+        $TreatmentStatus = Invoke-RestMethod ($BaseUrl + "api/v1/search/status")
+    } while ($TreatmentStatus.state -eq "running")
+    $TreatmentResults = Invoke-RestMethod ($BaseUrl + "api/v1/search/results")
+    if ($TreatmentResults.total_count -ne 1 -or $TreatmentResults.matches[0].seed_u32 -ne 20) {
+        throw "Experimental Treatment search endpoint returned the wrong seed"
     }
 
     $BadGasBody = @{
