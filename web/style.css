@@ -102,11 +102,19 @@ button, select { cursor: pointer; }
 }
 
 .lead {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
   margin: -5px 0 0;
   color: #c0ad9b;
-  font-size: 14px;
+  font-family: var(--font-display);
+  line-height: 1.15;
+  -webkit-font-smoothing: none;
+  text-rendering: optimizeSpeed;
   text-shadow: 2px 2px 0 #120a08;
 }
+.lead-zh { font-size: 18px; letter-spacing: .08em; }
+.lead-en { color: #8f7c6f; font-size: 11px; letter-spacing: .08em; }
 
 .profile-card {
   position: absolute;
