@@ -9,10 +9,10 @@
 ```text
 Embedded WebUI
     -> localhost HTTP API
-    -> C++20 SearchSession
+    -> C++20 SearchSession + built-in or imported GameProfile
     -> parallel Eden RNG kernel
     -> per-worker bounded Top-K + deterministic global merge
-    -> built-in or imported GameProfile
+    -> browser in-memory sorting + paginated rendering
     -> downloadable results
 ```
 

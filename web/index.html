@@ -139,41 +139,6 @@
           <p class="inline-note">属性使用游戏 Found HUD 口径，但不包含主动/被动道具带来的加成；胶囊筛选使用效果 ID，而不是颜色 ID。</p>
         </section>
 
-        <details class="search-settings sort-settings" open>
-          <summary>结果排序与保留 <small>完整扫描，但只在内存中保留排序后最优的 N 条</small></summary>
-          <div class="field-grid three-columns">
-            <label>
-              <span>排序依据</span>
-              <select id="sort-key">
-                <option value="seed" selected>种子数值</option>
-                <option value="health">血量（先红心，再魂心）</option>
-                <option value="damage">伤害</option>
-                <option value="move_speed">移速</option>
-                <option value="tears">射速</option>
-                <option value="range">射程</option>
-                <option value="shot_speed">弹速</option>
-                <option value="luck">幸运</option>
-                <option value="active_quality">主动道具品质</option>
-                <option value="passive_quality">被动道具品质</option>
-                <option value="total_quality">开局道具总品质</option>
-              </select>
-            </label>
-            <label>
-              <span>排序方向</span>
-              <select id="sort-direction">
-                <option value="asc" selected>从低到高</option>
-                <option value="desc">从高到低</option>
-              </select>
-            </label>
-            <label>
-              <span>最多保留结果</span>
-              <input id="max-results" inputmode="numeric" type="number" min="1" max="10000" value="1000">
-              <small>默认 1,000，WebUI 上限 10,000；总命中数仍会完整统计</small>
-            </label>
-          </div>
-          <p class="inline-note" id="sort-help">当前按种子数值从低到高保留前 1,000 条。</p>
-        </details>
-
         <details class="search-settings">
           <summary>扫描设置 <small>默认会检查全部 2³²−1 个可用值</small></summary>
           <div class="field-grid three-columns">
@@ -221,15 +186,50 @@
           <h2>候选种子</h2>
           <p id="results-summary" class="section-copy">完成搜索后在这里显示结果。</p>
         </div>
-        <a class="download disabled" id="download-link" href="/api/v1/search/results.txt" download>导出 TXT</a>
+        <div class="results-actions">
+          <label class="result-limit">
+            <span>内存载入上限</span>
+            <input id="max-results" inputmode="numeric" type="number" min="1" max="10000" value="1000">
+            <small>下次扫描生效，最多 10,000 条</small>
+          </label>
+          <a class="download disabled" id="download-link" href="#" download="isaac-seeds.txt">导出当前排序 TXT</a>
+        </div>
+      </div>
+      <div class="results-toolbar">
+        <div>
+          <strong id="view-sort-status">点击列名即可排序</strong>
+          <small id="view-sort-detail">结果会保存在浏览器内存中，表格只渲染当前页。</small>
+        </div>
+        <div class="results-toolbar-actions">
+          <button class="secondary compact-action" id="global-resort-button" type="button" hidden>按当前顺序重新扫描全局 Top‑N</button>
+          <label class="page-size-label"><span>每页</span><select id="page-size"><option value="25">25</option><option value="50" selected>50</option><option value="100">100</option></select></label>
+        </div>
       </div>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>种子</th><th>口袋物</th><th>主动</th><th>被动</th><th>总品质</th><th>血量</th><th>伤害</th><th>移速</th><th>射速</th><th>射程</th><th>弹速</th><th>幸运</th></tr>
+            <tr>
+              <th data-sort-key="seed" aria-sort="none"><button class="table-sort" type="button">种子 <span class="sort-indicator"></span></button></th>
+              <th>口袋物</th>
+              <th data-sort-key="active_quality" aria-sort="none"><button class="table-sort" type="button" title="品质相同按主动道具 ID 升序">主动 · 品质 <span class="sort-indicator"></span></button></th>
+              <th data-sort-key="passive_quality" aria-sort="none"><button class="table-sort" type="button" title="品质相同按被动道具 ID 升序">被动 · 品质 <span class="sort-indicator"></span></button></th>
+              <th data-sort-key="total_quality" aria-sort="none"><button class="table-sort" type="button" title="总品质相同先按主动 ID，再按被动 ID 升序">总品质 <span class="sort-indicator"></span></button></th>
+              <th data-sort-key="health" aria-sort="none"><button class="table-sort" type="button" title="先比较红心，红心相同再比较魂心">血量 <span class="sort-indicator"></span></button></th>
+              <th data-sort-key="damage" aria-sort="none"><button class="table-sort" type="button">伤害 <span class="sort-indicator"></span></button></th>
+              <th data-sort-key="move_speed" aria-sort="none"><button class="table-sort" type="button">移速 <span class="sort-indicator"></span></button></th>
+              <th data-sort-key="tears" aria-sort="none"><button class="table-sort" type="button">射速 <span class="sort-indicator"></span></button></th>
+              <th data-sort-key="range" aria-sort="none"><button class="table-sort" type="button">射程 <span class="sort-indicator"></span></button></th>
+              <th data-sort-key="shot_speed" aria-sort="none"><button class="table-sort" type="button">弹速 <span class="sort-indicator"></span></button></th>
+              <th data-sort-key="luck" aria-sort="none"><button class="table-sort" type="button">幸运 <span class="sort-indicator"></span></button></th>
+            </tr>
           </thead>
           <tbody id="results-body"><tr><td colspan="12" class="empty">还没有搜索结果</td></tr></tbody>
         </table>
+      </div>
+      <div class="pagination" id="pagination">
+        <button class="secondary compact-action" id="previous-page" type="button" disabled>上一页</button>
+        <span id="page-status">第 0 / 0 页</span>
+        <button class="secondary compact-action" id="next-page" type="button" disabled>下一页</button>
       </div>
     </section>
 

@@ -35,10 +35,12 @@ try {
     $ClientScript = Invoke-WebRequest ($BaseUrl + "app.js") -UseBasicParsing
     if (
         $Page.Content -notmatch 'id="red-hearts-min"' -or
-        $Page.Content -notmatch 'id="sort-key"' -or
+        $Page.Content -notmatch 'data-sort-key="damage"' -or
+        $Page.Content -notmatch 'id="page-size"' -or
         $Page.Content -notmatch 'id="catalog-state"' -or
         $ClientScript.Content -notmatch "pill_effect_ids" -or
         $ClientScript.Content -notmatch "sort_direction" -or
+        $ClientScript.Content -notmatch "compareMatches" -or
         $ClientScript.Content -notmatch "class CatalogPicker"
     ) {
         throw "embedded WebUI does not expose the generic Eden filters"

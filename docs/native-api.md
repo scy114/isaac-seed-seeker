@@ -123,7 +123,9 @@
 - `POST /api/v1/search/cancel`
 - `POST /api/v1/shutdown`
 
-JSON 结果中的 `count` 是实际保留并返回的数量，`total_count` 是完整扫描的真实命中数，`truncated` 表示是否因 `max_results` 截断。`sort_key`、`sort_direction` 和 `result_limit` 记录本次 Top-K 契约；每条结果包含 `active_quality`、`passive_quality` 与 `total_quality`。页面、JSON 和 TXT 使用完全相同的顺序。
+JSON 结果中的 `count` 是实际保留并返回的数量，`total_count` 是完整扫描的真实命中数，`truncated` 表示是否因 `max_results` 截断。`sort_key`、`sort_direction` 和 `result_limit` 记录本次 Top-K 契约；每条结果包含 `active_quality`、`passive_quality` 与 `total_quality`。HTTP JSON 与原生 `results.txt` 端点使用相同的后端顺序。
+
+WebUI 会把这批结果复制到浏览器内存并分页渲染，点击表头可即时重排已载入的全部记录，“导出当前排序 TXT”也使用页面当前顺序。若 `truncated=false`，这就是全部命中的精确排序；若 `truncated=true` 且页面顺序与后端 Top-K 顺序不同，界面会明确标注当前只重排了已载入集合，并提供按当前顺序重新扫描全局 Top-K 的按钮。
 
 ## 当前准确性边界
 

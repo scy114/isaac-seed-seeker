@@ -4,6 +4,11 @@ const sessionToken = new URLSearchParams(window.location.search).get("token") ||
 let pollTimer = null;
 let pocketCatalogKind = null;
 let catalogEntries = [];
+let currentResult = null;
+let currentSortKey = "seed";
+let currentSortDirection = "asc";
+let currentPage = 1;
+let lastSearchPayload = null;
 const catalogByKey = new Map();
 const catalogPickers = new Map();
 
@@ -439,20 +444,6 @@ function updateCriteriaSummary() {
     : "当前没有筛选条件";
 }
 
-function updateSortHelp() {
-  const key = $("#sort-key").value;
-  const direction = $("#sort-direction").value;
-  const limit = Number($("#max-results").value);
-  const directionLabel = direction === "asc" ? "从低到高" : "从高到低";
-  let detail = "";
-  if (key === "health") detail = "，红心相同再比较魂心";
-  if (key === "active_quality") detail = "，品质相同按主动道具 ID 从低到高";
-  if (key === "passive_quality") detail = "，品质相同按被动道具 ID 从低到高";
-  if (key === "total_quality") detail = "，总品质相同先按主动 ID、再按被动 ID 从低到高";
-  const shownLimit = Number.isInteger(limit) && limit > 0 ? number.format(limit) : "N";
-  $("#sort-help").textContent = `完整扫描；按${sortLabels[key]}${directionLabel}${detail}，只保留最优的 ${shownLimit} 条。`;
-}
-
 function applyTargetPreset() {
   $("#pocket-kind").value = "trinket";
   updatePocketControls(false);
@@ -524,8 +515,8 @@ function buildSearchPayload() {
   const criteriaKeys = Object.keys(payload);
   if (!criteriaKeys.length) throw new Error("请至少设置一个筛选条件");
 
-  payload.sort_key = $("#sort-key").value;
-  payload.sort_direction = $("#sort-direction").value;
+  payload.sort_key = currentSortKey;
+  payload.sort_direction = currentSortDirection;
   payload.start = Number($("#range-start").value);
   payload.end = Number($("#range-end").value);
   payload.threads = Number($("#threads").value);
@@ -601,6 +592,156 @@ function appendStatCell(row, value) {
   return appendCell(row, formatStat(value));
 }
 
+function compareAscending(left, right) {
+  if (left === right) return 0;
+  return left < right ? -1 : 1;
+}
+
+function compareDirected(left, right, direction) {
+  const result = compareAscending(left, right);
+  return direction === "asc" ? result : -result;
+}
+
+function compareMatches(left, right, key, direction) {
+  let compared = 0;
+  if (key === "health") {
+    compared = compareDirected(left.red_hearts, right.red_hearts, direction)
+      || compareDirected(left.soul_hearts, right.soul_hearts, direction);
+  } else if (key === "active_quality") {
+    compared = compareDirected(left.active_quality, right.active_quality, direction)
+      || compareAscending(left.active_id, right.active_id);
+  } else if (key === "passive_quality") {
+    compared = compareDirected(left.passive_quality, right.passive_quality, direction)
+      || compareAscending(left.passive_id, right.passive_id);
+  } else if (key === "total_quality") {
+    compared = compareDirected(left.total_quality, right.total_quality, direction)
+      || compareAscending(left.active_id, right.active_id)
+      || compareAscending(left.passive_id, right.passive_id);
+  } else {
+    const field = key === "seed" ? "seed_u32" : key;
+    compared = compareDirected(left[field], right[field], direction);
+  }
+  return compared || compareAscending(left.seed_u32, right.seed_u32);
+}
+
+function currentOrderLabel() {
+  const direction = currentSortDirection === "asc" ? "从低到高" : "从高到低";
+  return `${sortLabels[currentSortKey] || currentSortKey}${direction}`;
+}
+
+function backendOrderIsCurrent() {
+  return currentResult
+    && currentResult.sort_key === currentSortKey
+    && currentResult.sort_direction === currentSortDirection;
+}
+
+function updateSortHeaders() {
+  document.querySelectorAll("th[data-sort-key]").forEach((header) => {
+    const selected = header.dataset.sortKey === currentSortKey;
+    header.setAttribute(
+      "aria-sort",
+      selected ? (currentSortDirection === "asc" ? "ascending" : "descending") : "none",
+    );
+    header.querySelector(".sort-indicator").textContent = selected
+      ? (currentSortDirection === "asc" ? "↑" : "↓")
+      : "↕";
+  });
+  $("#view-sort-status").textContent = `${currentOrderLabel()} ${currentSortDirection === "asc" ? "↑" : "↓"}`;
+}
+
+function createResultRow(match) {
+  const row = document.createElement("tr");
+  const seedCell = document.createElement("td");
+  seedCell.className = "seed-cell";
+  const seed = document.createElement("strong");
+  seed.textContent = match.seed;
+  const raw = document.createElement("small");
+  raw.textContent = number.format(match.seed_u32);
+  seedCell.append(seed, raw);
+  row.appendChild(seedCell);
+  appendCell(row, pocketLabel(match), "id-value");
+  appendCell(row, namedQualityItem("active", match.active_id, match.active_quality, "主动"), "id-value");
+  appendCell(row, namedQualityItem("passive", match.passive_id, match.passive_quality, "被动"), "id-value");
+  appendCell(row, `Q${match.total_quality}`, "quality-value");
+  appendCell(row, `${match.red_hearts} 红 / ${match.soul_hearts} 魂`);
+  appendStatCell(row, match.damage);
+  appendStatCell(row, match.move_speed);
+  appendStatCell(row, match.tears);
+  appendStatCell(row, match.range);
+  appendStatCell(row, match.shot_speed);
+  appendStatCell(row, match.luck);
+  return row;
+}
+
+function renderResults() {
+  updateSortHeaders();
+  const matches = currentResult?.matches || [];
+  const pageSize = Number($("#page-size").value);
+  const pageCount = matches.length ? Math.ceil(matches.length / pageSize) : 0;
+  currentPage = pageCount ? Math.max(1, Math.min(currentPage, pageCount)) : 1;
+  const firstIndex = (currentPage - 1) * pageSize;
+  const pageMatches = matches.slice(firstIndex, firstIndex + pageSize);
+  const body = $("#results-body");
+  if (!currentResult) {
+    body.innerHTML = '<tr><td colspan="12" class="empty">还没有搜索结果</td></tr>';
+  } else if (!matches.length) {
+    body.innerHTML = '<tr><td colspan="12" class="empty">没有命中当前条件</td></tr>';
+  } else {
+    body.replaceChildren(...pageMatches.map(createResultRow));
+  }
+
+  $("#page-status").textContent = pageCount
+    ? `第 ${number.format(currentPage)} / ${number.format(pageCount)} 页 · ${number.format(firstIndex + 1)}–${number.format(firstIndex + pageMatches.length)} / ${number.format(matches.length)}`
+    : "第 0 / 0 页";
+  $("#previous-page").disabled = pageCount === 0 || currentPage <= 1;
+  $("#next-page").disabled = pageCount === 0 || currentPage >= pageCount;
+
+  if (!currentResult) {
+    $("#results-summary").textContent = "完成搜索后在这里显示结果。";
+    $("#view-sort-detail").textContent = "结果会保存在浏览器内存中，表格只渲染当前页。";
+    $("#global-resort-button").hidden = true;
+    $("#download-link").classList.add("disabled");
+    return;
+  }
+
+  const order = currentOrderLabel();
+  const exactGlobalOrder = backendOrderIsCurrent();
+  if (!currentResult.truncated) {
+    $("#results-summary").textContent = `共命中并载入 ${number.format(currentResult.total_count)} 条，已按${order}排序。`;
+    $("#view-sort-detail").textContent = "当前内存中包含全部命中，点击任意列都会立即进行精确全量排序。";
+  } else if (exactGlobalOrder) {
+    $("#results-summary").textContent = `总命中 ${number.format(currentResult.total_count)} 条，已载入按${order}选出的全局前 ${number.format(matches.length)} 条。`;
+    $("#view-sort-detail").textContent = "当前载入的是完整扫描得到的全局 Top‑N；点击其他列会先即时重排这批结果。";
+  } else {
+    $("#results-summary").textContent = `总命中 ${number.format(currentResult.total_count)} 条；当前按${order}重排已载入的 ${number.format(matches.length)} 条。`;
+    $("#view-sort-detail").textContent = "当前表头排序只作用于已载入结果；要取得此顺序的全局 Top‑N，请重新扫描。";
+  }
+  $("#global-resort-button").hidden = !currentResult.truncated || exactGlobalOrder;
+  $("#download-link").classList.toggle("disabled", !matches.length);
+}
+
+function sortCurrentResults() {
+  if (currentResult?.matches.length) {
+    currentResult.matches.sort((left, right) =>
+      compareMatches(left, right, currentSortKey, currentSortDirection)
+    );
+  }
+  currentPage = 1;
+  renderResults();
+  $(".table-wrap").scrollTop = 0;
+}
+
+function resultText(matches) {
+  const header = [
+    "seed", "seed_u32", "pocket_kind", "pocket_id", "active_id", "passive_id",
+    "active_quality", "passive_quality", "total_quality", "red_hearts", "soul_hearts",
+    "damage", "move_speed", "tears", "range", "shot_speed", "luck",
+    "damage_delta", "move_speed_delta", "tears_delta", "shot_speed_delta", "luck_delta",
+  ];
+  const lines = matches.map((match) => header.map((field) => match[field]).join("\t"));
+  return `${header.join("\t")}\r\n${lines.join("\r\n")}\r\n`;
+}
+
 async function updateStatus() {
   try {
     const status = await request("/api/v1/search/status");
@@ -632,57 +773,37 @@ async function updateStatus() {
 
 async function loadResults() {
   const result = await request("/api/v1/search/results");
-  const body = $("#results-body");
-  if (!result.matches.length) {
-    body.innerHTML = '<tr><td colspan="12" class="empty">没有命中当前条件</td></tr>';
-  } else {
-    body.replaceChildren(...result.matches.map((match) => {
-      const row = document.createElement("tr");
-      const seedCell = document.createElement("td");
-      seedCell.className = "seed-cell";
-      const seed = document.createElement("strong");
-      seed.textContent = match.seed;
-      const raw = document.createElement("small");
-      raw.textContent = number.format(match.seed_u32);
-      seedCell.append(seed, raw);
-      row.appendChild(seedCell);
-      appendCell(row, pocketLabel(match), "id-value");
-      appendCell(row, namedQualityItem("active", match.active_id, match.active_quality, "主动"), "id-value");
-      appendCell(row, namedQualityItem("passive", match.passive_id, match.passive_quality, "被动"), "id-value");
-      appendCell(row, `Q${match.total_quality}`, "quality-value");
-      appendCell(row, `${match.red_hearts} 红 / ${match.soul_hearts} 魂`);
-      appendStatCell(row, match.damage);
-      appendStatCell(row, match.move_speed);
-      appendStatCell(row, match.tears);
-      appendStatCell(row, match.range);
-      appendStatCell(row, match.shot_speed);
-      appendStatCell(row, match.luck);
-      return row;
-    }));
-  }
-  const order = `${sortLabels[result.sort_key] || result.sort_key}${result.sort_direction === "desc" ? "从高到低" : "从低到高"}`;
-  $("#results-summary").textContent = result.truncated
-    ? `总命中 ${number.format(result.total_count)} 条，按${order}保留最优的 ${number.format(result.count)} 条。`
-    : `共命中 ${number.format(result.total_count)} 条，已按${order}排序。`;
-  $("#download-link").classList.toggle("disabled", !result.matches.length);
+  currentResult = result;
+  currentSortKey = result.sort_key;
+  currentSortDirection = result.sort_direction;
+  sortCurrentResults();
+}
+
+async function beginSearch(payload) {
+  lastSearchPayload = JSON.parse(JSON.stringify(payload));
+  await request("/api/v1/search", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(payload),
+  });
+  currentResult = null;
+  currentPage = 1;
+  renderResults();
+  $("#results-body").innerHTML = '<tr><td colspan="12" class="empty">扫描进行中…</td></tr>';
+  $("#results-summary").textContent = "正在计算候选种子。";
+  $("#view-sort-detail").textContent = `扫描完成后将按${currentOrderLabel()}载入结果。`;
+  $("#download-link").classList.add("disabled");
+  $("#error-message").hidden = true;
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(updateStatus, 250);
+  await updateStatus();
 }
 
 $("#search-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   try {
     const payload = buildSearchPayload();
-    await request("/api/v1/search", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(payload),
-    });
-    $("#results-body").innerHTML = '<tr><td colspan="12" class="empty">扫描进行中…</td></tr>';
-    $("#results-summary").textContent = "正在计算候选种子。";
-    $("#download-link").classList.add("disabled");
-    $("#error-message").hidden = true;
-    if (pollTimer) clearInterval(pollTimer);
-    pollTimer = setInterval(updateStatus, 250);
-    await updateStatus();
+    await beginSearch(payload);
   } catch (error) {
     $("#error-message").hidden = false;
     $("#error-message").textContent = error.message;
@@ -699,7 +820,70 @@ $("#pocket-kind").addEventListener("change", () => {
 $("#search-form").addEventListener("input", (event) => {
   if (!event.target.closest(".search-settings")) $("#preset-target").classList.remove("active");
   updateCriteriaSummary();
-  updateSortHelp();
+});
+
+document.querySelectorAll("th[data-sort-key]").forEach((header) => {
+  header.querySelector(".table-sort").addEventListener("click", () => {
+    if (header.dataset.sortKey === currentSortKey) {
+      currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
+    } else {
+      currentSortKey = header.dataset.sortKey;
+      currentSortDirection = "asc";
+    }
+    sortCurrentResults();
+  });
+});
+
+$("#page-size").addEventListener("change", () => {
+  currentPage = 1;
+  renderResults();
+  $(".table-wrap").scrollTop = 0;
+});
+
+$("#previous-page").addEventListener("click", () => {
+  currentPage -= 1;
+  renderResults();
+  $(".table-wrap").scrollTop = 0;
+});
+
+$("#next-page").addEventListener("click", () => {
+  currentPage += 1;
+  renderResults();
+  $(".table-wrap").scrollTop = 0;
+});
+
+$("#global-resort-button").addEventListener("click", async () => {
+  try {
+    if (!lastSearchPayload) throw new Error("没有可重新扫描的搜索条件");
+    const limit = Number($("#max-results").value);
+    if (!Number.isInteger(limit) || limit < 1 || limit > 10000) {
+      throw new Error("内存载入上限必须位于 1～10000");
+    }
+    await beginSearch({
+      ...lastSearchPayload,
+      sort_key: currentSortKey,
+      sort_direction: currentSortDirection,
+      max_results: limit,
+    });
+  } catch (error) {
+    $("#error-message").hidden = false;
+    $("#error-message").textContent = error.message;
+    $("#error-message").scrollIntoView({behavior: "smooth", block: "nearest"});
+  }
+});
+
+$("#download-link").addEventListener("click", (event) => {
+  event.preventDefault();
+  if (!currentResult?.matches.length) return;
+  const blob = new Blob([resultText(currentResult.matches)], {type: "text/tab-separated-values;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = "isaac-seeds.txt";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 });
 
 $("#preset-target").addEventListener("click", applyTargetPreset);
@@ -718,7 +902,7 @@ document.addEventListener("pointerdown", (event) => {
 
 updatePocketControls(false);
 updateCriteriaSummary();
-updateSortHelp();
+renderResults();
 loadCatalog().catch((error) => {
   const state = $("#catalog-state");
   state.textContent = `名称目录载入失败，仍可直接输入 ID：${error.message}`;
