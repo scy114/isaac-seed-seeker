@@ -635,6 +635,22 @@ public:
         return found->second;
     }
 
+    std::optional<std::filesystem::path> find_ui(std::string_view name) const {
+        if (resource_root_.empty()) return std::nullopt;
+        std::filesystem::path relative;
+        if (name == "basement-floor") {
+            relative = std::filesystem::path("gfx") / "backdrop" / "01_lbasementfloor.png";
+        } else if (name == "seed-paper") {
+            relative = std::filesystem::path("gfx") / "ui" / "seed paper.png";
+        } else {
+            return std::nullopt;
+        }
+        const auto candidate = resource_root_ / relative;
+        return std::filesystem::is_regular_file(candidate)
+            ? std::optional<std::filesystem::path>(candidate)
+            : std::nullopt;
+    }
+
     bool available() const noexcept {
         return !collectible_icons_.empty() && !trinket_icons_.empty();
     }
@@ -643,7 +659,9 @@ public:
         std::ostringstream output;
         output << "{\"item_icons\":" << (available() ? "true" : "false")
                << ",\"collectible_icons\":" << collectible_icons_.size()
-               << ",\"trinket_icons\":" << trinket_icons_.size() << '}';
+               << ",\"trinket_icons\":" << trinket_icons_.size()
+               << ",\"basement_texture\":" << (find_ui("basement-floor") ? "true" : "false")
+               << ",\"seed_paper\":" << (find_ui("seed-paper") ? "true" : "false") << '}';
         return output.str();
     }
 
@@ -875,6 +893,7 @@ int run_local_web_app(bool open_browser) {
     const auto app_js = load_resource(IDR_WEB_APP);
     const auto item_catalog_json = load_resource(IDR_ITEM_CATALOG);
     const auto isaac_sans_font = load_resource(IDR_ISAAC_SANS_FONT);
+    const auto seeker_title = load_resource(IDR_SEEKER_TITLE);
     const GameIconCatalog game_icons;
     SearchSession session;
     std::cout << "Isaac Seed Seeker: " << url << std::endl;
@@ -915,6 +934,22 @@ int run_local_web_app(bool open_browser) {
                 respond(client, 200, "OK", "text/javascript; charset=utf-8", app_js);
             } else if (request.method == "GET" && request.path == "/assets/isaacsans.ttf") {
                 respond(client, 200, "OK", "font/ttf", isaac_sans_font);
+            } else if (request.method == "GET" && request.path == "/assets/isaac-seed-seeker-title.png") {
+                respond(client, 200, "OK", "image/png", seeker_title);
+            } else if (request.method == "GET" && request.path == "/game-assets/ui/basement-floor.png") {
+                const auto path = game_icons.find_ui("basement-floor");
+                if (path) {
+                    respond(client, 200, "OK", "image/png", read_binary_file(*path));
+                } else {
+                    respond(client, 404, "Not Found", "application/json; charset=utf-8", "{\"error\":\"asset not found\"}");
+                }
+            } else if (request.method == "GET" && request.path == "/game-assets/ui/seed-paper.png") {
+                const auto path = game_icons.find_ui("seed-paper");
+                if (path) {
+                    respond(client, 200, "OK", "image/png", read_binary_file(*path));
+                } else {
+                    respond(client, 404, "Not Found", "application/json; charset=utf-8", "{\"error\":\"asset not found\"}");
+                }
             } else if (request.method == "GET" && request.path == "/catalog.json") {
                 respond(client, 200, "OK", "application/json; charset=utf-8", item_catalog_json);
             } else if (request.method == "GET" && request.path == "/api/v1/assets") {

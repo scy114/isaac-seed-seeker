@@ -34,6 +34,7 @@ try {
     $Page = Invoke-WebRequest $Url -UseBasicParsing
     $ClientScript = Invoke-WebRequest ($BaseUrl + "app.js") -UseBasicParsing
     $IsaacFont = Invoke-WebRequest ($BaseUrl + "assets/isaacsans.ttf") -UseBasicParsing
+    $SeekerTitle = Invoke-WebRequest ($BaseUrl + "assets/isaac-seed-seeker-title.png") -UseBasicParsing
     if (
         $Page.Content -notmatch 'id="red-hearts-min"' -or
         $Page.Content -notmatch 'data-sort-key="damage"' -or
@@ -43,7 +44,9 @@ try {
         $ClientScript.Content -notmatch "sort_direction" -or
         $ClientScript.Content -notmatch "compareMatches" -or
         $ClientScript.Content -notmatch "class CatalogPicker" -or
-        $IsaacFont.RawContentLength -lt 10000
+        $IsaacFont.RawContentLength -lt 10000 -or
+        $SeekerTitle.Headers["Content-Type"] -notmatch "image/png" -or
+        $SeekerTitle.RawContentLength -lt 100000
     ) {
         throw "embedded WebUI does not expose the generic Eden filters"
     }
@@ -68,6 +71,18 @@ try {
         }
         if ($Assets.collectible_icons -lt 700 -or $Assets.trinket_icons -lt 180) {
             throw "local game icon index is unexpectedly incomplete"
+        }
+        if ($Assets.basement_texture) {
+            $Basement = Invoke-WebRequest ($BaseUrl + "game-assets/ui/basement-floor.png") -UseBasicParsing
+            if ($Basement.Headers["Content-Type"] -notmatch "image/png" -or $Basement.RawContentLength -lt 1000) {
+                throw "local basement texture endpoint did not return a PNG"
+            }
+        }
+        if ($Assets.seed_paper) {
+            $SeedPaper = Invoke-WebRequest ($BaseUrl + "game-assets/ui/seed-paper.png") -UseBasicParsing
+            if ($SeedPaper.Headers["Content-Type"] -notmatch "image/png" -or $SeedPaper.RawContentLength -lt 100) {
+                throw "local seed paper endpoint did not return a PNG"
+            }
         }
     }
     $UnauthorizedBlocked = $false

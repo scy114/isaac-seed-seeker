@@ -567,6 +567,7 @@ async function request(path, options) {
 
 async function loadProfile() {
   const profile = await request("/api/v1/profile");
+  document.body.classList.toggle("has-local-art", profile.local_game_icons);
   $("#profile-name").textContent = `${profile.game_build} · 全解锁`;
   $("#profile-detail").textContent = profile.local_game_icons
     ? `${profile.game_version} · 已读取游戏图标`
