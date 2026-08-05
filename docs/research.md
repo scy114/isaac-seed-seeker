@@ -56,6 +56,17 @@
 - 金色饰品在运行时使用高位标记；筛选按 `raw & 0x7FFF` 与基础饰品 ID 比较。
 - REPENTOGON 可以增强房间级观测，但基础伊甸筛选不应硬依赖它。
 
+## Frontend asset research
+
+2026-08-05 对 Wiki、社区工具和字体资源做了单独的可再分发性检查：
+
+- [IsaacSans](https://www.fontspace.com/isaacsans-font-f18283) 是 Shrapnel 制作的以撒风格字体，来源页和下载包均标记为 Public Domain。仓库保留字体文件、原始许可文字和来源链接，仅用于英文标题及短标签；中文继续使用系统字体回退。
+- [External Item Descriptions](https://github.com/wofsauge/External-Item-Descriptions) 是最成熟的界面参照之一，但当前仓库未发现 LICENSE 文件，因此只参考信息布局，不复制其字体、图片或代码。
+- [Isaac Codex](https://github.com/ceressa/isaac-codex) 明确区分 MIT 代码与游戏像素图：道具图仍归 Nicalis / Edmund McMillen 所有。其他若干社区工具也会随代码收录游戏图标，但开源代码许可证并不会自动覆盖这些图像。
+- 灰机 Wiki 的条目数据快照继续按源页面声明的 CC0 使用；这不等于 Wiki 展示的官方游戏图标也变成 CC0。
+
+因此发行包不收录从 Wiki、Platinum God 或其他仓库复制的官方道具图。Windows WebUI 会在启动时定位玩家自己的 Steam 安装，并只从本机 `extracted_resources/resources/gfx/items` 提供道具和饰品图标。图标不会写回仓库，也不会随 EXE 再分发；未解包资源时界面自动退回纯文字。
+
 ## Native generic Eden backend
 
 原生后端现已复现并输出以下道具结算前字段：红心、魂心、伤害/移速/射速/弹速/幸运随机修正、换算后的基础射程，以及互斥的饰品/卡牌/胶囊口袋物。实现依据 Eden Generation 技术页中的 Repentance 生成顺序，并以本机 J460 表、固定种子向量和外部慢路径交叉检查。

@@ -4,22 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Isaac Seed Seeker</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%23701c19'/%3E%3Cpath d='M18 17h28v8H36v22h10v8H18v-8h10V25H18z' fill='%23eee6d8'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <main class="shell">
     <header class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">THE BINDING OF ISAAC · EDEN</p>
+        <p class="eyebrow">EDEN'S START</p>
         <h1>Isaac Seed Seeker</h1>
-        <p class="lead">在本机离线推算伊甸开局。选你关心的条件，其余留空即可。</p>
-        <div class="hero-tags" aria-label="产品特性">
-          <span>单文件 EXE</span><span>无需 Python</span><span>数据不上传</span>
-        </div>
+        <p class="lead">写下想要的伊甸开局，然后从种子里把它翻出来。</p>
       </div>
       <aside class="profile-card">
-        <span>当前游戏档案</span>
+        <span>当前存档表</span>
         <strong id="profile-name">正在读取…</strong>
         <small id="profile-detail"></small>
       </aside>
@@ -28,8 +24,8 @@
     <section class="panel form-panel">
       <div class="section-title search-heading">
         <div>
-          <p class="step">01 · 筛选条件</p>
-          <h2>你想要怎样的伊甸开局？</h2>
+          <p class="step">WANTED</p>
+          <h2>伊甸要带什么出门？</h2>
           <p class="section-copy">已填写的不同类别必须同时满足；同一栏里的多个条目满足任意一个即可。</p>
           <p class="catalog-state" id="catalog-state">正在载入离线名称目录…</p>
         </div>
@@ -164,7 +160,7 @@
     <section class="panel progress-panel">
       <div class="section-title compact">
         <div>
-          <p class="step">02 · 搜索状态</p>
+          <p class="step">ROLLING</p>
           <h2 id="state-label">等待开始</h2>
         </div>
         <strong id="percent-label">0.00%</strong>
@@ -182,8 +178,8 @@
     <section class="panel results-panel">
       <div class="section-title compact results-heading">
         <div>
-          <p class="step">03 · 结果</p>
-          <h2>候选种子</h2>
+          <p class="step">FOUND</p>
+          <h2>找到的种子</h2>
           <p id="results-summary" class="section-copy">完成搜索后在这里显示结果。</p>
         </div>
         <div class="results-actions">
@@ -234,7 +230,7 @@
     </section>
 
     <footer>
-      <span>计算只发生在你的电脑上 · 游戏内验证仍是最终准则</span>
+      <span>非官方伊甸种子工具 · 游戏内结果为准</span>
       <button id="shutdown-button" type="button">关闭本地程序</button>
     </footer>
   </main>

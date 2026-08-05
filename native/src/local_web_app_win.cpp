@@ -20,6 +20,8 @@
 #include <climits>
 #include <cmath>
 #include <cstdint>
+#include <filesystem>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <mutex>
@@ -30,6 +32,7 @@
 #include <string>
 #include <string_view>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 namespace isaac_seed_seeker {
@@ -486,6 +489,219 @@ std::string load_resource(int identifier) {
     return std::string(data, size);
 }
 
+std::string read_binary_file(const std::filesystem::path& path) {
+    std::ifstream input(path, std::ios::binary);
+    if (!input) {
+        throw std::runtime_error("cannot open local game asset");
+    }
+    return std::string(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+}
+
+std::optional<std::filesystem::path> read_registry_path(
+    HKEY root,
+    const wchar_t* subkey,
+    const wchar_t* value_name
+) {
+    DWORD size = 0;
+    if (RegGetValueW(root, subkey, value_name, RRF_RT_REG_SZ, nullptr, nullptr, &size) != ERROR_SUCCESS
+        || size < sizeof(wchar_t)) {
+        return std::nullopt;
+    }
+    std::vector<wchar_t> value(size / sizeof(wchar_t) + 1, L'\0');
+    if (RegGetValueW(root, subkey, value_name, RRF_RT_REG_SZ, nullptr, value.data(), &size) != ERROR_SUCCESS) {
+        return std::nullopt;
+    }
+    return std::filesystem::path(value.data());
+}
+
+std::optional<std::filesystem::path> environment_path(const wchar_t* name) {
+    const DWORD size = GetEnvironmentVariableW(name, nullptr, 0);
+    if (size == 0) return std::nullopt;
+    std::vector<wchar_t> value(size, L'\0');
+    if (GetEnvironmentVariableW(name, value.data(), size) == 0) return std::nullopt;
+    return std::filesystem::path(value.data());
+}
+
+void append_unique_path(
+    std::vector<std::filesystem::path>& paths,
+    const std::filesystem::path& candidate
+) {
+    if (candidate.empty()) return;
+    const auto normalized = candidate.lexically_normal();
+    if (std::find(paths.begin(), paths.end(), normalized) == paths.end()) {
+        paths.push_back(normalized);
+    }
+}
+
+std::vector<std::filesystem::path> steam_library_roots(const std::filesystem::path& steam_root) {
+    std::vector<std::filesystem::path> roots;
+    append_unique_path(roots, steam_root);
+    const auto libraries = steam_root / "steamapps" / "libraryfolders.vdf";
+    std::ifstream input(libraries, std::ios::binary);
+    std::string line;
+    while (std::getline(input, line)) {
+        const auto key = line.find("\"path\"");
+        if (key == std::string::npos) continue;
+        const auto key_end = line.find('"', key + 1);
+        const auto value_start = line.find('"', key_end + 1);
+        const auto value_end = value_start == std::string::npos
+            ? std::string::npos
+            : line.find('"', value_start + 1);
+        if (value_start == std::string::npos || value_end == std::string::npos) continue;
+        std::string value = line.substr(value_start + 1, value_end - value_start - 1);
+        for (std::size_t index = 0; index + 1 < value.size();) {
+            if (value[index] == '\\' && value[index + 1] == '\\') {
+                value.erase(index, 1);
+            } else {
+                ++index;
+            }
+        }
+        append_unique_path(roots, std::filesystem::path(value));
+    }
+    return roots;
+}
+
+std::optional<std::filesystem::path> locate_game_resource_root() {
+    constexpr auto game_folder = "The Binding of Isaac Rebirth";
+    std::vector<std::filesystem::path> direct_candidates;
+    if (const auto configured = environment_path(L"ISAAC_GAME_DIR")) {
+        append_unique_path(direct_candidates, *configured);
+    }
+
+    wchar_t executable_buffer[32'768]{};
+    const DWORD executable_size = GetModuleFileNameW(nullptr, executable_buffer, 32'768);
+    if (executable_size > 0 && executable_size < 32'768) {
+        auto ancestor = std::filesystem::path(executable_buffer).parent_path();
+        for (int depth = 0; depth < 5 && !ancestor.empty(); ++depth) {
+            append_unique_path(direct_candidates, ancestor);
+            ancestor = ancestor.parent_path();
+        }
+    }
+
+    std::vector<std::filesystem::path> steam_roots;
+    const auto add_registry_root = [&](HKEY root, const wchar_t* key, const wchar_t* value) {
+        if (const auto path = read_registry_path(root, key, value)) append_unique_path(steam_roots, *path);
+    };
+    add_registry_root(HKEY_CURRENT_USER, L"Software\\Valve\\Steam", L"SteamPath");
+    add_registry_root(HKEY_LOCAL_MACHINE, L"Software\\WOW6432Node\\Valve\\Steam", L"InstallPath");
+    if (const auto program_files_x86 = environment_path(L"ProgramFiles(x86)")) {
+        append_unique_path(steam_roots, *program_files_x86 / "Steam");
+    }
+    if (const auto program_files = environment_path(L"ProgramFiles")) {
+        append_unique_path(steam_roots, *program_files / "Steam");
+    }
+    for (const auto& steam_root : steam_roots) {
+        for (const auto& library : steam_library_roots(steam_root)) {
+            append_unique_path(
+                direct_candidates,
+                library / "steamapps" / "common" / game_folder
+            );
+        }
+    }
+
+    for (const auto& game_root : direct_candidates) {
+        const auto resources = game_root / "extracted_resources" / "resources";
+        if (std::filesystem::is_directory(resources / "gfx" / "items" / "collectibles")
+            && std::filesystem::is_directory(resources / "gfx" / "items" / "trinkets")) {
+            return resources;
+        }
+    }
+    return std::nullopt;
+}
+
+class GameIconCatalog {
+public:
+    GameIconCatalog() {
+        const auto root = locate_game_resource_root();
+        if (!root) return;
+        resource_root_ = *root;
+        index_directory(
+            resource_root_ / "gfx" / "items" / "collectibles",
+            "collectibles_",
+            collectible_icons_
+        );
+        index_directory(
+            resource_root_ / "gfx" / "items" / "trinkets",
+            "trinket_",
+            trinket_icons_
+        );
+    }
+
+    std::optional<std::filesystem::path> find(std::string_view kind, std::int32_t id) const {
+        const auto& icons = kind == "trinket" ? trinket_icons_ : collectible_icons_;
+        if (kind != "trinket" && kind != "active" && kind != "passive") return std::nullopt;
+        const auto found = icons.find(id);
+        if (found == icons.end()) return std::nullopt;
+        return found->second;
+    }
+
+    bool available() const noexcept {
+        return !collectible_icons_.empty() && !trinket_icons_.empty();
+    }
+
+    std::string status_json() const {
+        std::ostringstream output;
+        output << "{\"item_icons\":" << (available() ? "true" : "false")
+               << ",\"collectible_icons\":" << collectible_icons_.size()
+               << ",\"trinket_icons\":" << trinket_icons_.size() << '}';
+        return output.str();
+    }
+
+private:
+    static void index_directory(
+        const std::filesystem::path& directory,
+        std::string_view prefix,
+        std::unordered_map<std::int32_t, std::filesystem::path>& output
+    ) {
+        std::error_code error;
+        for (const auto& entry : std::filesystem::directory_iterator(directory, error)) {
+            if (error || !entry.is_regular_file() || entry.path().extension() != ".png") continue;
+            const auto stem = entry.path().stem().string();
+            if (!stem.starts_with(prefix)) continue;
+            const auto digits_start = prefix.size();
+            const auto digits_end = stem.find('_', digits_start);
+            if (digits_end == std::string::npos) continue;
+            std::int32_t id = 0;
+            const auto parsed = std::from_chars(
+                stem.data() + digits_start,
+                stem.data() + digits_end,
+                id
+            );
+            if (parsed.ec == std::errc() && parsed.ptr == stem.data() + digits_end && id > 0) {
+                output.try_emplace(id, entry.path());
+            }
+        }
+    }
+
+    std::filesystem::path resource_root_;
+    std::unordered_map<std::int32_t, std::filesystem::path> collectible_icons_;
+    std::unordered_map<std::int32_t, std::filesystem::path> trinket_icons_;
+};
+
+struct IconRequest {
+    std::string kind;
+    std::int32_t id = 0;
+};
+
+std::optional<IconRequest> parse_icon_request(std::string_view path) {
+    constexpr std::string_view prefix = "/game-assets/";
+    constexpr std::string_view suffix = ".png";
+    if (!path.starts_with(prefix) || !path.ends_with(suffix)) return std::nullopt;
+    path.remove_prefix(prefix.size());
+    path.remove_suffix(suffix.size());
+    const auto slash = path.find('/');
+    if (slash == std::string_view::npos || path.find('/', slash + 1) != std::string_view::npos) {
+        return std::nullopt;
+    }
+    IconRequest request{std::string(path.substr(0, slash)), 0};
+    const auto id_text = path.substr(slash + 1);
+    const auto parsed = std::from_chars(id_text.data(), id_text.data() + id_text.size(), request.id);
+    if (parsed.ec != std::errc() || parsed.ptr != id_text.data() + id_text.size() || request.id <= 0) {
+        return std::nullopt;
+    }
+    return request;
+}
+
 struct Request {
     std::string method;
     std::string path;
@@ -610,7 +826,7 @@ void respond(
     send_all(client, body);
 }
 
-std::string profile_json() {
+std::string profile_json(const GameIconCatalog& game_icons) {
     const auto& profile = builtin_j460_profile_info();
     std::ostringstream output;
     output << "{\"id\":\"" << profile.id
@@ -619,7 +835,9 @@ std::string profile_json() {
            << "\",\"proc_source_sha256\":\"" << profile.source_collectible_table_sha256
            << "\",\"trinket_pool_source_sha256\":\"" << profile.source_trinket_pool_sha256
            << "\",\"proc_semantic_sha256\":\"" << profile.collectible_semantic_sha256
-           << "\",\"trinket_pool_semantic_sha256\":\"" << profile.trinket_semantic_sha256 << "\"}";
+           << "\",\"trinket_pool_semantic_sha256\":\"" << profile.trinket_semantic_sha256
+           << "\",\"local_game_icons\":" << (game_icons.available() ? "true" : "false")
+           << '}';
     return output.str();
 }
 
@@ -656,6 +874,8 @@ int run_local_web_app(bool open_browser) {
     const auto style_css = load_resource(IDR_WEB_STYLE);
     const auto app_js = load_resource(IDR_WEB_APP);
     const auto item_catalog_json = load_resource(IDR_ITEM_CATALOG);
+    const auto isaac_sans_font = load_resource(IDR_ISAAC_SANS_FONT);
+    const GameIconCatalog game_icons;
     SearchSession session;
     std::cout << "Isaac Seed Seeker: " << url << std::endl;
     if (open_browser) {
@@ -693,10 +913,14 @@ int run_local_web_app(bool open_browser) {
                 respond(client, 200, "OK", "text/css; charset=utf-8", style_css);
             } else if (request.method == "GET" && request.path == "/app.js") {
                 respond(client, 200, "OK", "text/javascript; charset=utf-8", app_js);
+            } else if (request.method == "GET" && request.path == "/assets/isaacsans.ttf") {
+                respond(client, 200, "OK", "font/ttf", isaac_sans_font);
             } else if (request.method == "GET" && request.path == "/catalog.json") {
                 respond(client, 200, "OK", "application/json; charset=utf-8", item_catalog_json);
+            } else if (request.method == "GET" && request.path == "/api/v1/assets") {
+                respond(client, 200, "OK", "application/json; charset=utf-8", game_icons.status_json());
             } else if (request.method == "GET" && request.path == "/api/v1/profile") {
-                respond(client, 200, "OK", "application/json; charset=utf-8", profile_json());
+                respond(client, 200, "OK", "application/json; charset=utf-8", profile_json(game_icons));
             } else if (request.method == "POST" && request.path == "/api/v1/inspect") {
                 const auto seed = json_u32(request.body, "seed_u32");
                 const auto start = predict_eden_start(seed, builtin_j460_profile());
@@ -743,6 +967,16 @@ int run_local_web_app(bool open_browser) {
                 session.cancel();
                 respond(client, 200, "OK", "application/json; charset=utf-8", "{\"ok\":true}");
                 keep_running = false;
+            } else if (request.method == "GET") {
+                const auto icon_request = parse_icon_request(request.path);
+                const auto icon_path = icon_request
+                    ? game_icons.find(icon_request->kind, icon_request->id)
+                    : std::nullopt;
+                if (icon_path) {
+                    respond(client, 200, "OK", "image/png", read_binary_file(*icon_path));
+                } else {
+                    respond(client, 404, "Not Found", "application/json; charset=utf-8", "{\"error\":\"asset not found\"}");
+                }
             } else {
                 respond(client, 404, "Not Found", "application/json; charset=utf-8", "{\"error\":\"not found\"}");
             }

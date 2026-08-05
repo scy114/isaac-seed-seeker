@@ -31,7 +31,7 @@ target_link_libraries(isaac-seed-seeker-native PRIVATE isaac_seed_core)
 if(WIN32)
     enable_language(RC)
     target_sources(isaac-seed-seeker-native PRIVATE native/resources/web.rc)
-    target_link_libraries(isaac-seed-seeker-native PRIVATE ws2_32 shell32)
+    target_link_libraries(isaac-seed-seeker-native PRIVATE ws2_32 shell32 advapi32)
 endif()
 if(MSVC)
     set_property(

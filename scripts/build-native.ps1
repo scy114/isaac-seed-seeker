@@ -41,7 +41,7 @@ if ($LASTEXITCODE -ne 0) { throw "web resource build failed" }
     "$ProjectRoot\native\src\local_web_app_win.cpp" `
     $ResourceObject `
     -static -static-libgcc -static-libstdc++ `
-    -lws2_32 -lshell32 `
+    -lws2_32 -lshell32 -ladvapi32 `
     -o "$OutputDirectory\IsaacSeedSeeker.exe"
 if ($LASTEXITCODE -ne 0) { throw "native CLI build failed" }
 

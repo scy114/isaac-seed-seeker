@@ -12,6 +12,21 @@ let lastSearchPayload = null;
 const catalogByKey = new Map();
 const catalogPickers = new Map();
 
+function createItemIcon(kind, id) {
+  if (!["active", "passive", "trinket"].includes(kind) || !Number.isInteger(Number(id)) || Number(id) <= 0) {
+    return null;
+  }
+  const image = document.createElement("img");
+  image.className = "item-icon";
+  image.src = `/game-assets/${kind}/${Number(id)}.png`;
+  image.alt = "";
+  image.loading = "lazy";
+  image.decoding = "async";
+  image.setAttribute("aria-hidden", "true");
+  image.addEventListener("error", () => image.remove(), {once: true});
+  return image;
+}
+
 function normalizeCatalogText(value) {
   return String(value || "").normalize("NFKC").toLocaleLowerCase("zh-CN").trim().replace(/\s+/g, " ");
 }
@@ -173,6 +188,8 @@ class CatalogPicker {
       const identifier = document.createElement("span");
       identifier.className = "catalog-token-id";
       identifier.textContent = `#${id}`;
+      const icon = createItemIcon(this.kind, id);
+      if (icon) token.appendChild(icon);
       if (entry && Number.isInteger(entry.quality)) {
         const quality = document.createElement("span");
         quality.className = "catalog-token-quality";
@@ -241,7 +258,9 @@ class CatalogPicker {
         unavailable.textContent = "当前 J460 伊甸池不可用";
         copy.appendChild(unavailable);
       }
-      option.append(copy, metadata);
+      const icon = createItemIcon(entry.kind, entry.search_id);
+      if (icon) option.append(icon, copy, metadata);
+      else option.append(copy, metadata);
       option.addEventListener("pointerdown", (event) => event.preventDefault());
       option.addEventListener("click", () => this.select(entry));
       fragment.appendChild(option);
@@ -549,7 +568,9 @@ async function request(path, options) {
 async function loadProfile() {
   const profile = await request("/api/v1/profile");
   $("#profile-name").textContent = `${profile.game_build} · 全解锁`;
-  $("#profile-detail").textContent = profile.game_version;
+  $("#profile-detail").textContent = profile.local_game_icons
+    ? `${profile.game_version} · 已读取游戏图标`
+    : profile.game_version;
 }
 
 function stateLabel(state) {
@@ -559,12 +580,6 @@ function stateLabel(state) {
 function namedId(kind, id, fallback) {
   const entry = catalogByKey.get(catalogKey(kind, id));
   return entry ? `${entry.name_zh} · #${id}` : `${fallback} #${id}`;
-}
-
-function namedQualityItem(kind, id, quality, fallback) {
-  const entry = catalogByKey.get(catalogKey(kind, id));
-  const name = entry ? entry.name_zh : fallback;
-  return `${name} · Q${quality} · #${id}`;
 }
 
 function pocketLabel(match) {
@@ -590,6 +605,34 @@ function appendCell(row, value, className) {
 
 function appendStatCell(row, value) {
   return appendCell(row, formatStat(value));
+}
+
+function appendNamedItemCell(row, kind, id, metadata, fallback) {
+  const entry = catalogByKey.get(catalogKey(kind, id));
+  const cell = document.createElement("td");
+  cell.className = "id-value";
+  const wrapper = document.createElement("div");
+  wrapper.className = "item-cell";
+  const icon = createItemIcon(kind, id);
+  if (icon) wrapper.appendChild(icon);
+  const copy = document.createElement("span");
+  copy.className = "item-cell-copy";
+  const name = document.createElement("strong");
+  name.textContent = entry ? entry.name_zh : fallback;
+  const detail = document.createElement("small");
+  detail.textContent = metadata;
+  copy.append(name, detail);
+  wrapper.appendChild(copy);
+  cell.appendChild(wrapper);
+  row.appendChild(cell);
+  return cell;
+}
+
+function appendPocketCell(row, match) {
+  if (match.pocket_kind === "trinket") {
+    return appendNamedItemCell(row, "trinket", match.pocket_id, `#${match.pocket_id}`, "饰品");
+  }
+  return appendCell(row, pocketLabel(match), "id-value");
 }
 
 function compareAscending(left, right) {
@@ -659,9 +702,9 @@ function createResultRow(match) {
   raw.textContent = number.format(match.seed_u32);
   seedCell.append(seed, raw);
   row.appendChild(seedCell);
-  appendCell(row, pocketLabel(match), "id-value");
-  appendCell(row, namedQualityItem("active", match.active_id, match.active_quality, "主动"), "id-value");
-  appendCell(row, namedQualityItem("passive", match.passive_id, match.passive_quality, "被动"), "id-value");
+  appendPocketCell(row, match);
+  appendNamedItemCell(row, "active", match.active_id, `Q${match.active_quality} · #${match.active_id}`, "主动");
+  appendNamedItemCell(row, "passive", match.passive_id, `Q${match.passive_quality} · #${match.passive_id}`, "被动");
   appendCell(row, `Q${match.total_quality}`, "quality-value");
   appendCell(row, `${match.red_hearts} 红 / ${match.soul_hearts} 魂`);
   appendStatCell(row, match.damage);

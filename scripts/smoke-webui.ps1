@@ -33,6 +33,7 @@ try {
     $Headers = @{"X-Isaac-Token" = $Matches[2]}
     $Page = Invoke-WebRequest $Url -UseBasicParsing
     $ClientScript = Invoke-WebRequest ($BaseUrl + "app.js") -UseBasicParsing
+    $IsaacFont = Invoke-WebRequest ($BaseUrl + "assets/isaacsans.ttf") -UseBasicParsing
     if (
         $Page.Content -notmatch 'id="red-hearts-min"' -or
         $Page.Content -notmatch 'data-sort-key="damage"' -or
@@ -41,7 +42,8 @@ try {
         $ClientScript.Content -notmatch "pill_effect_ids" -or
         $ClientScript.Content -notmatch "sort_direction" -or
         $ClientScript.Content -notmatch "compareMatches" -or
-        $ClientScript.Content -notmatch "class CatalogPicker"
+        $ClientScript.Content -notmatch "class CatalogPicker" -or
+        $IsaacFont.RawContentLength -lt 10000
     ) {
         throw "embedded WebUI does not expose the generic Eden filters"
     }
@@ -58,6 +60,16 @@ try {
         throw "embedded item catalog is missing the target trinket search keys"
     }
     $Profile = Invoke-RestMethod ($BaseUrl + "api/v1/profile")
+    $Assets = Invoke-RestMethod ($BaseUrl + "api/v1/assets")
+    if ($Profile.local_game_icons) {
+        $Icon = Invoke-WebRequest ($BaseUrl + "game-assets/trinket/169.png") -UseBasicParsing
+        if ($Icon.Headers["Content-Type"] -notmatch "image/png" -or $Icon.RawContentLength -lt 100) {
+            throw "local game icon endpoint did not return a PNG"
+        }
+        if ($Assets.collectible_icons -lt 700 -or $Assets.trinket_icons -lt 180) {
+            throw "local game icon index is unexpectedly incomplete"
+        }
+    }
     $UnauthorizedBlocked = $false
     try {
         Invoke-RestMethod ($BaseUrl + "api/v1/search/cancel") -Method Post | Out-Null
