@@ -86,9 +86,9 @@ ZIP 内包含 EXE、中文使用说明、发行 NOTICE、离线目录来源说�
   --threads 8 `
   --output data\matches.json
 
-# 通用组合示例：胶囊效果 12、指定主动/被动、2 红心、真实伤害至少 4.05
+# 通用组合示例：卡牌 10、指定主动/被动、2 红心、真实伤害至少 4.05
 .\build\native\IsaacSeedSeeker.exe search `
-  --pill 12 `
+  --card 10 `
   --active 639 `
   --passive 393 `
   --red-hearts-min 2 `

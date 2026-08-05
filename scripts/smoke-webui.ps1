@@ -167,7 +167,7 @@ try {
         -ContentType "application/json" `
         -Headers $Headers `
         -Body $InspectBody
-    if ($Inspected.pocket_kind -ne "pill" -or $Inspected.pocket_id -ne 12) {
+    if ($Inspected.pocket_kind -ne "card" -or $Inspected.pocket_id -ne 10) {
         throw "inspect endpoint returned the wrong pocket item"
     }
     if ($Inspected.active_quality -lt 0 -or $Inspected.passive_quality -lt 0 -or
@@ -182,7 +182,7 @@ try {
     }
 
     $GenericBody = @{
-        pill_effect_ids = @(12)
+        card_ids = @(10)
         active_ids = @(639)
         passive_ids = @(393)
         red_hearts_min = 2

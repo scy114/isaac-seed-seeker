@@ -172,7 +172,7 @@ void roll_pocket(EdenStart& result, const ProfileTables& tables) noexcept {
     }
     const auto selector = eden_step(second);
     const auto roll_seed = eden_step(selector);
-    if ((selector & 1U) != 0) {
+    if ((selector & 1U) == 0) {
         result.pocket_kind = PocketKind::card;
         result.pocket_id = roll_card(roll_seed);
     } else {
@@ -204,7 +204,7 @@ bool roll_and_match_pocket(
         return kind_matches(PocketKind::none) && criteria.pocket_ids.matches(0);
     }
     const auto selector = eden_step(second);
-    const auto kind = (selector & 1U) != 0 ? PocketKind::card : PocketKind::pill;
+    const auto kind = (selector & 1U) == 0 ? PocketKind::card : PocketKind::pill;
     if (!kind_matches(kind)) return false;
     if (criteria.pocket_ids.configured()) {
         const auto roll_seed = eden_step(selector);

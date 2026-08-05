@@ -80,25 +80,39 @@ int main(int argc, char** argv) {
         require_near(builtin_start.shot_speed_delta, -0.0916349254782613, "builtin shot speed mismatch");
         require_near(builtin_start.luck_delta, -0.4185999840698891, "builtin luck mismatch");
 
-        const auto pill_start = iss::predict_eden_start(2U, builtin);
-        require(pill_start.pocket_kind == iss::PocketKind::pill, "pill pocket kind mismatch");
-        require(pill_start.pocket_id == 12, "pill effect mismatch");
-        require(pill_start.active_id == 639, "pill seed active mismatch");
-        require(pill_start.passive_id == 393, "pill seed passive mismatch");
-        require_near(pill_start.red_hearts, 2.0, "pill seed red hearts mismatch");
-        require_near(pill_start.soul_hearts, 0.0, "pill seed soul hearts mismatch");
-        require_near(pill_start.damage_delta, 0.5564722532531445, "pill seed damage mismatch");
-        require_near(pill_start.range, 7.4267219649934215, "pill seed range mismatch");
-        const auto horse_pill_start = iss::predict_eden_start(60U, builtin);
-        require(horse_pill_start.pocket_kind == iss::PocketKind::pill, "horse pill kind mismatch");
-        require(horse_pill_start.pocket_id == 63, "horse pill effect mismatch");
+        const auto card_with_items = iss::predict_eden_start(2U, builtin);
+        require(card_with_items.pocket_kind == iss::PocketKind::card, "card pocket kind mismatch");
+        require(card_with_items.pocket_id == 10, "card ID mismatch");
+        require(card_with_items.active_id == 639, "card seed active mismatch");
+        require(card_with_items.passive_id == 393, "card seed passive mismatch");
+        require_near(card_with_items.red_hearts, 2.0, "card seed red hearts mismatch");
+        require_near(card_with_items.soul_hearts, 0.0, "card seed soul hearts mismatch");
+        require_near(card_with_items.damage_delta, 0.5564722532531445, "card seed damage mismatch");
+        require_near(card_with_items.range, 7.4267219649934215, "card seed range mismatch");
 
-        const auto card_start = iss::predict_eden_start(5U, builtin);
+        const auto pill_start = iss::predict_eden_start(5U, builtin);
+        require(pill_start.pocket_kind == iss::PocketKind::pill, "pill pocket kind mismatch");
+        require(pill_start.pocket_id == 8, "pill effect mismatch");
+        const auto horse_pill_start = iss::predict_eden_start(64U, builtin);
+        require(horse_pill_start.pocket_kind == iss::PocketKind::pill, "horse pill kind mismatch");
+        require(horse_pill_start.pocket_id == 76, "horse pill effect mismatch");
+
+        const auto card_start = iss::predict_eden_start(1U, builtin);
         require(card_start.pocket_kind == iss::PocketKind::card, "card pocket kind mismatch");
-        require(card_start.pocket_id == 2, "normal card ID mismatch");
-        const auto reversed_card_start = iss::predict_eden_start(7U, builtin);
+        require(card_start.pocket_id == 7, "normal card ID mismatch");
+        const auto reversed_card_start = iss::predict_eden_start(14U, builtin);
         require(reversed_card_start.pocket_kind == iss::PocketKind::card, "reversed card kind mismatch");
-        require(reversed_card_start.pocket_id == 58, "reversed card ID mismatch");
+        require(reversed_card_start.pocket_id == 69, "reversed card ID mismatch");
+
+        constexpr std::uint32_t reported_card_false_positive = 230'816'840U;
+        require(iss::seed_to_string(reported_card_false_positive) == "AJ1J HPQF",
+                "reported pocket regression seed label mismatch");
+        const auto reported_start = iss::predict_eden_start(reported_card_false_positive, builtin);
+        require(reported_start.pocket_kind == iss::PocketKind::pill,
+                "reported pocket regression kind mismatch");
+        require(reported_start.pocket_id == 1, "reported pocket regression pill mismatch");
+        require(reported_start.active_id == 347, "reported pocket regression active mismatch");
+        require(reported_start.passive_id == 402, "reported pocket regression passive mismatch");
 
         struct GoldenStart {
             std::uint32_t seed;
@@ -165,8 +179,8 @@ int main(int argc, char** argv) {
         }
 
         iss::EdenCriteria generic;
-        generic.pocket_kind = iss::PocketKind::pill;
-        generic.pocket_ids.any_of = {12};
+        generic.pocket_kind = iss::PocketKind::card;
+        generic.pocket_ids.any_of = {10};
         generic.active_items.any_of = {639};
         generic.passive_items.any_of = {393};
         generic.red_hearts.minimum = 2.0;
@@ -181,6 +195,26 @@ int main(int argc, char** argv) {
         require(generic_result.total_matches == 1, "generic criteria count mismatch");
         require(generic_result.matches.size() == 1, "generic criteria stored result mismatch");
         require(generic_result.matches.front().start.seed == 2U, "generic criteria seed mismatch");
+
+        iss::EdenCriteria reported_card;
+        reported_card.pocket_kind = iss::PocketKind::card;
+        reported_card.pocket_ids.any_of = {80};
+        reported_card.active_items.any_of = {347};
+        reported_card.passive_items.any_of = {402};
+        iss::SearchOptions reported_options;
+        reported_options.start = reported_card_false_positive;
+        reported_options.end = reported_card_false_positive;
+        reported_options.threads = 1;
+        const auto reported_card_result = iss::search(builtin, reported_card, reported_options);
+        require(reported_card_result.total_matches == 0,
+                "reported seed remained a card 80 false positive");
+
+        auto reported_pill = reported_card;
+        reported_pill.pocket_kind = iss::PocketKind::pill;
+        reported_pill.pocket_ids.any_of = {1};
+        const auto reported_pill_result = iss::search(builtin, reported_pill, reported_options);
+        require(reported_pill_result.total_matches == 1,
+                "reported seed did not match its actual pill branch");
 
         iss::EdenCriteria capped;
         capped.pocket_kind = iss::PocketKind::none;

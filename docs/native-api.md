@@ -85,7 +85,7 @@
 
 ```json
 {
-  "pill_effect_ids": [12],
+  "card_ids": [10],
   "active_ids": [639],
   "passive_ids": [393],
   "red_hearts_min": 2,
