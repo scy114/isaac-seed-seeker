@@ -640,6 +640,8 @@ public:
         std::filesystem::path relative;
         if (name == "basement-floor") {
             relative = std::filesystem::path("gfx") / "backdrop" / "01_lbasementfloor.png";
+        } else if (name == "basement-walls") {
+            relative = std::filesystem::path("gfx") / "backdrop" / "01_basement.png";
         } else if (name == "seed-paper") {
             relative = std::filesystem::path("gfx") / "ui" / "seed paper.png";
         } else {
@@ -661,6 +663,7 @@ public:
                << ",\"collectible_icons\":" << collectible_icons_.size()
                << ",\"trinket_icons\":" << trinket_icons_.size()
                << ",\"basement_texture\":" << (find_ui("basement-floor") ? "true" : "false")
+               << ",\"basement_walls\":" << (find_ui("basement-walls") ? "true" : "false")
                << ",\"seed_paper\":" << (find_ui("seed-paper") ? "true" : "false") << '}';
         return output.str();
     }
@@ -894,6 +897,7 @@ int run_local_web_app(bool open_browser) {
     const auto item_catalog_json = load_resource(IDR_ITEM_CATALOG);
     const auto isaac_sans_font = load_resource(IDR_ISAAC_SANS_FONT);
     const auto seeker_title = load_resource(IDR_SEEKER_TITLE);
+    const auto lana_pixel_font = load_resource(IDR_LANA_PIXEL_FONT);
     const GameIconCatalog game_icons;
     SearchSession session;
     std::cout << "Isaac Seed Seeker: " << url << std::endl;
@@ -936,8 +940,17 @@ int run_local_web_app(bool open_browser) {
                 respond(client, 200, "OK", "font/ttf", isaac_sans_font);
             } else if (request.method == "GET" && request.path == "/assets/isaac-seed-seeker-title.png") {
                 respond(client, 200, "OK", "image/png", seeker_title);
+            } else if (request.method == "GET" && request.path == "/assets/lanapixel.ttf") {
+                respond(client, 200, "OK", "font/ttf", lana_pixel_font);
             } else if (request.method == "GET" && request.path == "/game-assets/ui/basement-floor.png") {
                 const auto path = game_icons.find_ui("basement-floor");
+                if (path) {
+                    respond(client, 200, "OK", "image/png", read_binary_file(*path));
+                } else {
+                    respond(client, 404, "Not Found", "application/json; charset=utf-8", "{\"error\":\"asset not found\"}");
+                }
+            } else if (request.method == "GET" && request.path == "/game-assets/ui/basement-walls.png") {
+                const auto path = game_icons.find_ui("basement-walls");
                 if (path) {
                     respond(client, 200, "OK", "image/png", read_binary_file(*path));
                 } else {

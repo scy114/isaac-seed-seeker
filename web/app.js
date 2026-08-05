@@ -12,6 +12,73 @@ let lastSearchPayload = null;
 const catalogByKey = new Map();
 const catalogPickers = new Map();
 
+function loadBackdropImage(source) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.decoding = "async";
+    image.addEventListener("load", () => resolve(image), {once: true});
+    image.addEventListener("error", () => reject(new Error(`背景素材读取失败：${source}`)), {once: true});
+    image.src = source;
+  });
+}
+
+async function initializeBasementBackdrop() {
+  const canvas = $("#basement-room");
+  if (!canvas) return;
+  const atlas = await loadBackdropImage("/game-assets/ui/basement-walls.png");
+  const context = canvas.getContext("2d", {alpha: false});
+  if (!context) return;
+  let resizeFrame = null;
+
+  const draw = () => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const scale = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.max(1, Math.round(width * scale));
+    canvas.height = Math.max(1, Math.round(height * scale));
+    context.setTransform(scale, 0, 0, scale, 0, 0);
+    context.imageSmoothingEnabled = false;
+
+    const halfWidth = Math.ceil(width / 2);
+    const halfHeight = Math.ceil(height / 2);
+    const sourceWidth = 234;
+    const sourceHeight = 156;
+    const drawCorner = (x, y, targetWidth, targetHeight, flipX, flipY) => {
+      context.save();
+      context.translate(x + (flipX ? targetWidth : 0), y + (flipY ? targetHeight : 0));
+      context.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+      context.drawImage(
+        atlas,
+        0,
+        0,
+        sourceWidth,
+        sourceHeight,
+        0,
+        0,
+        targetWidth,
+        targetHeight,
+      );
+      context.restore();
+    };
+
+    drawCorner(0, 0, halfWidth, halfHeight, false, false);
+    drawCorner(halfWidth - 1, 0, width - halfWidth + 1, halfHeight, true, false);
+    drawCorner(0, halfHeight - 1, halfWidth, height - halfHeight + 1, false, true);
+    drawCorner(halfWidth - 1, halfHeight - 1, width - halfWidth + 1, height - halfHeight + 1, true, true);
+    context.fillStyle = "rgba(19, 10, 8, 0.56)";
+    context.fillRect(0, 0, width, height);
+  };
+
+  draw();
+  window.addEventListener("resize", () => {
+    if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(() => {
+      resizeFrame = null;
+      draw();
+    });
+  });
+}
+
 function createItemIcon(kind, id) {
   if (!["active", "passive", "trinket"].includes(kind) || !Number.isInteger(Number(id)) || Number(id) <= 0) {
     return null;
@@ -947,6 +1014,9 @@ document.addEventListener("pointerdown", (event) => {
 updatePocketControls(false);
 updateCriteriaSummary();
 renderResults();
+initializeBasementBackdrop().catch(() => {
+  document.body.classList.add("backdrop-fallback");
+});
 loadCatalog().catch((error) => {
   const state = $("#catalog-state");
   state.textContent = `名称目录载入失败，仍可直接输入 ID：${error.message}`;

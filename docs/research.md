@@ -60,7 +60,8 @@
 
 2026-08-05 对 Wiki、社区工具和字体资源做了单独的可再分发性检查：
 
-- [IsaacSans](https://www.fontspace.com/isaacsans-font-f18283) 是 Shrapnel 制作的以撒风格字体，来源页和下载包均标记为 Public Domain。仓库保留字体文件、原始许可文字和来源链接，仅用于英文标题及短标签；中文继续使用系统字体回退。
+- [IsaacSans](https://www.fontspace.com/isaacsans-font-f18283) 是 Shrapnel 制作的以撒风格字体，来源页和下载包均标记为 Public Domain。仓库保留字体文件、原始许可文字和来源链接，用于英文短标签。
+- [LanaPixel](https://opengameart.org/content/lanapixel-localization-friendly-pixel-font) 是 eishiya 制作、游戏 CJK 资源实际采用的像素字体；001.003 轮廓 TTF 依据 SIL OFL 1.1 随程序嵌入，用于离线中文界面。仓库保留完整许可、版本与校验值。
 - [External Item Descriptions](https://github.com/wofsauge/External-Item-Descriptions) 是最成熟的界面参照之一，但当前仓库未发现 LICENSE 文件，因此只参考信息布局，不复制其字体、图片或代码。
 - [Isaac Codex](https://github.com/ceressa/isaac-codex) 明确区分 MIT 代码与游戏像素图：道具图仍归 Nicalis / Edmund McMillen 所有。其他若干社区工具也会随代码收录游戏图标，但开源代码许可证并不会自动覆盖这些图像。
 - 灰机 Wiki 的条目数据快照继续按源页面声明的 CC0 使用；这不等于 Wiki 展示的官方游戏图标也变成 CC0。

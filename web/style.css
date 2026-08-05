@@ -4,6 +4,12 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "LanaPixel";
+  src: url("/assets/lanapixel.ttf") format("truetype");
+  font-display: swap;
+}
+
 :root {
   color-scheme: dark;
   --paper: #eee1ca;
@@ -28,14 +34,21 @@ html { min-width: 320px; }
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #422820;
-  background-image: url("/game-assets/ui/basement-floor.png");
-  background-repeat: repeat;
-  background-size: 1014px 364px;
-  background-attachment: fixed;
-  background-blend-mode: multiply;
+  background: #170d0a;
   color: var(--paper);
-  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  font-family: "LanaPixel", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: none;
+  text-rendering: optimizeSpeed;
+}
+
+#basement-room {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  image-rendering: pixelated;
 }
 
 button, input, select { font: inherit; }
@@ -52,6 +65,8 @@ button, select { cursor: pointer; }
 }
 
 .shell {
+  position: relative;
+  z-index: 1;
   width: min(1320px, calc(100% - 44px));
   margin: 0 auto;
   padding: 18px 0 28px;

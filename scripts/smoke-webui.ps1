@@ -34,6 +34,7 @@ try {
     $Page = Invoke-WebRequest $Url -UseBasicParsing
     $ClientScript = Invoke-WebRequest ($BaseUrl + "app.js") -UseBasicParsing
     $IsaacFont = Invoke-WebRequest ($BaseUrl + "assets/isaacsans.ttf") -UseBasicParsing
+    $LanaPixelFont = Invoke-WebRequest ($BaseUrl + "assets/lanapixel.ttf") -UseBasicParsing
     $SeekerTitle = Invoke-WebRequest ($BaseUrl + "assets/isaac-seed-seeker-title.png") -UseBasicParsing
     if (
         $Page.Content -notmatch 'id="red-hearts-min"' -or
@@ -45,6 +46,7 @@ try {
         $ClientScript.Content -notmatch "compareMatches" -or
         $ClientScript.Content -notmatch "class CatalogPicker" -or
         $IsaacFont.RawContentLength -lt 10000 -or
+        $LanaPixelFont.RawContentLength -lt 1000000 -or
         $SeekerTitle.Headers["Content-Type"] -notmatch "image/png" -or
         $SeekerTitle.RawContentLength -lt 100000
     ) {
@@ -76,6 +78,12 @@ try {
             $Basement = Invoke-WebRequest ($BaseUrl + "game-assets/ui/basement-floor.png") -UseBasicParsing
             if ($Basement.Headers["Content-Type"] -notmatch "image/png" -or $Basement.RawContentLength -lt 1000) {
                 throw "local basement texture endpoint did not return a PNG"
+            }
+        }
+        if ($Assets.basement_walls) {
+            $BasementWalls = Invoke-WebRequest ($BaseUrl + "game-assets/ui/basement-walls.png") -UseBasicParsing
+            if ($BasementWalls.Headers["Content-Type"] -notmatch "image/png" -or $BasementWalls.RawContentLength -lt 1000) {
+                throw "local basement wall endpoint did not return a PNG"
             }
         }
         if ($Assets.seed_paper) {
