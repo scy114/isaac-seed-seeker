@@ -423,6 +423,15 @@ const treatmentDirectionFields = [
   ["luck", "幸运"],
 ];
 
+const treatmentStatModels = [
+  {name: "damage", label: "伤害", base: [2.5, 4.5], post: [1.5, 5.5], delta: 1},
+  {name: "move-speed", label: "移速", base: [0.85, 1.15], post: [0.65, 1.35], delta: 0.2},
+  {name: "tears", label: "射速", base: [1.802826069, 3.501433905], post: [1.302826069, 4.001433905], delta: 0.5},
+  {name: "range", label: "射程", base: [5, 8], post: [2.5, 10.5], delta: 2.5},
+  {name: "shot-speed", label: "弹速", base: [0.75, 1.25], post: [0.6, 1.45], delta: 0.2, floor: 0.6},
+  {name: "luck", label: "幸运", base: [-1, 1], post: [-2, 2], delta: 1},
+];
+
 const sortLabels = {
   seed: "种子数值",
   health: "血量",
@@ -589,6 +598,109 @@ function syncDirectionButtons() {
   });
 }
 
+function formatConstraintNumber(value) {
+  return value.toFixed(3).replace(/\.?0+$/, "");
+}
+
+function treatmentBound(inputId) {
+  const value = $(`#${inputId}`).value.trim();
+  if (!value) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function treatmentPostValue(model, baseValue, direction) {
+  const multiplier = direction === "up" ? 1 : (direction === "down" ? -1 : 0);
+  let value = baseValue + model.delta * multiplier;
+  if (model.floor !== undefined) value = Math.max(model.floor, value);
+  return value;
+}
+
+function updateTreatmentFeasibility() {
+  if (!treatmentMode) return [];
+  const issues = [];
+  const directionCounts = {up: 0, down: 0, unchanged: 0};
+  treatmentDirectionFields.forEach(([name]) => {
+    const value = $(`#experimental-${name}`).value;
+    if (value) directionCounts[value] += 1;
+  });
+  const quotas = {up: 4, down: 2, unchanged: 1};
+  const quotaLabels = {up: "上升", down: "下降", unchanged: "不变"};
+  Object.entries(quotas).forEach(([direction, maximum]) => {
+    if (directionCounts[direction] > maximum) {
+      issues.push(`${quotaLabels[direction]}最多指定 ${maximum} 项，当前为 ${directionCounts[direction]} 项`);
+    }
+  });
+
+  treatmentStatModels.forEach((model) => {
+    const card = document.querySelector(`[data-treatment-stat="${model.name}"]`);
+    const feedback = card.querySelector("[data-constraint-feedback]");
+    card.classList.remove("is-impossible");
+    feedback.textContent = "";
+
+    const baseMinimumInput = treatmentBound(`${model.name}-min`);
+    const baseMaximumInput = treatmentBound(`${model.name}-max`);
+    const postMinimumInput = treatmentBound(`post-${model.name}-min`);
+    const postMaximumInput = treatmentBound(`post-${model.name}-max`);
+    const baseMinimum = Math.max(baseMinimumInput ?? model.base[0], model.base[0]);
+    const baseMaximum = Math.min(baseMaximumInput ?? model.base[1], model.base[1]);
+    const postMinimum = Math.max(postMinimumInput ?? model.post[0], model.post[0]);
+    const postMaximum = Math.min(postMaximumInput ?? model.post[1], model.post[1]);
+    let message = "";
+    if (baseMinimumInput !== null && baseMaximumInput !== null
+        && baseMinimumInput > baseMaximumInput) {
+      message = `无解：针前${model.label}最小值大于最大值`;
+    } else if (postMinimumInput !== null && postMaximumInput !== null
+        && postMinimumInput > postMaximumInput) {
+      message = `无解：针后${model.label}最小值大于最大值`;
+    } else if (baseMinimum > baseMaximum) {
+      message = `无解：针前${model.label}超出模型范围 ${formatConstraintNumber(model.base[0])}～${formatConstraintNumber(model.base[1])}`;
+    } else if (postMinimum > postMaximum) {
+      message = `无解：针后${model.label}超出模型范围 ${formatConstraintNumber(model.post[0])}～${formatConstraintNumber(model.post[1])}`;
+    } else {
+      const selected = $(`#experimental-${model.name}`).value;
+      const directions = selected ? [selected] : ["up", "down", "unchanged"];
+      const intervals = directions.map((direction) => {
+        const left = treatmentPostValue(model, baseMinimum, direction);
+        const right = treatmentPostValue(model, baseMaximum, direction);
+        return [Math.min(left, right), Math.max(left, right)];
+      });
+      const achievableMinimum = Math.min(...intervals.map(([minimum]) => minimum));
+      const achievableMaximum = Math.max(...intervals.map(([, maximum]) => maximum));
+      const feasible = intervals.some(([minimum, maximum]) =>
+        maximum + 1.0e-9 >= postMinimum && minimum - 1.0e-9 <= postMaximum
+      );
+      const baseRestricted = baseMinimumInput !== null || baseMaximumInput !== null;
+      if (!feasible) {
+        message = `无解：当前针前条件与方向只能得到 ${formatConstraintNumber(achievableMinimum)}～${formatConstraintNumber(achievableMaximum)}`;
+      } else if (selected || baseRestricted) {
+        feedback.textContent = `按当前针前条件，可得到 ${formatConstraintNumber(achievableMinimum)}～${formatConstraintNumber(achievableMaximum)}`;
+      }
+    }
+    if (message) {
+      card.classList.add("is-impossible");
+      feedback.textContent = message;
+      issues.push(message);
+    }
+  });
+
+  const state = $("#treatment-constraint-state");
+  if (issues.length) {
+    state.textContent = `发现 ${issues.length} 处无解，调整后再扫描`;
+    state.classList.add("is-impossible");
+  } else {
+    const selectedCount = directionCounts.up + directionCounts.down + directionCounts.unchanged;
+    state.textContent = selectedCount
+      ? `已指定：${directionCounts.up} 升 · ${directionCounts.down} 降 · ${directionCounts.unchanged} 不变`
+      : "当前条件可以组合";
+    state.classList.remove("is-impossible");
+  }
+  const startButton = $("#start-button");
+  startButton.dataset.constraintBlocked = issues.length ? "true" : "false";
+  startButton.disabled = issues.length > 0 || startButton.dataset.searchRunning === "true";
+  return issues;
+}
+
 function initializePageLinks() {
   const withToken = (path) => {
     const url = new URL(path, window.location.origin);
@@ -613,6 +725,7 @@ function clearFilters() {
   syncDirectionButtons();
   updatePocketControls(false);
   updateCriteriaSummary();
+  updateTreatmentFeasibility();
 }
 
 function buildSearchPayload() {
@@ -656,6 +769,8 @@ function buildSearchPayload() {
       const value = $(`#experimental-${name}`).value;
       if (value) payload[`experimental_${name.replaceAll("-", "_")}`] = value;
     });
+    const treatmentIssues = updateTreatmentFeasibility();
+    if (treatmentIssues.length) throw new Error(treatmentIssues[0]);
   }
 
   const integerRangeLimits = {
@@ -1037,7 +1152,9 @@ async function updateStatus() {
     $("#elapsed-value").textContent = `${status.elapsed_seconds.toFixed(1)} 秒`;
     const speed = status.elapsed_seconds > 0 ? status.scanned / status.elapsed_seconds : 0;
     $("#speed-value").textContent = speed ? `${number.format(Math.round(speed))}/秒` : "—";
-    $("#start-button").disabled = status.state === "running";
+    $("#start-button").dataset.searchRunning = String(status.state === "running");
+    $("#start-button").disabled = status.state === "running"
+      || $("#start-button").dataset.constraintBlocked === "true";
     $("#cancel-button").disabled = status.state !== "running";
     $("#error-message").hidden = !status.error;
     $("#error-message").textContent = status.error || "";
@@ -1099,7 +1216,10 @@ $("#pocket-kind").addEventListener("change", () => {
   updateCriteriaSummary();
 });
 
-$("#search-form").addEventListener("input", updateCriteriaSummary);
+$("#search-form").addEventListener("input", () => {
+  updateCriteriaSummary();
+  updateTreatmentFeasibility();
+});
 
 if (treatmentMode) {
   document.querySelectorAll(".direction-field[data-direction-field]").forEach((field) => {
@@ -1195,6 +1315,7 @@ updatePocketControls(false);
 initializePageLinks();
 syncDirectionButtons();
 updateCriteriaSummary();
+updateTreatmentFeasibility();
 renderResults();
 initializeBasementBackdrop().catch(() => {
   document.body.classList.add("backdrop-fallback");

@@ -100,50 +100,70 @@
         <section class="filter-group" aria-labelledby="treatment-base-heading">
           <div class="group-heading">
             <div><span class="group-number">C</span><h3 id="treatment-base-heading">黄针前的伊甸</h3></div>
-            <p>资源与基础属性均为实验性疗法结算前的数值。</p>
+            <p>通常留空；只在你在意“这一针是怎么扎出来的”时限制针前底子。</p>
           </div>
-          <div class="range-grid">
+          <div class="range-grid treatment-resource-ranges">
             <div class="range-field"><span>红心</span><small>0–3 颗</small><div><input id="red-hearts-min" type="number" step="1" min="0" max="3" placeholder="最小"><b>—</b><input id="red-hearts-max" type="number" step="1" min="0" max="3" placeholder="最大"></div></div>
             <div class="range-field"><span>魂心</span><small>0–3 颗</small><div><input id="soul-hearts-min" type="number" step="1" min="0" max="3" placeholder="最小"><b>—</b><input id="soul-hearts-max" type="number" step="1" min="0" max="3" placeholder="最大"></div></div>
             <div class="range-field"><span>硬币</span><small>0–5 枚</small><div><input id="coins-min" type="number" step="1" min="0" max="5" placeholder="最小"><b>—</b><input id="coins-max" type="number" step="1" min="0" max="5" placeholder="最大"></div></div>
             <div class="range-field"><span>钥匙</span><small>0–1 把</small><div><input id="keys-min" type="number" step="1" min="0" max="1" placeholder="最小"><b>—</b><input id="keys-max" type="number" step="1" min="0" max="1" placeholder="最大"></div></div>
             <div class="range-field"><span>炸弹</span><small>0–2 枚</small><div><input id="bombs-min" type="number" step="1" min="0" max="2" placeholder="最小"><b>—</b><input id="bombs-max" type="number" step="1" min="0" max="2" placeholder="最大"></div></div>
-            <div class="range-field"><span>伤害</span><small>约 2.50～4.50</small><div><input id="damage-min" type="number" step="any" placeholder="最小"><b>—</b><input id="damage-max" type="number" step="any" placeholder="最大"></div></div>
-            <div class="range-field"><span>移速</span><small>约 0.85～1.15</small><div><input id="move-speed-min" type="number" step="any" placeholder="最小"><b>—</b><input id="move-speed-max" type="number" step="any" placeholder="最大"></div></div>
-            <div class="range-field"><span>射速</span><small>Found HUD</small><div><input id="tears-min" type="number" step="any" placeholder="最小"><b>—</b><input id="tears-max" type="number" step="any" placeholder="最大"></div></div>
-            <div class="range-field"><span>基础射程</span><small>约 5.00～8.00</small><div><input id="range-min" type="number" step="any" placeholder="最小"><b>—</b><input id="range-max" type="number" step="any" placeholder="最大"></div></div>
-            <div class="range-field"><span>弹速</span><small>约 0.75～1.25</small><div><input id="shot-speed-min" type="number" step="any" placeholder="最小"><b>—</b><input id="shot-speed-max" type="number" step="any" placeholder="最大"></div></div>
-            <div class="range-field"><span>幸运</span><small>约 -1.00～1.00</small><div><input id="luck-min" type="number" step="any" placeholder="最小"><b>—</b><input id="luck-max" type="number" step="any" placeholder="最大"></div></div>
           </div>
+          <details class="base-stats-panel">
+            <summary><span>进一步限制针前属性</span><small>高级条件 · 默认不限</small></summary>
+            <div class="range-grid">
+              <div class="range-field"><span>伤害</span><small>2.50～4.50</small><div><input id="damage-min" type="number" step="any" placeholder="最小"><b>—</b><input id="damage-max" type="number" step="any" placeholder="最大"></div></div>
+              <div class="range-field"><span>移速</span><small>0.85～1.15</small><div><input id="move-speed-min" type="number" step="any" placeholder="最小"><b>—</b><input id="move-speed-max" type="number" step="any" placeholder="最大"></div></div>
+              <div class="range-field"><span>射速</span><small>1.803～3.502 · Found HUD</small><div><input id="tears-min" type="number" step="any" placeholder="最小"><b>—</b><input id="tears-max" type="number" step="any" placeholder="最大"></div></div>
+              <div class="range-field"><span>射程</span><small>5.00～8.00</small><div><input id="range-min" type="number" step="any" placeholder="最小"><b>—</b><input id="range-max" type="number" step="any" placeholder="最大"></div></div>
+              <div class="range-field"><span>弹速</span><small>0.75～1.25</small><div><input id="shot-speed-min" type="number" step="any" placeholder="最小"><b>—</b><input id="shot-speed-max" type="number" step="any" placeholder="最大"></div></div>
+              <div class="range-field"><span>幸运</span><small>-1.00～1.00</small><div><input id="luck-min" type="number" step="any" placeholder="最小"><b>—</b><input id="luck-max" type="number" step="any" placeholder="最大"></div></div>
+            </div>
+          </details>
         </section>
 
         <section class="filter-group treatment-direction-group" aria-labelledby="treatment-directions-heading">
           <div class="group-heading">
-            <div><span class="group-number">D</span><h3 id="treatment-directions-heading">这针往哪边推？</h3></div>
-            <p>黄针会让 4 项上升、2 项下降、1 项不变。</p>
+            <div><span class="group-number">D</span><h3 id="treatment-directions-heading">黄针后的伊甸</h3></div>
+            <p>先填你想要的最终面板；方向只是额外限制。</p>
           </div>
-          <div class="direction-grid">
-            <div class="direction-field" data-direction-field="health"><span>心之容器</span><input id="experimental-health" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div></div>
-            <div class="direction-field" data-direction-field="move-speed"><span>移速</span><input id="experimental-move-speed" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div></div>
-            <div class="direction-field" data-direction-field="tears"><span>射速</span><input id="experimental-tears" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div></div>
-            <div class="direction-field" data-direction-field="damage"><span>伤害</span><input id="experimental-damage" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div></div>
-            <div class="direction-field" data-direction-field="range"><span>射程</span><input id="experimental-range" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div></div>
-            <div class="direction-field" data-direction-field="shot-speed"><span>弹速</span><input id="experimental-shot-speed" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div></div>
-            <div class="direction-field" data-direction-field="luck"><span>幸运</span><input id="experimental-luck" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div></div>
+          <div class="treatment-rule-strip">
+            <strong>每局固定：4 项上升 · 2 项下降 · 1 项不变</strong>
+            <span id="treatment-constraint-state" role="status" aria-live="polite">当前条件可以组合</span>
+          </div>
+          <div class="treatment-target-grid">
+            <article class="treatment-stat-card direction-field treatment-health-card" data-direction-field="health">
+              <div class="treatment-stat-heading"><strong>心之容器</strong><small>↑ +1 · ↓ −1</small></div>
+              <input id="experimental-health" type="hidden">
+              <div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div>
+              <p>精确生命结算仍待实机边界验证，当前只筛方向。</p>
+            </article>
+            <article class="treatment-stat-card direction-field" data-direction-field="damage" data-treatment-stat="damage">
+              <div class="treatment-stat-heading"><strong>伤害</strong><small>↑ +1 · ↓ −1</small></div><input id="experimental-damage" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div>
+              <div class="treatment-final-range"><span>针后最终值 <small>模型范围 1.50～5.50</small></span><div><input id="post-damage-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-damage-max" type="number" step="any" placeholder="最大"></div></div><p class="constraint-feedback" data-constraint-feedback></p>
+            </article>
+            <article class="treatment-stat-card direction-field" data-direction-field="move-speed" data-treatment-stat="move-speed">
+              <div class="treatment-stat-heading"><strong>移速</strong><small>↑ +0.2 · ↓ −0.2</small></div><input id="experimental-move-speed" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div>
+              <div class="treatment-final-range"><span>针后最终值 <small>模型范围 0.65～1.35</small></span><div><input id="post-move-speed-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-move-speed-max" type="number" step="any" placeholder="最大"></div></div><p class="constraint-feedback" data-constraint-feedback></p>
+            </article>
+            <article class="treatment-stat-card direction-field" data-direction-field="tears" data-treatment-stat="tears">
+              <div class="treatment-stat-heading"><strong>射速</strong><small>↑ +0.5 · ↓ −0.5</small></div><input id="experimental-tears" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div>
+              <div class="treatment-final-range"><span>针后最终值 <small>约 1.303～4.002 · Found HUD</small></span><div><input id="post-tears-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-tears-max" type="number" step="any" placeholder="最大"></div></div><p class="constraint-feedback" data-constraint-feedback></p>
+            </article>
+            <article class="treatment-stat-card direction-field" data-direction-field="range" data-treatment-stat="range">
+              <div class="treatment-stat-heading"><strong>射程</strong><small>↑ +2.5 · ↓ −2.5</small></div><input id="experimental-range" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div>
+              <div class="treatment-final-range"><span>针后最终值 <small>模型范围 2.50～10.50</small></span><div><input id="post-range-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-range-max" type="number" step="any" placeholder="最大"></div></div><p class="constraint-feedback" data-constraint-feedback></p>
+            </article>
+            <article class="treatment-stat-card direction-field" data-direction-field="shot-speed" data-treatment-stat="shot-speed">
+              <div class="treatment-stat-heading"><strong>弹速</strong><small>↑ +0.2 · ↓ −0.2 · 下限 0.6</small></div><input id="experimental-shot-speed" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div>
+              <div class="treatment-final-range"><span>针后最终值 <small>模型范围 0.60～1.45</small></span><div><input id="post-shot-speed-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-shot-speed-max" type="number" step="any" placeholder="最大"></div></div><p class="constraint-feedback" data-constraint-feedback></p>
+            </article>
+            <article class="treatment-stat-card direction-field" data-direction-field="luck" data-treatment-stat="luck">
+              <div class="treatment-stat-heading"><strong>幸运</strong><small>↑ +1 · ↓ −1</small></div><input id="experimental-luck" type="hidden"><div class="direction-options"><button type="button" data-value="" aria-pressed="true">不限</button><button type="button" data-value="up">↑ 上升</button><button type="button" data-value="down">↓ 下降</button><button type="button" data-value="unchanged">＝ 不变</button></div>
+              <div class="treatment-final-range"><span>针后最终值 <small>模型范围 −2.00～2.00</small></span><div><input id="post-luck-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-luck-max" type="number" step="any" placeholder="最大"></div></div><p class="constraint-feedback" data-constraint-feedback></p>
+            </article>
           </div>
         </section>
-
-        <details class="post-stats-panel">
-          <summary><span>精确限制黄针结算后的面板</span><small>可选 · 需要时展开</small></summary>
-          <div class="range-grid post-item-ranges">
-            <div class="range-field"><span>结算后伤害</span><small>真实面板</small><div><input id="post-damage-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-damage-max" type="number" step="any" placeholder="最大"></div></div>
-            <div class="range-field"><span>结算后移速</span><small>真实面板</small><div><input id="post-move-speed-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-move-speed-max" type="number" step="any" placeholder="最大"></div></div>
-            <div class="range-field"><span>结算后射速</span><small>Found HUD</small><div><input id="post-tears-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-tears-max" type="number" step="any" placeholder="最大"></div></div>
-            <div class="range-field"><span>结算后射程</span><small>真实面板</small><div><input id="post-range-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-range-max" type="number" step="any" placeholder="最大"></div></div>
-            <div class="range-field"><span>结算后弹速</span><small>真实面板</small><div><input id="post-shot-speed-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-shot-speed-max" type="number" step="any" placeholder="最大"></div></div>
-            <div class="range-field"><span>结算后幸运</span><small>真实面板</small><div><input id="post-luck-min" type="number" step="any" placeholder="最小"><b>—</b><input id="post-luck-max" type="number" step="any" placeholder="最大"></div></div>
-          </div>
-        </details>
 
         <details class="search-settings">
           <summary>扫描设置 <small>默认会检查全部 2³²−1 个可用值</small></summary>

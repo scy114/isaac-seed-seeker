@@ -57,6 +57,9 @@ try {
         $TreatmentPage.Content -notmatch 'data-page="treatment"' -or
         $TreatmentPage.Content -notmatch 'id="experimental-damage"' -or
         $TreatmentPage.Content -notmatch 'id="post-damage-min"' -or
+        $TreatmentPage.Content -notmatch 'id="treatment-constraint-state"' -or
+        $TreatmentPage.Content -notmatch 'data-treatment-stat="damage"' -or
+        $TreatmentPage.Content -notmatch 'class="base-stats-panel"' -or
         $TreatmentPage.Content -notmatch 'id="generic-page-link"' -or
         $TreatmentPage.Content -notmatch 'class="treatment-tagline"' -or
         $Page.Content -notmatch 'id="page-size"' -or
