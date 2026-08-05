@@ -1,148 +1,106 @@
 # Isaac Seed Seeker
 
-面向《以撒的结合：忏悔+》伊甸开局的离线种子筛选器。
+一个给伊甸玩家用的离线种子筛选器。
 
-项目当前已经有一个不依赖 Python、Node.js 或网络的 Windows 原生预览版：C++20 内核扫描种子，EXE 在 `127.0.0.1` 启动内嵌 WebUI。默认内置本机全解锁 J460 Profile，也保留 Python + Lua 真值验证链作为开发期 correctness oracle。
+这个项目起因很简单：我想找一个开局就能凑出嗝屁猫套装的伊甸种子。手动重开显然不现实，已有工具虽然能计算伊甸开局，但要搜饰品、中文名称和复杂组合仍然很麻烦，于是有了这个双击就能用的本地 WebUI。
 
-## 当前原生版能力
+![Isaac Seed Seeker 的搜索页面](docs/isaac-seed-seeker-webui.png)
 
-- 双击单个 EXE，自动打开本地 WebUI。
-- 若游戏已通过官方 ResourceExtractor 解包，页面会自动显示本机的真实道具与饰品图标；没有解包时仍可正常使用文字界面。
-- WebUI 可按中文名、英文名、俗称、拼音或 ID 多选口袋物、主动/被动道具，并组合基础血量、钱/钥匙/炸弹和六项随机属性区间。
-- 主页通过“特殊开局”入口进入独立的实验性疗法专页；被动固定为黄针（ID 240）。页面以结算后的六项精确面板范围为主，方向和针前底子为附加条件，并会在扫描前拦截方向配额或针前/针后范围互相矛盾的组合。
-- 结果表头可直接按血量、资源、属性、主动/被动品质或两件道具总品质升降序排列；已载入结果保存在浏览器内存并分页展示。命中超过载入上限时，可按当前表头顺序重新扫描精确的全局 Top-K。
-- 不同筛选类别之间为 AND，同一 ID 列表内部为 OR；各 ID 类别也支持排除列表。
-- 普通/金色饰品统一按基础 ID 匹配。
-- 多线程扫描任意 `uint32` 区间或全部 `2^32 - 1` 个可搜索值。
-- 实时进度、速度、命中数、停止按钮和 TXT 导出。
-- 内置 `v1.9.7.17.J460` 全解锁 Profile，不需要随 EXE 分发原始 JSON。
-- CLI 单种子检查与 JSON 搜索输出。
-- 静态链接 MinGW 运行库；玩家只需要单个 EXE，不需要安装 Python、Node.js 或 MinGW。
+## 下载与使用
 
-WebUI、原生 CLI 与本地 HTTP API 使用同一套通用后端。页面默认从空白条件开始，不携带特定道具组合预设。当前只对黄针实现道具结算后的专用属性模型；其他道具结算、用户 Profile 提取、完整楼层、房间和掉落模拟仍不在本阶段范围内。
+仓库刚刚公开，首个 Windows x64 Release 还在整理。发布后会放在 [Releases](https://github.com/scy114/isaac-seed-seeker/releases)；如果你拿到的是朋友发来的测试包，使用方法如下：
 
-道具名称层已经接入 WebUI：仓库内的 J460 离线目录包含中英文名、俗称、拼音、ID 和当前伊甸池可用性，并处理金色饰品与大胶囊 ID 归一化。选择结果只在页面内投影成 ID，现有 C++ 搜索 API 与 RNG 内核不接收名称；设计、来源与更新方式见 [`docs/item-catalog.md`](docs/item-catalog.md)。
+1. 完整解压 ZIP，不要直接在压缩包预览窗口中运行；
+2. 双击 `IsaacSeedSeeker.exe`；
+3. 在自动打开的页面中填写条件，点击“开始扫描”；
+4. 把命中的八位种子复制进游戏。
 
-基础“属性”严格指伊甸生成阶段、两个开局道具结算前的真实面板值：伤害以 3.5、移速以 1.0、弹速以 1.0、幸运以 0 为模板基准，射程已经换算为显示值；射速则按 Repentance 的泪延迟公式换算成 Found HUD 的每秒泪弹数。血量同样不包含开局道具追加的心。开局钱、钥匙和炸弹来自伊甸自身的资源分支，不包含道具额外给予的资源。黄针区域单独显示结算方向和结算后数值，不改变这些基础字段的含义。胶囊会按每局种子重新计算“颜色 → 效果”洗牌；筛选使用原始效果 ID，结果同时给出颜色。PHD、假 PHD 等道具造成的服用效果转换不改变这个筛选 ID。
+程序会在本机启动一个 `127.0.0.1` 页面，搜索也在本地完成。用完后点击页面底部的“关闭本地程序”即可。
 
-## 回归验证样例：目标 169
+更细的说明见 [中文快速上手](docs/quick-start.zh-CN.txt)。
 
-项目早期用于验证内核的目标 169 查询保留在 `examples/eden-target-169.json`，但不作为 WebUI 默认条件或预设：
+## 现在能搜什么
 
-- 饰品基础 ID：`169`，普通版和金色版都匹配；
-- 主动道具：`145` 或 `133`；
-- 被动道具：`81`、`134`、`187`、`212`、`665` 中任意一个；
-- 三组条件必须同时成立。
+- 饰品、卡牌、胶囊，以及没有口袋物的开局；
+- 主动和被动道具；
+- 红心、魂心、钱、钥匙和炸弹；
+- 伤害、移速、射速、射程、弹速和幸运；
+- 指定、排除、区间限制，以及多个条件的组合；
+- 按属性、资源和道具品质排序，分页查看或导出 TXT。
 
-C++ 全域扫描在当前机器的 Release 检查中以 8 线程耗时约 18–19 秒，得到 **901** 条离线候选。早期 Python 快速路径得到的 890 条没有错报，但漏掉了 11 条：第三方表压缩把部分 `null` 槽位表示成全零合法条目，提前终止了被动物品抽取。11 条新增候选均已通过第三方慢速精确路径复核；完整候选仍应由游戏内 Lua 观察器分层验证。
+道具既可以输 ID，也可以按中文名、英文名、常用俗称或拼音搜索。
 
-固定 Profile、查询与候选摘要记录在 `tests/fixtures/j460-target-169-golden.json`。
+不同栏之间是“并且”，同一栏里的多个候选是“任意一个”。比如最初的一次搜索就是：
 
-## 给玩家的 Windows 测试包
-
-玩家版是 Windows x64 便携 ZIP。完整解压后双击 `IsaacSeedSeeker.exe` 即可；普通玩家说明见 [`docs/quick-start.zh-CN.txt`](docs/quick-start.zh-CN.txt)。
-
-维护者可用一条命令构建、测试、打包并验证解压后的 EXE：
-
-```powershell
-.\scripts\package-windows.ps1
+```text
+饰品 169
+并且 主动 145 / 133 中任意一个
+并且 被动 81 / 134 / 187 / 212 / 665 中任意一个
 ```
 
-输出位于 `dist/`：
+结果太多时，程序仍会扫完整个范围并记录真实命中数，只把当前排序下最靠前的一批载入页面。这样不会因为浏览器内存上限而把扫描提前截断。
 
-- `IsaacSeedSeeker-v0.1.0-windows-x64.zip`
-- `SHA256SUMS.txt`
-- 同名展开目录，便于本地检查
+## 黄针专页
 
-ZIP 内包含 EXE、中文使用说明、发行 NOTICE、离线目录来源说明和字体许可证。正式公开发布前的剩余事项见 [`docs/release-checklist.md`](docs/release-checklist.md)，其中项目主许可证仍需由维护者明确选择。
+实验性疗法有单独的搜索页面。可以指定哪些属性上升、下降或不变，也可以直接填写扎针后的最终属性范围。
 
-## 构建并启动原生版
+目前能精确筛选伤害、移速、射速、射程、弹速和幸运；生命值暂时只判断上升、下降或不变。互相矛盾的条件会在扫描前提示，不会拿一个无解组合跑完整个种子空间。
 
-开发机需要支持 C++20 的 MinGW-w64 `g++` 与 `windres`。它们只用于构建，不是最终玩家运行时依赖。
+## 目前的边界
+
+当前内置 Profile 对应：
+
+- 《以撒的结合：忏悔+》`v1.9.7.17.J460`；
+- 全解锁存档；
+- 未启用会改变角色、道具池或开局生成的大型内容 Mod。
+
+普通页面显示的是伊甸生成时、开局道具生效前的基础属性；黄针专页会额外计算实验性疗法结算后的面板。当前还不能搜索一层宝箱房、Boss 或 Boss 奖励，也没有模拟所有道具对最终面板的影响。
+
+便利性和界面类 Mod 通常不影响开局生成，但最终仍以种子在游戏里的实际表现为准。
+
+## 这个项目从哪里来
+
+这不是一次从零开始的逆向。最关键的路，前人已经走过了：
+
+- [2o181o28/eden-seed-finder](https://github.com/2o181o28/eden-seed-finder) 提供了早期的伊甸全域搜索实现、游戏内验证方法和实验性疗法 RNG 研究；
+- [KamiMisuzu/isaac-repentance-eden-seed-decoder](https://github.com/KamiMisuzu/isaac-repentance-eden-seed-decoder) 提供了 J460 伊甸生成、运行时表和道具池的重要参考；
+- [falsidge/isaac_rng](https://github.com/falsidge/isaac_rng) 提供了忏悔+胶囊池与颜色映射研究；
+- [Eden Generation Wiki](https://bindingofisaacrebirth.wiki.gg/wiki/Eden_Generation) 整理了伊甸生成规则。
+
+这个仓库在这些工作的基础上，补上了饰品与口袋物搜索、中文名称目录、资源和属性筛选、复杂条件组合、排序与导出、黄针最终属性搜索，以及一个可以直接交给普通玩家使用的原生 Windows WebUI。
+
+仓库没有直接收录上述项目的源码文件。参考版本、验证种子和实现边界记录在 [研究文档](docs/research.md) 中。
+
+## 自己构建
+
+<details>
+<summary>开发环境与命令</summary>
+
+需要 Windows、CMake 和支持 C++20 的 MinGW-w64 工具链。
 
 ```powershell
 .\scripts\build-native.ps1 -RunTests
 .\build\native\IsaacSeedSeeker.exe
 ```
 
-双击 EXE 与不带参数运行效果相同。程序会选择一个空闲本地端口并打开浏览器；网页中的“关闭本地程序”会结束后台进程。
-
-接口冒烟测试：
+生成完整的 Windows 压缩包并执行打包自检：
 
 ```powershell
-.\scripts\smoke-webui.ps1
+.\scripts\package-windows.ps1
 ```
 
-命令行检查：
+开发资料：
 
-```powershell
-.\build\native\IsaacSeedSeeker.exe inspect --seed 10161220
+- [原生 CLI 与本地 API](docs/native-api.md)
+- [项目结构](docs/architecture.md)
+- [道具名称目录](docs/item-catalog.md)
+- [RNG 研究与验证记录](docs/research.md)
+- [后续功能调研](docs/research-floor1-and-post-item-stats.md)
 
-.\build\native\IsaacSeedSeeker.exe search `
-  --trinket 1,2 `
-  --active 105 `
-  --damage-min 4.0 `
-  --start 1 `
-  --end 4294967295 `
-  --threads 8 `
-  --output data\matches.json
+</details>
 
-# 通用组合示例：卡牌 12、指定主动/被动、2 红心、真实伤害至少 2.87
-.\build\native\IsaacSeedSeeker.exe search `
-  --card 12 `
-  --active 639 `
-  --passive 393 `
-  --red-hearts-min 2 `
-  --red-hearts-max 2 `
-  --damage-min 2.87 `
-  --range-min 7.19 `
-  --range-max 7.20 `
-  --end 100
-```
+## 反馈
 
-CLI 完整参数和本地 HTTP 请求字段见 [`docs/native-api.md`](docs/native-api.md)。搜索结果默认按种子数值升序保留全局最优的 1,000 条，但仍会扫描完整范围并返回真实 `total_count`；WebUI 最多载入 10,000 条，可直接点击结果表头排序。若命中数未超过上限，排序覆盖全部命中；若已截断，页面会提供按当前顺序重新扫描全局 Top-K 的入口。
+发现对不上的种子，可以在 [Issues](https://github.com/scy114/isaac-seed-seeker/issues) 留下程序版本、游戏版本、筛选条件、种子，以及是否启用了内容 Mod。像卡牌、胶囊和会生成掉落物的道具这类问题，实际游戏反馈尤其有用。
 
-仓库也提供标准 `CMakeLists.txt`，用于后续 MSVC/GitHub Actions Release 构建。
-
-## 默认 Profile
-
-原生版内置的 Profile 来自本机 `v1.9.7.17.J460`、全解锁、未启用大型内容 Mod 的运行时快照：
-
-- `proc.json` SHA-256：`02e26398a02f46ee0b581f52bee8ad5e7133d6417dc9a8f967df114c63481faf`
-- `trinket_pool.json` SHA-256：`fe5d6a4c3ee6c04f68665cd6958426addf3f109d6ffffd12062ba33b283aba37`
-
-兼容性判断使用排除进程地址、采集当局种子等瞬时字段后的语义摘要，而不是直接比较原始文件：
-
-- 物品表语义 SHA-256：`5698cf5c80a103c04974026f2dc18eedcd1207e0420f7f33371df94f9aed0aae`
-- 饰品池语义 SHA-256：`4c0513dd16c165ef9de01e4b425b7850b7b642e7a2a9256f677854a8f2a721d3`
-
-搜索算法可能跨版本保持不变，但物品池、解锁状态和内容 Mod 仍可能改变输出。后续版本会自动比较游戏/Profile 指纹，并在不匹配时引导用户重新提取。
-
-## Python 与游戏内验证工具
-
-Python 版本继续承担以下开发用途，不会进入玩家原生发行包：
-
-- `SearchJob`、Profile 和观察记录契约；
-- 外部 J460 解码器交叉验证；
-- Lua 候选任务生成；
-- 从 `log.txt` 导入游戏真值并再次筛选。
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -e .
-
-$env:PYTHONPATH = "src"
-python -m isaac_seed_seeker.cli validate examples\eden-target-169.json
-```
-
-Lua Mod 位于 `mod/isaac_seed_seeker`：按 `T` 开始候选验证，按 `Y` 停止；观察结果以带固定前缀的 JSON 写入游戏 `log.txt`。
-
-## 上游与研究来源
-
-- [2o181o28/eden-seed-finder](https://github.com/2o181o28/eden-seed-finder)：早期 C++ 全域预筛和 Lua 游戏内验证思路，AGPL-3.0。
-- [KamiMisuzu/isaac-repentance-eden-seed-decoder](https://github.com/KamiMisuzu/isaac-repentance-eden-seed-decoder)：J460 伊甸生成、饰品池和运行时表提取研究；README/项目元数据声明 MIT。
-- [falsidge/isaac_rng](https://github.com/falsidge/isaac_rng)：Repentance+ 胶囊池初始化与颜色映射研究参考；本项目根据可复现机制和本地游戏观测独立实现，未直接复制其源码。
-- [Eden Generation Wiki](https://bindingofisaacrebirth.wiki.gg/wiki/Eden_Generation)：伊甸生成规则和历史分析。
-
-本仓库没有直接收录上述项目的源码文件。C++ 内核是依据已研究的 RNG 行为重新实现，并用固定向量、Python 慢路径和后续游戏观察结果交叉验证。更完整的版本、许可证与决策记录见 `docs/research.md`。
+当前仓库尚未附加开源许可证；在许可证明确前，请不要复制或重新分发仓库代码。
