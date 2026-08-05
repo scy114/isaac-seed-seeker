@@ -1,6 +1,17 @@
+param(
+    [string]$Executable
+)
+
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
-$Executable = Join-Path $ProjectRoot "build\native\IsaacSeedSeeker.exe"
+if ([string]::IsNullOrWhiteSpace($Executable)) {
+    $Executable = Join-Path $ProjectRoot "build\native\IsaacSeedSeeker.exe"
+} else {
+    $Executable = [IO.Path]::GetFullPath($Executable)
+}
+if (-not (Test-Path -LiteralPath $Executable -PathType Leaf)) {
+    throw "WebUI executable not found: $Executable"
+}
 $Stdout = New-TemporaryFile
 $Stderr = New-TemporaryFile
 $Process = $null

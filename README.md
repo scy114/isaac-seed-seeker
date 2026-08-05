@@ -16,7 +16,7 @@
 - 实时进度、速度、命中数、停止按钮和 TXT 导出。
 - 内置 `v1.9.7.17.J460` 全解锁 Profile，不需要随 EXE 分发原始 JSON。
 - CLI 单种子检查与 JSON 搜索输出。
-- 静态链接 MinGW 运行库；当前 EXE 约 3.2 MB，只依赖 Windows 系统 DLL。
+- 静态链接 MinGW 运行库；玩家只需要单个 EXE，不需要安装 Python、Node.js 或 MinGW。
 
 WebUI、原生 CLI 与本地 HTTP API 使用同一套通用后端。页面默认从空白条件开始，不携带特定道具组合预设。资源、道具结算后的最终属性、用户 Profile 提取仍在后续范围内。本项目不扩展完整楼层、房间或掉落模拟。
 
@@ -36,6 +36,24 @@ WebUI、原生 CLI 与本地 HTTP API 使用同一套通用后端。页面默认
 C++ 全域扫描在当前机器的 Release 检查中以 8 线程耗时约 18–19 秒，得到 **901** 条离线候选。早期 Python 快速路径得到的 890 条没有错报，但漏掉了 11 条：第三方表压缩把部分 `null` 槽位表示成全零合法条目，提前终止了被动物品抽取。11 条新增候选均已通过第三方慢速精确路径复核；完整候选仍应由游戏内 Lua 观察器分层验证。
 
 固定 Profile、查询与候选摘要记录在 `tests/fixtures/j460-target-169-golden.json`。
+
+## 给玩家的 Windows 测试包
+
+玩家版是 Windows x64 便携 ZIP。完整解压后双击 `IsaacSeedSeeker.exe` 即可；普通玩家说明见 [`docs/quick-start.zh-CN.txt`](docs/quick-start.zh-CN.txt)。
+
+维护者可用一条命令构建、测试、打包并验证解压后的 EXE：
+
+```powershell
+.\scripts\package-windows.ps1
+```
+
+输出位于 `dist/`：
+
+- `IsaacSeedSeeker-v0.1.0-windows-x64.zip`
+- `SHA256SUMS.txt`
+- 同名展开目录，便于本地检查
+
+ZIP 内包含 EXE、中文使用说明、发行 NOTICE、离线目录来源说明和字体许可证。正式公开发布前的剩余事项见 [`docs/release-checklist.md`](docs/release-checklist.md)，其中项目主许可证仍需由维护者明确选择。
 
 ## 构建并启动原生版
 
@@ -60,13 +78,13 @@ C++ 全域扫描在当前机器的 Release 检查中以 8 线程耗时约 18–1
 .\build\native\IsaacSeedSeeker.exe inspect --seed 10161220
 
 .\build\native\IsaacSeedSeeker.exe search `
-  --trinket 169 `
-  --active 145,133 `
-  --passive 81,134,187,212,665 `
+  --trinket 1,2 `
+  --active 105 `
+  --damage-min 4.0 `
   --start 1 `
   --end 4294967295 `
   --threads 8 `
-  --output data\target-169-native.json
+  --output data\matches.json
 
 # 通用组合示例：胶囊效果 12、指定主动/被动、2 红心、真实伤害至少 4.05
 .\build\native\IsaacSeedSeeker.exe search `

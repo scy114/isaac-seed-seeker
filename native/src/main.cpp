@@ -278,7 +278,7 @@ void print_usage() {
         << "  IsaacSeedSeeker inspect --seed 10161220\n\n"
         << "Search a range:\n"
         << "  IsaacSeedSeeker search "
-           "--trinket 169 --active 145,133 --passive 81,134,187,212,665 "
+           "--trinket 1,2 --active 105 --damage-min 4.0 "
            "[--start 1] [--end 4294967295] [--threads 8] [--output matches.json]\n\n"
         << "Generic filters (categories are AND; comma-separated IDs are OR):\n"
         << "  --pocket-kind none|trinket|card|pill; --pocket/--card/--pill ID[,ID]\n"
