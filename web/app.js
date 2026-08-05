@@ -2,6 +2,283 @@ const $ = (selector) => document.querySelector(selector);
 const number = new Intl.NumberFormat("zh-CN");
 const sessionToken = new URLSearchParams(window.location.search).get("token") || "";
 let pollTimer = null;
+let pocketCatalogKind = null;
+let catalogEntries = [];
+const catalogByKey = new Map();
+const catalogPickers = new Map();
+
+function normalizeCatalogText(value) {
+  return String(value || "").normalize("NFKC").toLocaleLowerCase("zh-CN").trim().replace(/\s+/g, " ");
+}
+
+function compactCatalogText(value) {
+  return normalizeCatalogText(value).replace(/[\s'’"“”·._\-—–:：/\\,，()（）\[\]【】]+/g, "");
+}
+
+function catalogKey(kind, id) {
+  return `${kind}:${id}`;
+}
+
+function prepareCatalogEntry(entry) {
+  return {
+    ...entry,
+    _names: [entry.name_zh, entry.name_en].map((value) => [normalizeCatalogText(value), compactCatalogText(value)]),
+    _aliases: entry.aliases.map((value) => [normalizeCatalogText(value), compactCatalogText(value)]),
+    _pinyin: entry.pinyin.map(normalizeCatalogText),
+  };
+}
+
+function bestTextScore(values, query, compactQuery, scores) {
+  let best = 0;
+  let exact = false;
+  for (const [normal, compact] of values) {
+    if (normal === query || (compactQuery && compact === compactQuery)) {
+      best = Math.max(best, scores.exact);
+      exact = true;
+    } else if (normal.startsWith(query) || (compactQuery && compact.startsWith(compactQuery))) {
+      best = Math.max(best, scores.prefix);
+    } else if (normal.includes(query) || (compactQuery && compact.includes(compactQuery))) {
+      best = Math.max(best, scores.contains);
+    }
+  }
+  return {score: best, exact};
+}
+
+function scoreCatalogEntry(entry, rawQuery) {
+  const query = normalizeCatalogText(rawQuery);
+  const numeric = query.match(/^#?(\d+)$/);
+  if (numeric) {
+    return Number(numeric[1]) === entry.search_id ? {score: 1200, exact: true} : null;
+  }
+
+  const compactQuery = compactCatalogText(query);
+  if (!compactQuery) return null;
+  const name = bestTextScore(entry._names, query, compactQuery, {exact: 1000, prefix: 800, contains: 560});
+  const alias = bestTextScore(entry._aliases, query, compactQuery, {exact: 940, prefix: 740, contains: 520});
+  let pinyinScore = 0;
+  for (const value of entry._pinyin) {
+    if (value === compactQuery) pinyinScore = Math.max(pinyinScore, 700);
+    else if (value.startsWith(compactQuery)) pinyinScore = Math.max(pinyinScore, 620);
+    else if (compactQuery.length >= 3 && value.includes(compactQuery)) pinyinScore = Math.max(pinyinScore, 420);
+  }
+  const score = Math.max(name.score, alias.score, pinyinScore);
+  return score ? {score, exact: name.exact || alias.exact} : null;
+}
+
+function searchCatalog(kind, query, selectedIds) {
+  const selected = new Set(selectedIds);
+  return catalogEntries
+    .filter((entry) => entry.kind === kind && !selected.has(entry.search_id))
+    .map((entry) => ({entry, match: scoreCatalogEntry(entry, query)}))
+    .filter(({entry, match}) => match && (entry.available_for_eden || match.exact))
+    .sort((left, right) =>
+      right.match.score - left.match.score
+      || Number(right.entry.available_for_eden) - Number(left.entry.available_for_eden)
+      || left.entry.name_zh.localeCompare(right.entry.name_zh, "zh-CN")
+      || left.entry.search_id - right.entry.search_id
+    )
+    .slice(0, 12)
+    .map(({entry}) => entry);
+}
+
+class CatalogPicker {
+  constructor(valueInput, {kind, exclude = false}) {
+    this.valueInput = valueInput;
+    this.kind = kind;
+    this.exclude = exclude;
+    this.selectedIds = [];
+    this.activeIndex = -1;
+
+    this.root = document.createElement("div");
+    this.root.className = `catalog-picker${exclude ? " is-exclude" : ""}`;
+    this.tokens = document.createElement("div");
+    this.tokens.className = "catalog-tokens";
+    this.query = document.createElement("input");
+    this.query.id = `${valueInput.id}-query`;
+    this.query.className = "catalog-query";
+    this.query.type = "text";
+    this.query.placeholder = valueInput.placeholder;
+    this.query.autocomplete = "off";
+    this.query.spellcheck = false;
+    this.query.setAttribute("role", "combobox");
+    this.query.setAttribute("aria-autocomplete", "list");
+    this.query.setAttribute("aria-expanded", "false");
+    this.options = document.createElement("div");
+    this.options.id = `${valueInput.id}-options`;
+    this.options.className = "catalog-options";
+    this.options.setAttribute("role", "listbox");
+    this.options.hidden = true;
+    this.query.setAttribute("aria-controls", this.options.id);
+    this.root.append(this.tokens, this.query, this.options);
+
+    const initialIds = valueInput.value.split(/[，,\s]+/).filter(Boolean).map(Number)
+      .filter((id) => Number.isInteger(id) && id > 0);
+    valueInput.type = "hidden";
+    valueInput.insertAdjacentElement("afterend", this.root);
+    this.setIds(initialIds, false);
+
+    this.query.addEventListener("input", () => this.renderOptions());
+    this.query.addEventListener("focus", () => this.renderOptions());
+    this.query.addEventListener("keydown", (event) => this.handleKeydown(event));
+    this.query.addEventListener("blur", () => window.setTimeout(() => this.close(), 100));
+  }
+
+  setKind(kind, disabled) {
+    this.kind = kind;
+    this.query.disabled = disabled;
+    this.root.classList.toggle("is-disabled", disabled);
+    if (disabled) this.close();
+    this.renderTokens();
+  }
+
+  setPlaceholder(value) {
+    this.query.placeholder = value;
+  }
+
+  setIds(ids, notify = true) {
+    this.selectedIds = [...new Set(ids.filter((id) => Number.isInteger(id) && id > 0))];
+    this.valueInput.value = this.selectedIds.join(", ");
+    this.renderTokens();
+    this.renderOptions();
+    if (notify) this.valueInput.dispatchEvent(new Event("input", {bubbles: true}));
+  }
+
+  remove(id) {
+    this.setIds(this.selectedIds.filter((selected) => selected !== id));
+    this.query.focus();
+  }
+
+  select(entry) {
+    if (!entry.available_for_eden) return;
+    this.setIds([...this.selectedIds, entry.search_id]);
+    this.query.value = "";
+    this.close();
+    this.query.focus();
+  }
+
+  renderTokens() {
+    const fragment = document.createDocumentFragment();
+    for (const id of this.selectedIds) {
+      const entry = catalogByKey.get(catalogKey(this.kind, id));
+      const token = document.createElement("span");
+      token.className = "catalog-token";
+      const name = document.createElement("span");
+      name.className = "catalog-token-name";
+      name.textContent = entry ? entry.name_zh : "未知条目";
+      const identifier = document.createElement("span");
+      identifier.className = "catalog-token-id";
+      identifier.textContent = `#${id}`;
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "×";
+      remove.title = `移除 ${entry ? entry.name_zh : `#${id}`}`;
+      remove.setAttribute("aria-label", remove.title);
+      remove.addEventListener("click", (event) => {
+        event.preventDefault();
+        this.remove(id);
+      });
+      token.append(name, identifier, remove);
+      fragment.appendChild(token);
+    }
+    this.tokens.replaceChildren(fragment);
+  }
+
+  renderOptions() {
+    const query = this.query.value.trim();
+    if (this.query.disabled || !this.kind || !query) {
+      this.close();
+      return;
+    }
+
+    const entries = searchCatalog(this.kind, query, this.selectedIds);
+    if (!entries.length) {
+      const empty = document.createElement("div");
+      empty.className = "catalog-empty";
+      empty.textContent = "没有匹配的当前版本条目";
+      this.options.replaceChildren(empty);
+      this.activeIndex = -1;
+      this.open();
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    entries.forEach((entry, index) => {
+      const option = document.createElement("button");
+      option.type = "button";
+      option.id = `${this.valueInput.id}-option-${index}`;
+      option.className = "catalog-option";
+      option.setAttribute("role", "option");
+      option.disabled = !entry.available_for_eden;
+      option.setAttribute("aria-disabled", String(!entry.available_for_eden));
+      const copy = document.createElement("span");
+      copy.className = "catalog-option-copy";
+      const name = document.createElement("strong");
+      name.textContent = entry.name_zh;
+      const english = document.createElement("small");
+      english.textContent = entry.name_en;
+      copy.append(name, english);
+      const metadata = document.createElement("span");
+      metadata.className = "catalog-option-meta";
+      metadata.textContent = `#${entry.search_id}`;
+      if (!entry.available_for_eden) {
+        const unavailable = document.createElement("small");
+        unavailable.className = "catalog-option-unavailable";
+        unavailable.textContent = "当前 J460 伊甸池不可用";
+        copy.appendChild(unavailable);
+      }
+      option.append(copy, metadata);
+      option.addEventListener("pointerdown", (event) => event.preventDefault());
+      option.addEventListener("click", () => this.select(entry));
+      fragment.appendChild(option);
+    });
+    this.options.replaceChildren(fragment);
+    this.activeIndex = -1;
+    this.open();
+  }
+
+  open() {
+    this.options.hidden = false;
+    this.query.setAttribute("aria-expanded", "true");
+  }
+
+  close() {
+    this.options.hidden = true;
+    this.query.setAttribute("aria-expanded", "false");
+    this.query.removeAttribute("aria-activedescendant");
+    this.activeIndex = -1;
+  }
+
+  moveActive(direction) {
+    const options = [...this.options.querySelectorAll(".catalog-option:not(:disabled)")];
+    if (!options.length) return;
+    this.activeIndex = this.activeIndex < 0
+      ? (direction > 0 ? 0 : options.length - 1)
+      : (this.activeIndex + direction + options.length) % options.length;
+    options.forEach((option, index) => option.classList.toggle("is-active", index === this.activeIndex));
+    const active = options[this.activeIndex];
+    this.query.setAttribute("aria-activedescendant", active.id);
+    active.scrollIntoView({block: "nearest"});
+  }
+
+  handleKeydown(event) {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      if (this.options.hidden) this.renderOptions();
+      this.moveActive(event.key === "ArrowDown" ? 1 : -1);
+    } else if (event.key === "Enter" && !this.options.hidden) {
+      const options = [...this.options.querySelectorAll(".catalog-option:not(:disabled)")];
+      const selectedIndex = this.activeIndex >= 0 ? this.activeIndex : 0;
+      if (options[selectedIndex]) {
+        event.preventDefault();
+        options[selectedIndex].click();
+      }
+    } else if (event.key === "Escape") {
+      this.close();
+    } else if (event.key === "Backspace" && !this.query.value && this.selectedIds.length) {
+      this.remove(this.selectedIds[this.selectedIds.length - 1]);
+    }
+  }
+}
 
 const rangeFields = [
   ["red-hearts", "红心"],
@@ -20,6 +297,47 @@ const filterInputIds = [
   "passive-ids", "passive-exclude-ids",
   ...rangeFields.flatMap(([name]) => [`${name}-min`, `${name}-max`]),
 ];
+
+function setPickerIds(inputId, ids, notify = false) {
+  const picker = catalogPickers.get(inputId);
+  if (picker) picker.setIds(ids, notify);
+  else $(`#${inputId}`).value = ids.join(", ");
+}
+
+function mountCatalogPickers() {
+  const pocketKind = ["trinket", "card", "pill"].includes($("#pocket-kind").value)
+    ? $("#pocket-kind").value
+    : "";
+  const configurations = [
+    ["pocket-ids", pocketKind, false],
+    ["pocket-exclude-ids", pocketKind, true],
+    ["active-ids", "active", false],
+    ["active-exclude-ids", "active", true],
+    ["passive-ids", "passive", false],
+    ["passive-exclude-ids", "passive", true],
+  ];
+  for (const [inputId, kind, exclude] of configurations) {
+    if (!catalogPickers.has(inputId)) {
+      catalogPickers.set(inputId, new CatalogPicker($(`#${inputId}`), {kind, exclude}));
+    }
+  }
+}
+
+async function loadCatalog() {
+  const catalog = await request("/catalog.json");
+  if (catalog.schema_version !== 1 || !Array.isArray(catalog.entries)) {
+    throw new Error("离线名称目录格式不受支持");
+  }
+  catalogEntries = catalog.entries.map(prepareCatalogEntry);
+  catalogByKey.clear();
+  catalogEntries.forEach((entry) => catalogByKey.set(catalogKey(entry.kind, entry.search_id), entry));
+  mountCatalogPickers();
+  updatePocketControls(false);
+  const available = Object.values(catalog.counts.available_for_eden).reduce((sum, value) => sum + value, 0);
+  const state = $("#catalog-state");
+  state.textContent = `离线目录已就绪：${number.format(available)} 个当前伊甸可用条目`;
+  state.className = "catalog-state ready";
+}
 
 function parseOptionalIds(value, label) {
   if (!value.trim()) return null;
@@ -42,23 +360,37 @@ function setOptionalIds(payload, key, selector, label) {
   if (values) payload[key] = values;
 }
 
-function updatePocketControls() {
+function updatePocketControls(clearOnKindChange = false) {
   const kind = $("#pocket-kind").value;
   const input = $("#pocket-ids");
   const excluded = $("#pocket-exclude-ids");
   const labels = {
-    "": ["口袋物 ID（任意一个）", "建议先选择类型，避免卡牌与饰品同 ID 的歧义", "例如：169"],
-    trinket: ["饰品 ID（任意一个）", "普通与金色饰品按基础 ID 匹配", "例如：169"],
-    card: ["卡牌 ID（任意一个）", "包含普通、特殊与逆位卡牌", "例如：2"],
-    pill: ["胶囊效果 ID（任意一个）", "填写效果 ID，不是胶囊颜色 ID", "例如：12"],
-    none: ["无需填写 ID", "只筛选没有口袋物的开局", ""],
+    "": ["先选择口袋物类型", "选择类型后可按名称、俗称、拼音或 ID 搜索", "先选择类型"],
+    trinket: ["饰品（任意一个）", "普通与金色饰品按基础 ID 匹配", "搜索饰品名称、俗称、拼音或 ID"],
+    card: ["卡牌（任意一个）", "包含普通、特殊与逆位卡牌", "搜索卡牌名称、拼音或 ID"],
+    pill: ["胶囊效果（任意一个）", "普通和大胶囊按各自效果 ID 匹配", "搜索胶囊效果名称、拼音或 ID"],
+    none: ["无需选择条目", "只筛选没有口袋物的开局", "没有口袋物"],
   };
   const [label, help, placeholder] = labels[kind];
   $("#pocket-ids-label").textContent = label;
   $("#pocket-ids-help").textContent = help;
   input.placeholder = placeholder;
-  input.disabled = kind === "none";
-  excluded.disabled = kind === "none";
+  const nextCatalogKind = ["trinket", "card", "pill"].includes(kind) ? kind : "";
+  if (clearOnKindChange && pocketCatalogKind !== null && pocketCatalogKind !== nextCatalogKind) {
+    setPickerIds("pocket-ids", []);
+    setPickerIds("pocket-exclude-ids", []);
+  }
+  pocketCatalogKind = nextCatalogKind;
+  const disabled = !nextCatalogKind;
+  input.disabled = disabled;
+  excluded.disabled = disabled;
+  for (const inputId of ["pocket-ids", "pocket-exclude-ids"]) {
+    const picker = catalogPickers.get(inputId);
+    if (picker) {
+      picker.setKind(nextCatalogKind, disabled);
+      picker.setPlaceholder(placeholder);
+    }
+  }
 }
 
 function selectedCriteriaLabels() {
@@ -85,26 +417,39 @@ function updateCriteriaSummary() {
 
 function applyTargetPreset() {
   $("#pocket-kind").value = "trinket";
-  $("#pocket-ids").value = "169";
-  $("#active-ids").value = "145, 133";
-  $("#passive-ids").value = "81, 134, 187, 212, 665";
+  updatePocketControls(false);
+  setPickerIds("pocket-ids", [169]);
+  setPickerIds("active-ids", [145, 133]);
+  setPickerIds("passive-ids", [81, 134, 187, 212, 665]);
   ["pocket-exclude-ids", "active-exclude-ids", "passive-exclude-ids",
     ...rangeFields.flatMap(([name]) => [`${name}-min`, `${name}-max`])]
-    .forEach((id) => { $(`#${id}`).value = ""; });
-  updatePocketControls();
+    .forEach((id) => {
+      if (catalogPickers.has(id)) setPickerIds(id, []);
+      else $(`#${id}`).value = "";
+    });
   updateCriteriaSummary();
   $("#preset-target").classList.add("active");
 }
 
 function clearFilters() {
   $("#pocket-kind").value = "";
-  filterInputIds.forEach((id) => { $(`#${id}`).value = ""; });
-  updatePocketControls();
+  filterInputIds.forEach((id) => {
+    if (catalogPickers.has(id)) setPickerIds(id, []);
+    else $(`#${id}`).value = "";
+  });
+  updatePocketControls(false);
   updateCriteriaSummary();
   $("#preset-target").classList.remove("active");
 }
 
 function buildSearchPayload() {
+  const pendingPicker = [...catalogPickers.values()].find((picker) =>
+    !picker.query.disabled && picker.query.value.trim()
+  );
+  if (pendingPicker) {
+    pendingPicker.query.focus();
+    throw new Error("请先从名称推荐中选择条目，再开始扫描");
+  }
   const payload = {};
   const kind = $("#pocket-kind").value;
   if (kind) payload.pocket_kind = kind;
@@ -180,12 +525,17 @@ function stateLabel(state) {
   return ({idle: "等待开始", running: "正在扫描", completed: "扫描完成", cancelled: "已停止", failed: "搜索失败"})[state] || state;
 }
 
+function namedId(kind, id, fallback) {
+  const entry = catalogByKey.get(catalogKey(kind, id));
+  return entry ? `${entry.name_zh} · #${id}` : `${fallback} #${id}`;
+}
+
 function pocketLabel(match) {
   return ({
     none: "无",
-    trinket: `饰品 #${match.pocket_id}`,
-    card: `卡牌 #${match.pocket_id}`,
-    pill: `胶囊 #${match.pocket_id}`,
+    trinket: namedId("trinket", match.pocket_id, "饰品"),
+    card: namedId("card", match.pocket_id, "卡牌"),
+    pill: namedId("pill", match.pocket_id, "胶囊"),
   })[match.pocket_kind] || match.pocket_kind;
 }
 
@@ -251,8 +601,8 @@ async function loadResults() {
       seedCell.append(seed, raw);
       row.appendChild(seedCell);
       appendCell(row, pocketLabel(match), "id-value");
-      appendCell(row, `#${match.active_id}`, "id-value");
-      appendCell(row, `#${match.passive_id}`, "id-value");
+      appendCell(row, namedId("active", match.active_id, "主动"), "id-value");
+      appendCell(row, namedId("passive", match.passive_id, "被动"), "id-value");
       appendCell(row, `${match.red_hearts} 红 / ${match.soul_hearts} 魂`);
       appendStatCell(row, match.damage);
       appendStatCell(row, match.move_speed);
@@ -292,7 +642,7 @@ $("#search-form").addEventListener("submit", async (event) => {
 });
 
 $("#pocket-kind").addEventListener("change", () => {
-  updatePocketControls();
+  updatePocketControls(true);
   updateCriteriaSummary();
   $("#preset-target").classList.remove("active");
 });
@@ -310,8 +660,19 @@ $("#shutdown-button").addEventListener("click", async () => {
   document.body.innerHTML = '<main class="shell"><section class="panel"><h2>本地程序已关闭</h2><p>现在可以关闭这个页面。</p></section></main>';
 });
 
-updatePocketControls();
+document.addEventListener("pointerdown", (event) => {
+  catalogPickers.forEach((picker) => {
+    if (!picker.root.contains(event.target)) picker.close();
+  });
+});
+
+updatePocketControls(false);
 updateCriteriaSummary();
+loadCatalog().catch((error) => {
+  const state = $("#catalog-state");
+  state.textContent = `名称目录载入失败，仍可直接输入 ID：${error.message}`;
+  state.className = "catalog-state failed";
+});
 loadProfile().catch((error) => {
   $("#profile-name").textContent = "Profile 读取失败";
   $("#profile-detail").textContent = error.message;

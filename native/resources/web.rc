@@ -3,3 +3,4 @@
 IDR_WEB_INDEX RCDATA "../../web/index.html"
 IDR_WEB_STYLE RCDATA "../../web/style.css"
 IDR_WEB_APP RCDATA "../../web/app.js"
+IDR_ITEM_CATALOG RCDATA "../../data/catalog/eden-start-catalog.j460.json"

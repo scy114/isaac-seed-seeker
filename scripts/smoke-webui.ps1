@@ -33,8 +33,25 @@ try {
     $Headers = @{"X-Isaac-Token" = $Matches[2]}
     $Page = Invoke-WebRequest $Url -UseBasicParsing
     $ClientScript = Invoke-WebRequest ($BaseUrl + "app.js") -UseBasicParsing
-    if ($Page.Content -notmatch 'id="red-hearts-min"' -or $ClientScript.Content -notmatch "pill_effect_ids") {
+    if (
+        $Page.Content -notmatch 'id="red-hearts-min"' -or
+        $Page.Content -notmatch 'id="catalog-state"' -or
+        $ClientScript.Content -notmatch "pill_effect_ids" -or
+        $ClientScript.Content -notmatch "class CatalogPicker"
+    ) {
         throw "embedded WebUI does not expose the generic Eden filters"
+    }
+    $Catalog = Invoke-RestMethod ($BaseUrl + "catalog.json")
+    if ($Catalog.catalog_id -ne "huiji-j460-169621-169298" -or $Catalog.counts.entries -ne 1078) {
+        throw "embedded item catalog has unexpected metadata"
+    }
+    $Drawing = @($Catalog.entries | Where-Object { $_.kind -eq "trinket" -and $_.search_id -eq 169 })
+    if (
+        $Drawing.Count -ne 1 -or
+        $Drawing[0].name_en -ne "Kid's Drawing" -or
+        -not (@($Drawing[0].pinyin) -contains "maopian")
+    ) {
+        throw "embedded item catalog is missing the target trinket search keys"
     }
     $Profile = Invoke-RestMethod ($BaseUrl + "api/v1/profile")
     $UnauthorizedBlocked = $false

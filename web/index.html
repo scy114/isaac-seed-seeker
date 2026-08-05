@@ -30,7 +30,8 @@
         <div>
           <p class="step">01 · 筛选条件</p>
           <h2>你想要怎样的伊甸开局？</h2>
-          <p class="section-copy">已填写的不同类别必须同时满足；同一栏里的多个 ID 满足任意一个即可。</p>
+          <p class="section-copy">已填写的不同类别必须同时满足；同一栏里的多个条目满足任意一个即可。</p>
+          <p class="catalog-state" id="catalog-state">正在载入离线名称目录…</p>
         </div>
         <div class="preset-actions" aria-label="筛选预设">
           <button class="chip active" id="preset-target" type="button">恢复目标 169</button>
@@ -56,41 +57,43 @@
               </select>
               <small>先选类型，再填写对应 ID</small>
             </label>
-            <label>
-              <span id="pocket-ids-label">饰品 ID（任意一个）</span>
-              <input id="pocket-ids" value="169" placeholder="例如：169">
+            <div class="catalog-field">
+              <label id="pocket-ids-label" for="pocket-ids-query">饰品（任意一个）</label>
+              <input id="pocket-ids" value="169" placeholder="名称、俗称、拼音或 ID">
               <small id="pocket-ids-help">普通与金色饰品按基础 ID 匹配</small>
-            </label>
-            <label>
-              <span>排除这些 ID</span>
-              <input id="pocket-exclude-ids" placeholder="可选，例如：1, 2">
+            </div>
+            <div class="catalog-field subtle-field">
+              <label for="pocket-exclude-ids-query">排除这些条目</label>
+              <input id="pocket-exclude-ids" placeholder="名称、俗称、拼音或 ID">
               <small>命中后再排除，通常可以留空</small>
-            </label>
+            </div>
           </div>
         </section>
 
         <section class="filter-group" aria-labelledby="items-heading">
           <div class="group-heading">
             <div><span class="group-number">B</span><h3 id="items-heading">开局道具</h3></div>
-            <p>主动与被动分别筛选；每栏内使用逗号分隔多个 ID。</p>
+            <p>主动与被动分别筛选；每栏可以选择多个条目。</p>
           </div>
           <div class="field-grid two-columns">
-            <label>
-              <span>主动道具（任意一个）</span>
-              <input id="active-ids" value="145, 133" placeholder="例如：145, 133">
-            </label>
-            <label>
-              <span>被动道具（任意一个）</span>
-              <input id="passive-ids" value="81, 134, 187, 212, 665" placeholder="例如：81, 134">
-            </label>
-            <label class="subtle-field">
-              <span>排除主动道具</span>
-              <input id="active-exclude-ids" placeholder="可选">
-            </label>
-            <label class="subtle-field">
-              <span>排除被动道具</span>
-              <input id="passive-exclude-ids" placeholder="可选">
-            </label>
+            <div class="catalog-field">
+              <label for="active-ids-query">主动道具（任意一个）</label>
+              <input id="active-ids" value="145, 133" placeholder="名称、俗称、拼音或 ID">
+              <small>例如：猫头、Guppy's Head、145</small>
+            </div>
+            <div class="catalog-field">
+              <label for="passive-ids-query">被动道具（任意一个）</label>
+              <input id="passive-ids" value="81, 134, 187, 212, 665" placeholder="名称、俗称、拼音或 ID">
+              <small>支持中文、英文、俗称、拼音和 ID</small>
+            </div>
+            <div class="catalog-field subtle-field">
+              <label for="active-exclude-ids-query">排除主动道具</label>
+              <input id="active-exclude-ids" placeholder="名称、俗称、拼音或 ID">
+            </div>
+            <div class="catalog-field subtle-field">
+              <label for="passive-exclude-ids-query">排除被动道具</label>
+              <input id="passive-exclude-ids" placeholder="名称、俗称、拼音或 ID">
+            </div>
           </div>
         </section>
 

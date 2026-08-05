@@ -625,6 +625,7 @@ int run_local_web_app(bool open_browser) {
     const auto index_html = load_resource(IDR_WEB_INDEX);
     const auto style_css = load_resource(IDR_WEB_STYLE);
     const auto app_js = load_resource(IDR_WEB_APP);
+    const auto item_catalog_json = load_resource(IDR_ITEM_CATALOG);
     SearchSession session;
     std::cout << "Isaac Seed Seeker: " << url << std::endl;
     if (open_browser) {
@@ -662,6 +663,8 @@ int run_local_web_app(bool open_browser) {
                 respond(client, 200, "OK", "text/css; charset=utf-8", style_css);
             } else if (request.method == "GET" && request.path == "/app.js") {
                 respond(client, 200, "OK", "text/javascript; charset=utf-8", app_js);
+            } else if (request.method == "GET" && request.path == "/catalog.json") {
+                respond(client, 200, "OK", "application/json; charset=utf-8", item_catalog_json);
             } else if (request.method == "GET" && request.path == "/api/v1/profile") {
                 respond(client, 200, "OK", "application/json; charset=utf-8", profile_json());
             } else if (request.method == "POST" && request.path == "/api/v1/inspect") {

@@ -90,6 +90,8 @@ python -m pytest
 
 更新时必须审阅各类型总数、可用数量、名称改动和 Profile 交集。revision 变化不自动等于游戏算法变化；若 J460 之后的游戏版本出现池或 ID 差异，应生成新的 Profile 专属目录，而不是覆盖旧目录。
 
-## 后续接入边界
+## WebUI 接入状态
 
-下一阶段只需要实现一个不依赖框架的浏览器端索引器和 combobox，并把生成 JSON 嵌入现有 `RCDATA`。C++ API、搜索任务 JSON 和 RNG 内核无需改名或接受字符串；页面在提交任务前完成 `CatalogEntry -> search_id` 投影即可。
+目录已经作为 `RCDATA` 嵌入原生 EXE，由只监听回环地址的 `/catalog.json` 提供给页面。浏览器端索引器和多选 combobox 不依赖框架；主动、被动、饰品、卡牌、胶囊及其排除栏均复用同一组件。结果表也使用目录显示名称。
+
+C++ API、搜索任务 JSON 和 RNG 内核保持不变；页面在提交任务前完成 `CatalogEntry -> search_id` 投影。若目录加载失败，页面退回原始 ID 输入，不阻断既有搜索能力。
