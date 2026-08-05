@@ -41,6 +41,7 @@ SearchJob JSON
 - `SearchJob`: 候选种子来源、伊甸过滤条件、输出限制。
 - `EdenObservation`: 游戏内实际观测；数值单位保持原始 Lua API 单位并显式命名。
 - `Predictor`: `predict(seed, profile) -> EdenObservationLike`，未来高速内核的稳定接口。
+- `ItemCatalog`: Profile 专属的离线名称、别名、拼音与 `search_id` 映射；只供 UI 解析输入，不进入 RNG 内核。
 
 ## Components
 
@@ -80,4 +81,5 @@ SearchJob JSON
 - 角色通过 observation adapter 扩展，不污染 Eden 数据模型。
 - 房间和楼层条件放入独立的 `RunObservation`，不塞入 Eden start filter。
 - GUI 只消费 CLI/JSON API，不直接实现 RNG。
+- 名称搜索只在 GUI 侧将目录条目投影为整数 ID；HTTP API 不接受名称。
 - 第三方内核通过 adapter 接入，保留来源、版本和许可证信息。

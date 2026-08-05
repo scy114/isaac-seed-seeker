@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "retrieval": "MediaWiki revisions API",
+  "sources": [
+    {
+      "key": "item",
+      "title": "Data:Item.tabx",
+      "page_url": "https://isaac.huijiwiki.com/wiki/Data%3AItem.tabx",
+      "api_url": "https://isaac.huijiwiki.com/api.php",
+      "revision": 169621,
+      "timestamp": "2026-08-01T08:39:01Z",
+      "sha1": "2bcd8c785d3ced60927241847f10227511f5c77c",
+      "license": {
+        "spdx": "CC0-1.0",
+        "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+      }
+    },
+    {
+      "key": "item-keywords",
+      "title": "Data:ItemKeywords.tabx",
+      "page_url": "https://isaac.huijiwiki.com/wiki/Data%3AItemKeywords.tabx",
+      "api_url": "https://isaac.huijiwiki.com/api.php",
+      "revision": 169298,
+      "timestamp": "2026-07-23T15:04:39Z",
+      "sha1": "e3f2430c2370300a9a17c03571cd96b5f7df120d",
+      "license": {
+        "spdx": "CC0-1.0",
+        "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+      }
+    }
+  ]
+}

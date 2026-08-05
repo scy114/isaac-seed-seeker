@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PROC = ROOT / "data" / "profiles" / "j460-full" / "proc.json"
 TRINKETS = ROOT / "data" / "profiles" / "j460-full" / "trinket_pool.json"
 OUTPUT = ROOT / "native" / "generated" / "builtin_profile_j460.cpp"
+CATALOG_PROFILE = ROOT / "data" / "catalog" / "profile-j460.json"
 
 
 def digest(path: Path) -> str:
@@ -24,6 +25,51 @@ def semantic_digest(value: object) -> str:
 
 def boolean(value: bool) -> str:
     return "true" if value else "false"
+
+
+def write_catalog_profile(proc: dict[str, object], trinkets: dict[str, object]) -> None:
+    """Publish the small Profile subset needed to build the offline name catalog."""
+
+    collectible_entries = []
+    for entry in proc["entries"]:
+        if entry is None:
+            continue
+        item_id = int(entry["id"])
+        blocked = bool(int(entry.get("flag47", 0)) & 1)
+        collectible_entries.append(
+            {
+                "id": item_id,
+                "kind": "active" if int(entry["type"]) == 3 else "passive",
+                "available_for_eden": not blocked and item_id not in {43, 61, 235},
+            }
+        )
+
+    trinket_entries = []
+    for entry in trinkets["entries"]:
+        trinket_entries.append(
+            {
+                "id": int(entry["raw"]) & 0x7FFF,
+                "available_for_eden": bool(entry.get("flag4")) and bool(entry.get("flag5")),
+            }
+        )
+
+    payload = {
+        "schema_version": 1,
+        "profile_id": "j460-full-unlock",
+        "game_version": "v1.9.7.17.J460",
+        "game_build": "J460",
+        "source_sha256": {
+            "proc_json": digest(PROC),
+            "trinket_pool_json": digest(TRINKETS),
+        },
+        "collectibles": collectible_entries,
+        "trinkets": trinket_entries,
+    }
+    CATALOG_PROFILE.parent.mkdir(parents=True, exist_ok=True)
+    CATALOG_PROFILE.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
 
 def main() -> None:
@@ -82,6 +128,7 @@ def main() -> None:
     )
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text("\n".join(lines), encoding="utf-8")
+    write_catalog_profile(proc, trinkets)
 
 
 if __name__ == "__main__":

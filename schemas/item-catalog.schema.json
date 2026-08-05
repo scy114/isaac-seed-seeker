@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://isaac-seed-seeker.local/schemas/item-catalog.schema.json",
+  "title": "Isaac Seed Seeker offline item catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "catalog_id",
+    "profile",
+    "sources",
+    "normalization",
+    "counts",
+    "entries"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "catalog_id": { "type": "string", "minLength": 1 },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "game_version", "game_build", "source_sha256"],
+      "properties": {
+        "id": { "type": "string" },
+        "game_version": { "type": "string" },
+        "game_build": { "type": "string" },
+        "source_sha256": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "title", "page_url", "api_url", "revision", "timestamp", "sha1", "license"],
+        "properties": {
+          "key": { "type": "string" },
+          "title": { "type": "string" },
+          "page_url": { "type": "string", "format": "uri" },
+          "api_url": { "type": "string", "format": "uri" },
+          "revision": { "type": "integer", "minimum": 1 },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "sha1": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+          "license": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["spdx", "url"],
+            "properties": {
+              "spdx": { "const": "CC0-1.0" },
+              "url": { "type": "string", "format": "uri" }
+            }
+          }
+        }
+      }
+    },
+    "normalization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["trinket", "horse_pill", "backend_contract"],
+      "properties": {
+        "trinket": { "type": "string" },
+        "horse_pill": { "type": "string" },
+        "backend_contract": { "type": "string" }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entries", "by_kind", "available_for_eden"],
+      "properties": {
+        "entries": { "type": "integer", "minimum": 1 },
+        "by_kind": { "$ref": "#/$defs/kindCounts" },
+        "available_for_eden": { "$ref": "#/$defs/kindCounts" }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "kind": {
+      "enum": ["active", "passive", "trinket", "card", "pill"]
+    },
+    "kindCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["active", "passive", "trinket", "card", "pill"],
+      "properties": {
+        "active": { "type": "integer", "minimum": 0 },
+        "passive": { "type": "integer", "minimum": 0 },
+        "trinket": { "type": "integer", "minimum": 0 },
+        "card": { "type": "integer", "minimum": 0 },
+        "pill": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wiki_key",
+        "source_id",
+        "name_zh",
+        "name_en",
+        "aliases",
+        "pinyin",
+        "kind",
+        "search_id",
+        "variant",
+        "available_for_eden"
+      ],
+      "properties": {
+        "wiki_key": { "type": "string", "minLength": 1 },
+        "source_id": { "type": "integer", "minimum": 0 },
+        "name_zh": { "type": "string", "minLength": 1 },
+        "name_en": { "type": "string", "minLength": 1 },
+        "aliases": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "pinyin": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "kind": { "$ref": "#/$defs/kind" },
+        "search_id": { "type": "integer", "minimum": 0 },
+        "variant": { "enum": ["normal", "horse"] },
+        "available_for_eden": { "type": "boolean" }
+      }
+    }
+  }
+}
