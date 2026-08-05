@@ -52,6 +52,16 @@ try {
     ) {
         throw "embedded WebUI does not expose the generic Eden filters"
     }
+    if (
+        $Page.Content -match 'id="preset-target"' -or
+        $Page.Content -match '<option value="trinket" selected' -or
+        $Page.Content -match 'id="pocket-ids" value=' -or
+        $Page.Content -match 'id="active-ids" value=' -or
+        $Page.Content -match 'id="passive-ids" value=' -or
+        $ClientScript.Content -match 'applyTargetPreset'
+    ) {
+        throw "embedded WebUI should start with generic empty filters"
+    }
     $Catalog = Invoke-RestMethod ($BaseUrl + "catalog.json")
     if ($Catalog.catalog_id -ne "huiji-j460-169621-169298" -or $Catalog.counts.entries -ne 1078) {
         throw "embedded item catalog has unexpected metadata"

@@ -33,8 +33,7 @@
           <p class="section-copy">已填写的不同类别必须同时满足；同一栏里的多个条目满足任意一个即可。</p>
           <p class="catalog-state" id="catalog-state">正在载入离线名称目录…</p>
         </div>
-        <div class="preset-actions" aria-label="筛选预设">
-          <button class="chip active" id="preset-target" type="button">恢复目标 169</button>
+        <div class="preset-actions" aria-label="筛选操作">
           <button class="chip" id="clear-filters" type="button">清空条件</button>
         </div>
       </div>
@@ -50,7 +49,7 @@
               <span>口袋物类型</span>
               <select id="pocket-kind">
                 <option value="">不限</option>
-                <option value="trinket" selected>饰品</option>
+                <option value="trinket">饰品</option>
                 <option value="card">卡牌</option>
                 <option value="pill">胶囊效果</option>
                 <option value="none">没有口袋物</option>
@@ -59,7 +58,7 @@
             </label>
             <div class="catalog-field">
               <label id="pocket-ids-label" for="pocket-ids-query">饰品（任意一个）</label>
-              <input id="pocket-ids" value="169" placeholder="名称、俗称、拼音或 ID">
+              <input id="pocket-ids" placeholder="名称、俗称、拼音或 ID">
               <small id="pocket-ids-help">普通与金色饰品按基础 ID 匹配</small>
             </div>
             <div class="catalog-field subtle-field">
@@ -78,12 +77,12 @@
           <div class="field-grid two-columns">
             <div class="catalog-field">
               <label for="active-ids-query">主动道具（任意一个）</label>
-              <input id="active-ids" value="145, 133" placeholder="名称、俗称、拼音或 ID">
+              <input id="active-ids" placeholder="名称、俗称、拼音或 ID">
               <small>例如：猫头、Guppy's Head、145</small>
             </div>
             <div class="catalog-field">
               <label for="passive-ids-query">被动道具（任意一个）</label>
-              <input id="passive-ids" value="81, 134, 187, 212, 665" placeholder="名称、俗称、拼音或 ID">
+              <input id="passive-ids" placeholder="名称、俗称、拼音或 ID">
               <small>支持中文、英文、俗称、拼音和 ID</small>
             </div>
             <div class="catalog-field subtle-field">

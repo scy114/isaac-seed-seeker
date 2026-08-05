@@ -530,22 +530,6 @@ function updateCriteriaSummary() {
     : "当前没有筛选条件";
 }
 
-function applyTargetPreset() {
-  $("#pocket-kind").value = "trinket";
-  updatePocketControls(false);
-  setPickerIds("pocket-ids", [169]);
-  setPickerIds("active-ids", [145, 133]);
-  setPickerIds("passive-ids", [81, 134, 187, 212, 665]);
-  ["pocket-exclude-ids", "active-exclude-ids", "passive-exclude-ids",
-    ...rangeFields.flatMap(([name]) => [`${name}-min`, `${name}-max`])]
-    .forEach((id) => {
-      if (catalogPickers.has(id)) setPickerIds(id, []);
-      else $(`#${id}`).value = "";
-    });
-  updateCriteriaSummary();
-  $("#preset-target").classList.add("active");
-}
-
 function clearFilters() {
   $("#pocket-kind").value = "";
   filterInputIds.forEach((id) => {
@@ -554,7 +538,6 @@ function clearFilters() {
   });
   updatePocketControls(false);
   updateCriteriaSummary();
-  $("#preset-target").classList.remove("active");
 }
 
 function buildSearchPayload() {
@@ -925,13 +908,9 @@ $("#search-form").addEventListener("submit", async (event) => {
 $("#pocket-kind").addEventListener("change", () => {
   updatePocketControls(true);
   updateCriteriaSummary();
-  $("#preset-target").classList.remove("active");
 });
 
-$("#search-form").addEventListener("input", (event) => {
-  if (!event.target.closest(".search-settings")) $("#preset-target").classList.remove("active");
-  updateCriteriaSummary();
-});
+$("#search-form").addEventListener("input", updateCriteriaSummary);
 
 document.querySelectorAll("th[data-sort-key]").forEach((header) => {
   header.querySelector(".table-sort").addEventListener("click", () => {
@@ -997,7 +976,6 @@ $("#download-link").addEventListener("click", (event) => {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 });
 
-$("#preset-target").addEventListener("click", applyTargetPreset);
 $("#clear-filters").addEventListener("click", clearFilters);
 $("#cancel-button").addEventListener("click", () => request("/api/v1/search/cancel", {method: "POST"}));
 $("#shutdown-button").addEventListener("click", async () => {
