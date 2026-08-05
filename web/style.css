@@ -25,6 +25,9 @@
   --input: #0d0b0a;
   --line: #3b2f28;
   --line-strong: #60483a;
+  --font-display: "LanaPixel", "Microsoft YaHei", sans-serif;
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
 }
 
 * { box-sizing: border-box; }
@@ -36,9 +39,9 @@ body {
   min-height: 100vh;
   background: #170d0a;
   color: var(--paper);
-  font-family: "LanaPixel", "Microsoft YaHei", sans-serif;
-  -webkit-font-smoothing: none;
-  text-rendering: optimizeSpeed;
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 #basement-room {
@@ -151,6 +154,13 @@ button, select { cursor: pointer; }
 }
 .section-title.compact { align-items: center; }
 
+h2,
+.group-heading h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  -webkit-font-smoothing: none;
+  text-rendering: optimizeSpeed;
+}
 h2 { margin: 0; color: #e9d8bd; font-size: 25px; letter-spacing: .01em; }
 .section-copy { margin: 8px 0 0; color: var(--muted); line-height: 1.55; }
 .catalog-state { margin: 7px 0 0; color: #aa9a88; font-size: 12px; }
@@ -310,6 +320,16 @@ input:disabled { color: #736a62; background: #171412; border-color: #302923; }
 .catalog-token-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .catalog-token-id { color: #c6aa82; font-variant-numeric: tabular-nums; }
 .catalog-token-quality { color: var(--gold); font-weight: 800; }
+.catalog-token-id,
+.catalog-token-quality,
+.catalog-option-meta,
+.metrics strong,
+.seed-cell,
+.id-value,
+.quality-value,
+#max-results {
+  font-family: var(--font-mono);
+}
 .catalog-token button {
   display: grid;
   place-items: center;
