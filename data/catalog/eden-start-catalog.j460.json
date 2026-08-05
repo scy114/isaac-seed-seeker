@@ -40,24 +40,24 @@
   ],
   "normalization": {
     "trinket": "golden trinkets use the base trinket ID",
-    "horse_pill": "search_id = source pill effect ID + 55",
+    "horse_pill": "normal and horse pills use the same raw effect ID; pill_color carries the horse flag",
     "backend_contract": "the WebUI submits search_id values; names never reach the RNG kernel"
   },
   "counts": {
-    "entries": 1078,
+    "entries": 1056,
     "by_kind": {
       "active": 170,
       "passive": 551,
       "trinket": 188,
       "card": 97,
-      "pill": 72
+      "pill": 50
     },
     "available_for_eden": {
       "active": 165,
       "passive": 542,
       "trinket": 187,
       "card": 59,
-      "pill": 44
+      "pill": 50
     }
   },
   "entries": [
@@ -17436,17 +17436,24 @@
       "name_zh": "剧毒臭屁",
       "name_en": "Bad Gas",
       "aliases": [
-        "有毒气体"
+        "有毒气体",
+        "大胶囊：剧毒臭屁",
+        "马胶囊：剧毒臭屁",
+        "Horse Pill: Bad Gas"
       ],
       "pinyin": [
         "juduchoupi",
-        "youduqiti"
+        "youduqiti",
+        "dajiaonangjuduchoupi",
+        "dajiaonangyouduqiti",
+        "majiaonangjuduchoupi",
+        "majiaonangyouduqiti"
       ],
       "kind": "pill",
       "search_id": 0,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p1",
@@ -17454,11 +17461,18 @@
       "name_zh": "过激幻觉",
       "name_en": "Bad Trip",
       "aliases": [
-        "糟糕的旅程"
+        "糟糕的旅程",
+        "大胶囊：过激幻觉",
+        "马胶囊：过激幻觉",
+        "Horse Pill: Bad Trip"
       ],
       "pinyin": [
         "zaogaode旅cheng",
-        "guojihuanjue"
+        "guojihuanjue",
+        "dajiaonangzaogaode旅cheng",
+        "dajiaonangguojihuanjue",
+        "majiaonangzaogaode旅cheng",
+        "majiaonangguojihuanjue"
       ],
       "kind": "pill",
       "search_id": 1,
@@ -17472,11 +17486,18 @@
       "name_zh": "钢铁双蛋",
       "name_en": "Balls of Steel",
       "aliases": [
-        "钢球"
+        "钢球",
+        "大胶囊：钢铁双蛋",
+        "马胶囊：钢铁双蛋",
+        "Horse Pill: Balls of Steel"
       ],
       "pinyin": [
         "gangtieshuangdan",
-        "gangqiu"
+        "gangqiu",
+        "dajiaonanggangtieshuangdan",
+        "dajiaonanggangqiu",
+        "majiaonanggangtieshuangdan",
+        "majiaonanggangqiu"
       ],
       "kind": "pill",
       "search_id": 2,
@@ -17490,11 +17511,18 @@
       "name_zh": "炸弹变钥匙",
       "name_en": "Bombs are Key",
       "aliases": [
-        "炸弹是钥匙"
+        "炸弹是钥匙",
+        "大胶囊：炸弹变钥匙",
+        "马胶囊：炸弹变钥匙",
+        "Horse Pill: Bombs are Key"
       ],
       "pinyin": [
         "zhadanbianyaoshi",
-        "zhadanshiyaoshi"
+        "zhadanshiyaoshi",
+        "dajiaonangzhadanbianyaoshi",
+        "dajiaonangzhadanshiyaoshi",
+        "majiaonangzhadanbianyaoshi",
+        "majiaonangzhadanshiyaoshi"
       ],
       "kind": "pill",
       "search_id": 3,
@@ -17507,9 +17535,15 @@
       "source_id": 4,
       "name_zh": "爆炸性腹泻",
       "name_en": "Explosive Diarrhea",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：爆炸性腹泻",
+        "马胶囊：爆炸性腹泻",
+        "Horse Pill: Explosive Diarrhea"
+      ],
       "pinyin": [
-        "baozhaxingfuxie"
+        "baozhaxingfuxie",
+        "dajiaonangbaozhaxingfuxie",
+        "majiaonangbaozhaxingfuxie"
       ],
       "kind": "pill",
       "search_id": 4,
@@ -17523,11 +17557,18 @@
       "name_zh": "体力回满",
       "name_en": "Full Health",
       "aliases": [
-        "回满血量"
+        "回满血量",
+        "大胶囊：体力回满",
+        "马胶囊：体力回满",
+        "Horse Pill: Full Health"
       ],
       "pinyin": [
         "huimanxieliang",
-        "tilihuiman"
+        "tilihuiman",
+        "dajiaonanghuimanxieliang",
+        "dajiaonangtilihuiman",
+        "majiaonanghuimanxieliang",
+        "majiaonangtilihuiman"
       ],
       "kind": "pill",
       "search_id": 5,
@@ -17541,11 +17582,18 @@
       "name_zh": "体力下降",
       "name_en": "Health Down",
       "aliases": [
-        "血量下降"
+        "血量下降",
+        "大胶囊：体力下降",
+        "马胶囊：体力下降",
+        "Horse Pill: Health Down"
       ],
       "pinyin": [
         "tilixiajiang",
-        "xieliangxiajiang"
+        "xieliangxiajiang",
+        "dajiaonangtilixiajiang",
+        "dajiaonangxieliangxiajiang",
+        "majiaonangtilixiajiang",
+        "majiaonangxieliangxiajiang"
       ],
       "kind": "pill",
       "search_id": 6,
@@ -17559,11 +17607,18 @@
       "name_zh": "体力上升",
       "name_en": "Health Up",
       "aliases": [
-        "血量上升"
+        "血量上升",
+        "大胶囊：体力上升",
+        "马胶囊：体力上升",
+        "Horse Pill: Health Up"
       ],
       "pinyin": [
         "xieliangshangsheng",
-        "tilishangsheng"
+        "tilishangsheng",
+        "dajiaonangxieliangshangsheng",
+        "dajiaonangtilishangsheng",
+        "majiaonangxieliangshangsheng",
+        "majiaonangtilishangsheng"
       ],
       "kind": "pill",
       "search_id": 7,
@@ -17577,11 +17632,18 @@
       "name_zh": "我找到枚怪药",
       "name_en": "I Found Pills",
       "aliases": [
-        "我找到药丸了"
+        "我找到药丸了",
+        "大胶囊：我找到枚怪药",
+        "马胶囊：我找到枚怪药",
+        "Horse Pill: I Found Pills"
       ],
       "pinyin": [
         "wozhaodaomeiguaiyao",
-        "wozhaodaoyaowanle"
+        "wozhaodaoyaowanle",
+        "dajiaonangwozhaodaomeiguaiyao",
+        "dajiaonangwozhaodaoyaowanle",
+        "majiaonangwozhaodaomeiguaiyao",
+        "majiaonangwozhaodaoyaowanle"
       ],
       "kind": "pill",
       "search_id": 8,
@@ -17594,9 +17656,15 @@
       "source_id": 9,
       "name_zh": "青春期",
       "name_en": "Puberty",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：青春期",
+        "马胶囊：青春期",
+        "Horse Pill: Puberty"
+      ],
       "pinyin": [
-        "qingchunqi"
+        "qingchunqi",
+        "dajiaonangqingchunqi",
+        "majiaonangqingchunqi"
       ],
       "kind": "pill",
       "search_id": 9,
@@ -17610,11 +17678,18 @@
       "name_zh": "漂亮苍蝇",
       "name_en": "Pretty Fly",
       "aliases": [
-        "漂亮的苍蝇"
+        "漂亮的苍蝇",
+        "大胶囊：漂亮苍蝇",
+        "马胶囊：漂亮苍蝇",
+        "Horse Pill: Pretty Fly"
       ],
       "pinyin": [
         "piaoliangdecangying",
-        "piaoliangcangying"
+        "piaoliangcangying",
+        "dajiaonangpiaoliangdecangying",
+        "dajiaonangpiaoliangcangying",
+        "majiaonangpiaoliangdecangying",
+        "majiaonangpiaoliangcangying"
       ],
       "kind": "pill",
       "search_id": 10,
@@ -17627,9 +17702,15 @@
       "source_id": 11,
       "name_zh": "射程下降",
       "name_en": "Range Down",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：射程下降",
+        "马胶囊：射程下降",
+        "Horse Pill: Range Down"
+      ],
       "pinyin": [
-        "shechengxiajiang"
+        "shechengxiajiang",
+        "dajiaonangshechengxiajiang",
+        "majiaonangshechengxiajiang"
       ],
       "kind": "pill",
       "search_id": 11,
@@ -17642,9 +17723,15 @@
       "source_id": 12,
       "name_zh": "射程上升",
       "name_en": "Range Up",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：射程上升",
+        "马胶囊：射程上升",
+        "Horse Pill: Range Up"
+      ],
       "pinyin": [
-        "shechengshangsheng"
+        "shechengshangsheng",
+        "dajiaonangshechengshangsheng",
+        "majiaonangshechengshangsheng"
       ],
       "kind": "pill",
       "search_id": 12,
@@ -17657,9 +17744,15 @@
       "source_id": 13,
       "name_zh": "移速下降",
       "name_en": "Speed Down",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：移速下降",
+        "马胶囊：移速下降",
+        "Horse Pill: Speed Down"
+      ],
       "pinyin": [
-        "yisuxiajiang"
+        "yisuxiajiang",
+        "dajiaonangyisuxiajiang",
+        "majiaonangyisuxiajiang"
       ],
       "kind": "pill",
       "search_id": 13,
@@ -17672,9 +17765,15 @@
       "source_id": 14,
       "name_zh": "移速上升",
       "name_en": "Speed Up",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：移速上升",
+        "马胶囊：移速上升",
+        "Horse Pill: Speed Up"
+      ],
       "pinyin": [
-        "yisushangsheng"
+        "yisushangsheng",
+        "dajiaonangyisushangsheng",
+        "majiaonangyisushangsheng"
       ],
       "kind": "pill",
       "search_id": 14,
@@ -17687,9 +17786,15 @@
       "source_id": 15,
       "name_zh": "射速下降",
       "name_en": "Tears Down",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：射速下降",
+        "马胶囊：射速下降",
+        "Horse Pill: Tears Down"
+      ],
       "pinyin": [
-        "shesuxiajiang"
+        "shesuxiajiang",
+        "dajiaonangshesuxiajiang",
+        "majiaonangshesuxiajiang"
       ],
       "kind": "pill",
       "search_id": 15,
@@ -17702,9 +17807,15 @@
       "source_id": 16,
       "name_zh": "射速上升",
       "name_en": "Tears Up",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：射速上升",
+        "马胶囊：射速上升",
+        "Horse Pill: Tears Up"
+      ],
       "pinyin": [
-        "shesushangsheng"
+        "shesushangsheng",
+        "dajiaonangshesushangsheng",
+        "majiaonangshesushangsheng"
       ],
       "kind": "pill",
       "search_id": 16,
@@ -17718,11 +17829,18 @@
       "name_zh": "运气下降",
       "name_en": "Luck Down",
       "aliases": [
-        "幸运下降"
+        "幸运下降",
+        "大胶囊：运气下降",
+        "马胶囊：运气下降",
+        "Horse Pill: Luck Down"
       ],
       "pinyin": [
         "xingyunxiajiang",
-        "yunqixiajiang"
+        "yunqixiajiang",
+        "dajiaonangxingyunxiajiang",
+        "dajiaonangyunqixiajiang",
+        "majiaonangxingyunxiajiang",
+        "majiaonangyunqixiajiang"
       ],
       "kind": "pill",
       "search_id": 17,
@@ -17736,11 +17854,18 @@
       "name_zh": "运气上升",
       "name_en": "Luck Up",
       "aliases": [
-        "幸运上升"
+        "幸运上升",
+        "大胶囊：运气上升",
+        "马胶囊：运气上升",
+        "Horse Pill: Luck Up"
       ],
       "pinyin": [
         "xingyunshangsheng",
-        "yunqishangsheng"
+        "yunqishangsheng",
+        "dajiaonangxingyunshangsheng",
+        "dajiaonangyunqishangsheng",
+        "majiaonangxingyunshangsheng",
+        "majiaonangyunqishangsheng"
       ],
       "kind": "pill",
       "search_id": 18,
@@ -17754,11 +17879,18 @@
       "name_zh": "传送胶囊",
       "name_en": "Telepills",
       "aliases": [
-        "传送药丸"
+        "传送药丸",
+        "大胶囊：传送胶囊",
+        "马胶囊：传送胶囊",
+        "Horse Pill: Telepills"
       ],
       "pinyin": [
         "chuansongjiaonang",
-        "chuansongyaowan"
+        "chuansongyaowan",
+        "dajiaonangchuansongjiaonang",
+        "dajiaonangchuansongyaowan",
+        "majiaonangchuansongjiaonang",
+        "majiaonangchuansongyaowan"
       ],
       "kind": "pill",
       "search_id": 19,
@@ -17771,9 +17903,15 @@
       "source_id": 20,
       "name_zh": "48小时能量！",
       "name_en": "48 Hour Energy!",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：48小时能量！",
+        "马胶囊：48小时能量！",
+        "Horse Pill: 48 Hour Energy!"
+      ],
       "pinyin": [
-        "48xiaoshinengliang"
+        "48xiaoshinengliang",
+        "dajiaonang48xiaoshinengliang",
+        "majiaonang48xiaoshinengliang"
       ],
       "kind": "pill",
       "search_id": 20,
@@ -17786,9 +17924,15 @@
       "source_id": 21,
       "name_zh": "呕血",
       "name_en": "Hematemesis",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：呕血",
+        "马胶囊：呕血",
+        "Horse Pill: Hematemesis"
+      ],
       "pinyin": [
-        "ouxie"
+        "ouxie",
+        "dajiaonangouxie",
+        "majiaonangouxie"
       ],
       "kind": "pill",
       "search_id": 21,
@@ -17802,11 +17946,18 @@
       "name_zh": "麻痹",
       "name_en": "Paralysis",
       "aliases": [
-        "瘫痪"
+        "瘫痪",
+        "大胶囊：麻痹",
+        "马胶囊：麻痹",
+        "Horse Pill: Paralysis"
       ],
       "pinyin": [
         "mabi",
-        "tanhuan"
+        "tanhuan",
+        "dajiaonangmabi",
+        "dajiaonangtanhuan",
+        "majiaonangmabi",
+        "majiaonangtanhuan"
       ],
       "kind": "pill",
       "search_id": 22,
@@ -17820,122 +17971,171 @@
       "name_zh": "我能永远看清！",
       "name_en": "I can see forever!",
       "aliases": [
-        "我能看见永远！"
+        "我能看见永远！",
+        "大胶囊：我能永远看清！",
+        "马胶囊：我能永远看清！",
+        "Horse Pill: I can see forever!"
       ],
       "pinyin": [
         "wonengyongyuankanqing",
-        "wonengkanjianyongyuan"
+        "wonengkanjianyongyuan",
+        "dajiaonangwonengyongyuankanqing",
+        "dajiaonangwonengkanjianyongyuan",
+        "majiaonangwonengyongyuankanqing",
+        "majiaonangwonengkanjianyongyuan"
       ],
       "kind": "pill",
       "search_id": 23,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p24",
       "source_id": 24,
       "name_zh": "信息素",
       "name_en": "Pheromones",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：信息素",
+        "马胶囊：信息素",
+        "Horse Pill: Pheromones"
+      ],
       "pinyin": [
-        "xinxisu"
+        "xinxisu",
+        "dajiaonangxinxisu",
+        "majiaonangxinxisu"
       ],
       "kind": "pill",
       "search_id": 24,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p25",
       "source_id": 25,
       "name_zh": "失忆症",
       "name_en": "Amnesia",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：失忆症",
+        "马胶囊：失忆症",
+        "Horse Pill: Amnesia"
+      ],
       "pinyin": [
-        "shiyizheng"
+        "shiyizheng",
+        "dajiaonangshiyizheng",
+        "majiaonangshiyizheng"
       ],
       "kind": "pill",
       "search_id": 25,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p26",
       "source_id": 26,
       "name_zh": "柠檬派对",
       "name_en": "Lemon Party",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：柠檬派对",
+        "马胶囊：柠檬派对",
+        "Horse Pill: Lemon Party"
+      ],
       "pinyin": [
-        "ningmengpaidui"
+        "ningmengpaidui",
+        "dajiaonangningmengpaidui",
+        "majiaonangningmengpaidui"
       ],
       "kind": "pill",
       "search_id": 26,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p27",
       "source_id": 27,
       "name_zh": "你是巫师吗？",
       "name_en": "R U A Wizard?",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：你是巫师吗？",
+        "马胶囊：你是巫师吗？",
+        "Horse Pill: R U A Wizard?"
+      ],
       "pinyin": [
-        "nishiwushima"
+        "nishiwushima",
+        "dajiaonangnishiwushima",
+        "majiaonangnishiwushima"
       ],
       "kind": "pill",
       "search_id": 27,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p28",
       "source_id": 28,
       "name_zh": "止痛药！",
       "name_en": "Percs!",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：止痛药！",
+        "马胶囊：止痛药！",
+        "Horse Pill: Percs!"
+      ],
       "pinyin": [
-        "zhitongyao"
+        "zhitongyao",
+        "dajiaonangzhitongyao",
+        "majiaonangzhitongyao"
       ],
       "kind": "pill",
       "search_id": 28,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p29",
       "source_id": 29,
       "name_zh": "上瘾！",
       "name_en": "Addicted!",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：上瘾！",
+        "马胶囊：上瘾！",
+        "Horse Pill: Addicted!"
+      ],
       "pinyin": [
-        "shangyin"
+        "shangyin",
+        "dajiaonangshangyin",
+        "majiaonangshangyin"
       ],
       "kind": "pill",
       "search_id": 29,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p30",
       "source_id": 30,
       "name_zh": "放-松",
       "name_en": "Re-Lax",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：放-松",
+        "马胶囊：放-松",
+        "Horse Pill: Re-Lax"
+      ],
       "pinyin": [
-        "fang-song"
+        "fang-song",
+        "dajiaonangfang-song",
+        "majiaonangfang-song"
       ],
       "kind": "pill",
       "search_id": 30,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p31",
@@ -17944,16 +18144,21 @@
       "name_en": "???",
       "aliases": [
         "？？？",
-        "？？？ (药丸)"
+        "？？？ (药丸)",
+        "大胶囊：???",
+        "马胶囊：???",
+        "Horse Pill: ???"
       ],
       "pinyin": [
-        "yaowan"
+        "yaowan",
+        "dajiaonangyaowan",
+        "majiaonangyaowan"
       ],
       "kind": "pill",
       "search_id": 31,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p32",
@@ -17961,17 +18166,24 @@
       "name_zh": "变大胶囊",
       "name_en": "One makes you larger",
       "aliases": [
-        "变大药丸"
+        "变大药丸",
+        "大胶囊：变大胶囊",
+        "马胶囊：变大胶囊",
+        "Horse Pill: One makes you larger"
       ],
       "pinyin": [
         "biandajiaonang",
-        "biandayaowan"
+        "biandayaowan",
+        "dajiaonangbiandajiaonang",
+        "dajiaonangbiandayaowan",
+        "majiaonangbiandajiaonang",
+        "majiaonangbiandayaowan"
       ],
       "kind": "pill",
       "search_id": 32,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p33",
@@ -17979,17 +18191,24 @@
       "name_zh": "变小胶囊",
       "name_en": "One makes you small",
       "aliases": [
-        "变小药丸"
+        "变小药丸",
+        "大胶囊：变小胶囊",
+        "马胶囊：变小胶囊",
+        "Horse Pill: One makes you small"
       ],
       "pinyin": [
         "bianxiaoyaowan",
-        "bianxiaojiaonang"
+        "bianxiaojiaonang",
+        "dajiaonangbianxiaoyaowan",
+        "dajiaonangbianxiaojiaonang",
+        "majiaonangbianxiaoyaowan",
+        "majiaonangbianxiaojiaonang"
       ],
       "kind": "pill",
       "search_id": 33,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p34",
@@ -17997,17 +18216,24 @@
       "name_zh": "大量滋生！",
       "name_en": "Infested!",
       "aliases": [
-        "感染！"
+        "感染！",
+        "大胶囊：大量滋生！",
+        "马胶囊：大量滋生！",
+        "Horse Pill: Infested!"
       ],
       "pinyin": [
         "daliangzisheng",
-        "ganran"
+        "ganran",
+        "dajiaonangdaliangzisheng",
+        "dajiaonangganran",
+        "majiaonangdaliangzisheng",
+        "majiaonangganran"
       ],
       "kind": "pill",
       "search_id": 34,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p35",
@@ -18015,17 +18241,24 @@
       "name_zh": "大量滋生？",
       "name_en": "Infested?",
       "aliases": [
-        "感染？"
+        "感染？",
+        "大胶囊：大量滋生？",
+        "马胶囊：大量滋生？",
+        "Horse Pill: Infested?"
       ],
       "pinyin": [
         "daliangzisheng",
-        "ganran"
+        "ganran",
+        "dajiaonangdaliangzisheng",
+        "dajiaonangganran",
+        "majiaonangdaliangzisheng",
+        "majiaonangganran"
       ],
       "kind": "pill",
       "search_id": 35,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p36",
@@ -18033,92 +18266,129 @@
       "name_zh": "大力丸！",
       "name_en": "Power Pill!",
       "aliases": [
-        "能量药丸！"
+        "能量药丸！",
+        "大胶囊：大力丸！",
+        "马胶囊：大力丸！",
+        "Horse Pill: Power Pill!"
       ],
       "pinyin": [
         "daliwan",
-        "nengliangyaowan"
+        "nengliangyaowan",
+        "dajiaonangdaliwan",
+        "dajiaonangnengliangyaowan",
+        "majiaonangdaliwan",
+        "majiaonangnengliangyaowan"
       ],
       "kind": "pill",
       "search_id": 36,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p37",
       "source_id": 37,
       "name_zh": "复古视野",
       "name_en": "Retro Vision",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：复古视野",
+        "马胶囊：复古视野",
+        "Horse Pill: Retro Vision"
+      ],
       "pinyin": [
-        "fugushiye"
+        "fugushiye",
+        "dajiaonangfugushiye",
+        "majiaonangfugushiye"
       ],
       "kind": "pill",
       "search_id": 37,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p38",
       "source_id": 38,
       "name_zh": "好朋友一辈子！",
       "name_en": "Friends Till The End!",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：好朋友一辈子！",
+        "马胶囊：好朋友一辈子！",
+        "Horse Pill: Friends Till The End!"
+      ],
       "pinyin": [
-        "haopengyouyibeizi"
+        "haopengyouyibeizi",
+        "dajiaonanghaopengyouyibeizi",
+        "majiaonanghaopengyouyibeizi"
       ],
       "kind": "pill",
       "search_id": 38,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p39",
       "source_id": 39,
       "name_zh": "泻药",
       "name_en": "X-Lax",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：泻药",
+        "马胶囊：泻药",
+        "Horse Pill: X-Lax"
+      ],
       "pinyin": [
-        "xieyao"
+        "xieyao",
+        "dajiaonangxieyao",
+        "majiaonangxieyao"
       ],
       "kind": "pill",
       "search_id": 39,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p40",
       "source_id": 40,
       "name_zh": "哪里不对…",
       "name_en": "Something's wrong...",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：哪里不对…",
+        "马胶囊：哪里不对…",
+        "Horse Pill: Something's wrong..."
+      ],
       "pinyin": [
-        "nalibudui…"
+        "nalibudui…",
+        "dajiaonangnalibudui…",
+        "majiaonangnalibudui…"
       ],
       "kind": "pill",
       "search_id": 40,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p41",
       "source_id": 41,
       "name_zh": "好困…",
       "name_en": "I'm Drowsy...",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：好困…",
+        "马胶囊：好困…",
+        "Horse Pill: I'm Drowsy..."
+      ],
       "pinyin": [
-        "haokun…"
+        "haokun…",
+        "dajiaonanghaokun…",
+        "majiaonanghaokun…"
       ],
       "kind": "pill",
       "search_id": 41,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p42",
@@ -18126,32 +18396,45 @@
       "name_zh": "好兴奋！！！",
       "name_en": "I'm Excited!!!",
       "aliases": [
-        "我很兴奋！"
+        "我很兴奋！",
+        "大胶囊：好兴奋！！！",
+        "马胶囊：好兴奋！！！",
+        "Horse Pill: I'm Excited!!!"
       ],
       "pinyin": [
         "wohenxingfen",
-        "haoxingfen"
+        "haoxingfen",
+        "dajiaonangwohenxingfen",
+        "dajiaonanghaoxingfen",
+        "majiaonangwohenxingfen",
+        "majiaonanghaoxingfen"
       ],
       "kind": "pill",
       "search_id": 42,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p43",
       "source_id": 43,
       "name_zh": "咕噜！",
       "name_en": "Gulp!",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：咕噜！",
+        "马胶囊：咕噜！",
+        "Horse Pill: Gulp!"
+      ],
       "pinyin": [
-        "gulu"
+        "gulu",
+        "dajiaonanggulu",
+        "majiaonanggulu"
       ],
       "kind": "pill",
       "search_id": 43,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p44",
@@ -18159,17 +18442,24 @@
       "name_zh": "呕！",
       "name_en": "Horf!",
       "aliases": [
-        "吼！"
+        "吼！",
+        "大胶囊：呕！",
+        "马胶囊：呕！",
+        "Horse Pill: Horf!"
       ],
       "pinyin": [
         "ou",
-        "hou"
+        "hou",
+        "dajiaonangou",
+        "dajiaonanghou",
+        "majiaonangou",
+        "majiaonanghou"
       ],
       "kind": "pill",
       "search_id": 44,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p45",
@@ -18177,17 +18467,24 @@
       "name_zh": "感觉像漫步在阳光下！",
       "name_en": "Feels like I'm walking on sunshine!",
       "aliases": [
-        "就像走在阳光上！"
+        "就像走在阳光上！",
+        "大胶囊：感觉像漫步在阳光下！",
+        "马胶囊：感觉像漫步在阳光下！",
+        "Horse Pill: Feels like I'm walking on sunshine!"
       ],
       "pinyin": [
         "jiuxiangzouzaiyangguangshang",
-        "ganjuexiangmanbuzaiyangguangxia"
+        "ganjuexiangmanbuzaiyangguangxia",
+        "dajiaonangjiuxiangzouzaiyangguangshang",
+        "dajiaonangganjuexiangmanbuzaiyangguangxia",
+        "majiaonangjiuxiangzouzaiyangguangshang",
+        "majiaonangganjuexiangmanbuzaiyangguangxia"
       ],
       "kind": "pill",
       "search_id": 45,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p46",
@@ -18195,47 +18492,66 @@
       "name_zh": "嗝！",
       "name_en": "Vurp!",
       "aliases": [
-        "呕！"
+        "呕！",
+        "大胶囊：嗝！",
+        "马胶囊：嗝！",
+        "Horse Pill: Vurp!"
       ],
       "pinyin": [
         "ou",
-        "ge"
+        "ge",
+        "dajiaonangou",
+        "dajiaonangge",
+        "majiaonangou",
+        "majiaonangge"
       ],
       "kind": "pill",
       "search_id": 46,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p47",
       "source_id": 47,
       "name_zh": "弹速下降",
       "name_en": "Shot Speed Down",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：弹速下降",
+        "马胶囊：弹速下降",
+        "Horse Pill: Shot Speed Down"
+      ],
       "pinyin": [
-        "dansuxiajiang"
+        "dansuxiajiang",
+        "dajiaonangdansuxiajiang",
+        "majiaonangdansuxiajiang"
       ],
       "kind": "pill",
       "search_id": 47,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p48",
       "source_id": 48,
       "name_zh": "弹速上升",
       "name_en": "Shot Speed Up",
-      "aliases": [],
+      "aliases": [
+        "大胶囊：弹速上升",
+        "马胶囊：弹速上升",
+        "Horse Pill: Shot Speed Up"
+      ],
       "pinyin": [
-        "dansushangsheng"
+        "dansushangsheng",
+        "dajiaonangdansushangsheng",
+        "majiaonangdansushangsheng"
       ],
       "kind": "pill",
       "search_id": 48,
       "variant": "normal",
       "quality": null,
-      "available_for_eden": false
+      "available_for_eden": true
     },
     {
       "wiki_key": "p49",
@@ -18243,481 +18559,22 @@
       "name_zh": "实验性胶囊",
       "name_en": "Experimental Pill",
       "aliases": [
-        "试验药丸"
+        "试验药丸",
+        "大胶囊：实验性胶囊",
+        "马胶囊：实验性胶囊",
+        "Horse Pill: Experimental Pill"
       ],
       "pinyin": [
         "shiyanxingjiaonang",
-        "shiyanyaowan"
+        "shiyanyaowan",
+        "dajiaonangshiyanxingjiaonang",
+        "dajiaonangshiyanyaowan",
+        "majiaonangshiyanxingjiaonang",
+        "majiaonangshiyanyaowan"
       ],
       "kind": "pill",
       "search_id": 49,
       "variant": "normal",
-      "quality": null,
-      "available_for_eden": false
-    },
-    {
-      "wiki_key": "p1-horse",
-      "source_id": 1,
-      "name_zh": "大胶囊：过激幻觉",
-      "name_en": "Horse Pill: Bad Trip",
-      "aliases": [
-        "糟糕的旅程",
-        "过激幻觉",
-        "Bad Trip",
-        "大胶囊：糟糕的旅程"
-      ],
-      "pinyin": [
-        "zaogaode旅cheng",
-        "guojihuanjue",
-        "dajiaonangzaogaode旅cheng",
-        "dajiaonangguojihuanjue"
-      ],
-      "kind": "pill",
-      "search_id": 56,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p2-horse",
-      "source_id": 2,
-      "name_zh": "大胶囊：钢铁双蛋",
-      "name_en": "Horse Pill: Balls of Steel",
-      "aliases": [
-        "钢球",
-        "钢铁双蛋",
-        "Balls of Steel",
-        "大胶囊：钢球"
-      ],
-      "pinyin": [
-        "gangtieshuangdan",
-        "gangqiu",
-        "dajiaonanggangtieshuangdan",
-        "dajiaonanggangqiu"
-      ],
-      "kind": "pill",
-      "search_id": 57,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p3-horse",
-      "source_id": 3,
-      "name_zh": "大胶囊：炸弹变钥匙",
-      "name_en": "Horse Pill: Bombs are Key",
-      "aliases": [
-        "炸弹是钥匙",
-        "炸弹变钥匙",
-        "Bombs are Key",
-        "大胶囊：炸弹是钥匙"
-      ],
-      "pinyin": [
-        "zhadanbianyaoshi",
-        "zhadanshiyaoshi",
-        "dajiaonangzhadanbianyaoshi",
-        "dajiaonangzhadanshiyaoshi"
-      ],
-      "kind": "pill",
-      "search_id": 58,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p4-horse",
-      "source_id": 4,
-      "name_zh": "大胶囊：爆炸性腹泻",
-      "name_en": "Horse Pill: Explosive Diarrhea",
-      "aliases": [
-        "爆炸性腹泻",
-        "Explosive Diarrhea"
-      ],
-      "pinyin": [
-        "baozhaxingfuxie",
-        "dajiaonangbaozhaxingfuxie"
-      ],
-      "kind": "pill",
-      "search_id": 59,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p5-horse",
-      "source_id": 5,
-      "name_zh": "大胶囊：体力回满",
-      "name_en": "Horse Pill: Full Health",
-      "aliases": [
-        "回满血量",
-        "体力回满",
-        "Full Health",
-        "大胶囊：回满血量"
-      ],
-      "pinyin": [
-        "huimanxieliang",
-        "tilihuiman",
-        "dajiaonanghuimanxieliang",
-        "dajiaonangtilihuiman"
-      ],
-      "kind": "pill",
-      "search_id": 60,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p6-horse",
-      "source_id": 6,
-      "name_zh": "大胶囊：体力下降",
-      "name_en": "Horse Pill: Health Down",
-      "aliases": [
-        "血量下降",
-        "体力下降",
-        "Health Down",
-        "大胶囊：血量下降"
-      ],
-      "pinyin": [
-        "tilixiajiang",
-        "xieliangxiajiang",
-        "dajiaonangtilixiajiang",
-        "dajiaonangxieliangxiajiang"
-      ],
-      "kind": "pill",
-      "search_id": 61,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p7-horse",
-      "source_id": 7,
-      "name_zh": "大胶囊：体力上升",
-      "name_en": "Horse Pill: Health Up",
-      "aliases": [
-        "血量上升",
-        "体力上升",
-        "Health Up",
-        "大胶囊：血量上升"
-      ],
-      "pinyin": [
-        "xieliangshangsheng",
-        "tilishangsheng",
-        "dajiaonangxieliangshangsheng",
-        "dajiaonangtilishangsheng"
-      ],
-      "kind": "pill",
-      "search_id": 62,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p8-horse",
-      "source_id": 8,
-      "name_zh": "大胶囊：我找到枚怪药",
-      "name_en": "Horse Pill: I Found Pills",
-      "aliases": [
-        "我找到药丸了",
-        "我找到枚怪药",
-        "I Found Pills",
-        "大胶囊：我找到药丸了"
-      ],
-      "pinyin": [
-        "wozhaodaomeiguaiyao",
-        "wozhaodaoyaowanle",
-        "dajiaonangwozhaodaomeiguaiyao",
-        "dajiaonangwozhaodaoyaowanle"
-      ],
-      "kind": "pill",
-      "search_id": 63,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p9-horse",
-      "source_id": 9,
-      "name_zh": "大胶囊：青春期",
-      "name_en": "Horse Pill: Puberty",
-      "aliases": [
-        "青春期",
-        "Puberty"
-      ],
-      "pinyin": [
-        "qingchunqi",
-        "dajiaonangqingchunqi"
-      ],
-      "kind": "pill",
-      "search_id": 64,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p10-horse",
-      "source_id": 10,
-      "name_zh": "大胶囊：漂亮苍蝇",
-      "name_en": "Horse Pill: Pretty Fly",
-      "aliases": [
-        "漂亮的苍蝇",
-        "漂亮苍蝇",
-        "Pretty Fly",
-        "大胶囊：漂亮的苍蝇"
-      ],
-      "pinyin": [
-        "piaoliangdecangying",
-        "piaoliangcangying",
-        "dajiaonangpiaoliangdecangying",
-        "dajiaonangpiaoliangcangying"
-      ],
-      "kind": "pill",
-      "search_id": 65,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p11-horse",
-      "source_id": 11,
-      "name_zh": "大胶囊：射程下降",
-      "name_en": "Horse Pill: Range Down",
-      "aliases": [
-        "射程下降",
-        "Range Down"
-      ],
-      "pinyin": [
-        "shechengxiajiang",
-        "dajiaonangshechengxiajiang"
-      ],
-      "kind": "pill",
-      "search_id": 66,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p12-horse",
-      "source_id": 12,
-      "name_zh": "大胶囊：射程上升",
-      "name_en": "Horse Pill: Range Up",
-      "aliases": [
-        "射程上升",
-        "Range Up"
-      ],
-      "pinyin": [
-        "shechengshangsheng",
-        "dajiaonangshechengshangsheng"
-      ],
-      "kind": "pill",
-      "search_id": 67,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p13-horse",
-      "source_id": 13,
-      "name_zh": "大胶囊：移速下降",
-      "name_en": "Horse Pill: Speed Down",
-      "aliases": [
-        "移速下降",
-        "Speed Down"
-      ],
-      "pinyin": [
-        "yisuxiajiang",
-        "dajiaonangyisuxiajiang"
-      ],
-      "kind": "pill",
-      "search_id": 68,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p14-horse",
-      "source_id": 14,
-      "name_zh": "大胶囊：移速上升",
-      "name_en": "Horse Pill: Speed Up",
-      "aliases": [
-        "移速上升",
-        "Speed Up"
-      ],
-      "pinyin": [
-        "yisushangsheng",
-        "dajiaonangyisushangsheng"
-      ],
-      "kind": "pill",
-      "search_id": 69,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p15-horse",
-      "source_id": 15,
-      "name_zh": "大胶囊：射速下降",
-      "name_en": "Horse Pill: Tears Down",
-      "aliases": [
-        "射速下降",
-        "Tears Down"
-      ],
-      "pinyin": [
-        "shesuxiajiang",
-        "dajiaonangshesuxiajiang"
-      ],
-      "kind": "pill",
-      "search_id": 70,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p16-horse",
-      "source_id": 16,
-      "name_zh": "大胶囊：射速上升",
-      "name_en": "Horse Pill: Tears Up",
-      "aliases": [
-        "射速上升",
-        "Tears Up"
-      ],
-      "pinyin": [
-        "shesushangsheng",
-        "dajiaonangshesushangsheng"
-      ],
-      "kind": "pill",
-      "search_id": 71,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p17-horse",
-      "source_id": 17,
-      "name_zh": "大胶囊：运气下降",
-      "name_en": "Horse Pill: Luck Down",
-      "aliases": [
-        "幸运下降",
-        "运气下降",
-        "Luck Down",
-        "大胶囊：幸运下降"
-      ],
-      "pinyin": [
-        "xingyunxiajiang",
-        "yunqixiajiang",
-        "dajiaonangxingyunxiajiang",
-        "dajiaonangyunqixiajiang"
-      ],
-      "kind": "pill",
-      "search_id": 72,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p18-horse",
-      "source_id": 18,
-      "name_zh": "大胶囊：运气上升",
-      "name_en": "Horse Pill: Luck Up",
-      "aliases": [
-        "幸运上升",
-        "运气上升",
-        "Luck Up",
-        "大胶囊：幸运上升"
-      ],
-      "pinyin": [
-        "xingyunshangsheng",
-        "yunqishangsheng",
-        "dajiaonangxingyunshangsheng",
-        "dajiaonangyunqishangsheng"
-      ],
-      "kind": "pill",
-      "search_id": 73,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p19-horse",
-      "source_id": 19,
-      "name_zh": "大胶囊：传送胶囊",
-      "name_en": "Horse Pill: Telepills",
-      "aliases": [
-        "传送药丸",
-        "传送胶囊",
-        "Telepills",
-        "大胶囊：传送药丸"
-      ],
-      "pinyin": [
-        "chuansongjiaonang",
-        "chuansongyaowan",
-        "dajiaonangchuansongjiaonang",
-        "dajiaonangchuansongyaowan"
-      ],
-      "kind": "pill",
-      "search_id": 74,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p20-horse",
-      "source_id": 20,
-      "name_zh": "大胶囊：48小时能量！",
-      "name_en": "Horse Pill: 48 Hour Energy!",
-      "aliases": [
-        "48小时能量！",
-        "48 Hour Energy!"
-      ],
-      "pinyin": [
-        "48xiaoshinengliang",
-        "dajiaonang48xiaoshinengliang"
-      ],
-      "kind": "pill",
-      "search_id": 75,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p21-horse",
-      "source_id": 21,
-      "name_zh": "大胶囊：呕血",
-      "name_en": "Horse Pill: Hematemesis",
-      "aliases": [
-        "呕血",
-        "Hematemesis"
-      ],
-      "pinyin": [
-        "ouxie",
-        "dajiaonangouxie"
-      ],
-      "kind": "pill",
-      "search_id": 76,
-      "variant": "horse",
-      "quality": null,
-      "available_for_eden": true
-    },
-    {
-      "wiki_key": "p22-horse",
-      "source_id": 22,
-      "name_zh": "大胶囊：麻痹",
-      "name_en": "Horse Pill: Paralysis",
-      "aliases": [
-        "瘫痪",
-        "麻痹",
-        "Paralysis",
-        "大胶囊：瘫痪"
-      ],
-      "pinyin": [
-        "mabi",
-        "tanhuan",
-        "dajiaonangmabi",
-        "dajiaonangtanhuan"
-      ],
-      "kind": "pill",
-      "search_id": 77,
-      "variant": "horse",
       "quality": null,
       "available_for_eden": true
     }

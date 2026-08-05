@@ -24,20 +24,20 @@ def test_catalog_shape_and_pinned_sources() -> None:
     assert catalog["catalog_id"] == "huiji-j460-169621-169298"
     assert catalog["profile"]["game_build"] == "J460"
     assert catalog["counts"] == {
-        "entries": 1078,
+        "entries": 1056,
         "by_kind": {
             "active": 170,
             "passive": 551,
             "trinket": 188,
             "card": 97,
-            "pill": 72,
+            "pill": 50,
         },
         "available_for_eden": {
             "active": 165,
             "passive": 542,
             "trinket": 187,
             "card": 59,
-            "pill": 44,
+            "pill": 50,
         },
     }
     assert [(source["key"], source["revision"]) for source in catalog["sources"]] == [
@@ -77,13 +77,18 @@ def test_profile_availability_and_pocket_id_normalization() -> None:
     assert entries[("trinket", 145)]["name_en"] == "Perfection"
     assert entries[("trinket", 145)]["available_for_eden"] is False
 
-    normal = entries[("pill", 12)]
-    horse = entries[("pill", 67)]
-    assert normal["variant"] == "normal"
-    assert horse["variant"] == "horse"
-    assert horse["source_id"] == normal["source_id"] == 12
-    assert horse["name_zh"] == f"大胶囊：{normal['name_zh']}"
-    assert horse["available_for_eden"] is True
+    range_up = entries[("pill", 12)]
+    assert range_up["variant"] == "normal"
+    assert range_up["source_id"] == 12
+    assert "大胶囊：射程上升" in range_up["aliases"]
+    assert "马胶囊：射程上升" in range_up["aliases"]
+    assert range_up["available_for_eden"] is True
+    assert entries[("pill", 0)]["available_for_eden"] is True
+    assert {
+        entry["search_id"]
+        for entry in entries.values()
+        if entry["kind"] == "pill" and entry["available_for_eden"]
+    } == set(range(50))
 
     possible_cards = {
         *range(1, 23),

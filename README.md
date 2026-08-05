@@ -22,7 +22,7 @@ WebUI、原生 CLI 与本地 HTTP API 使用同一套通用后端。页面默认
 
 道具名称层已经接入 WebUI：仓库内的 J460 离线目录包含中英文名、俗称、拼音、ID 和当前伊甸池可用性，并处理金色饰品与大胶囊 ID 归一化。选择结果只在页面内投影成 ID，现有 C++ 搜索 API 与 RNG 内核不接收名称；设计、来源与更新方式见 [`docs/item-catalog.md`](docs/item-catalog.md)。
 
-这里的“属性”严格指伊甸生成阶段、两个开局道具结算前的真实面板值：伤害以 3.5、移速以 1.0、弹速以 1.0、幸运以 0 为模板基准，射程已经换算为显示值；射速则按 Repentance 的泪延迟公式换算成 Found HUD 的每秒泪弹数。血量同样不包含开局道具追加的心。胶囊使用效果 ID，不是颜色 ID。
+这里的“属性”严格指伊甸生成阶段、两个开局道具结算前的真实面板值：伤害以 3.5、移速以 1.0、弹速以 1.0、幸运以 0 为模板基准，射程已经换算为显示值；射速则按 Repentance 的泪延迟公式换算成 Found HUD 的每秒泪弹数。血量同样不包含开局道具追加的心。胶囊会按每局种子重新计算“颜色 → 效果”洗牌；筛选使用原始效果 ID，结果同时给出颜色。PHD、假 PHD 等道具造成的服用效果转换不改变这个筛选 ID。
 
 ## 回归验证样例：目标 169
 
@@ -86,16 +86,16 @@ ZIP 内包含 EXE、中文使用说明、发行 NOTICE、离线目录来源说�
   --threads 8 `
   --output data\matches.json
 
-# 通用组合示例：卡牌 10、指定主动/被动、2 红心、真实伤害至少 4.05
+# 通用组合示例：卡牌 12、指定主动/被动、2 红心、真实伤害至少 2.87
 .\build\native\IsaacSeedSeeker.exe search `
-  --card 10 `
+  --card 12 `
   --active 639 `
   --passive 393 `
   --red-hearts-min 2 `
   --red-hearts-max 2 `
-  --damage-min 4.05 `
-  --range-min 7.42 `
-  --range-max 7.43 `
+  --damage-min 2.87 `
+  --range-min 7.19 `
+  --range-max 7.20 `
   --end 100
 ```
 
@@ -141,6 +141,7 @@ Lua Mod 位于 `mod/isaac_seed_seeker`：按 `T` 开始候选验证，按 `Y` �
 
 - [2o181o28/eden-seed-finder](https://github.com/2o181o28/eden-seed-finder)：早期 C++ 全域预筛和 Lua 游戏内验证思路，AGPL-3.0。
 - [KamiMisuzu/isaac-repentance-eden-seed-decoder](https://github.com/KamiMisuzu/isaac-repentance-eden-seed-decoder)：J460 伊甸生成、饰品池和运行时表提取研究；README/项目元数据声明 MIT。
+- [falsidge/isaac_rng](https://github.com/falsidge/isaac_rng)：Repentance+ 胶囊池初始化与颜色映射研究参考；本项目根据可复现机制和本地游戏观测独立实现，未直接复制其源码。
 - [Eden Generation Wiki](https://bindingofisaacrebirth.wiki.gg/wiki/Eden_Generation)：伊甸生成规则和历史分析。
 
 本仓库没有直接收录上述项目的源码文件。C++ 内核是依据已研究的 RNG 行为重新实现，并用固定向量、Python 慢路径和后续游戏观察结果交叉验证。更完整的版本、许可证与决策记录见 `docs/research.md`。

@@ -17,7 +17,7 @@ SOURCE_DIR = ROOT / "data" / "catalog" / "sources"
 
 KIND_ORDER = {"active": 0, "passive": 1, "trinket": 2, "card": 3, "pill": 4}
 EDEN_CARD_IDS = frozenset((*range(1, 23), *range(42, 55), *range(56, 79), 80))
-EDEN_NORMAL_PILL_IDS = frozenset(range(1, 23))
+EDEN_PILL_EFFECT_IDS = frozenset(range(50))
 
 
 def load_json(path: Path) -> Any:
@@ -146,6 +146,14 @@ def build_catalog(
                 }
             )
         elif source_type == "胶囊":
+            pill_aliases = unique(
+                [
+                    *base["aliases"],
+                    f"大胶囊：{base['name_zh']}",
+                    f"马胶囊：{base['name_zh']}",
+                    f"Horse Pill: {base['name_en']}",
+                ]
+            )
             entries.append(
                 {
                     **base,
@@ -153,34 +161,17 @@ def build_catalog(
                     "search_id": source_id,
                     "variant": "normal",
                     "quality": None,
-                    "available_for_eden": source_id in EDEN_NORMAL_PILL_IDS,
+                    "aliases": pill_aliases,
+                    "pinyin": unique(
+                        [
+                            *base["pinyin"],
+                            *(f"dajiaonang{value}" for value in base["pinyin"]),
+                            *(f"majiaonang{value}" for value in base["pinyin"]),
+                        ]
+                    ),
+                    "available_for_eden": source_id in EDEN_PILL_EFFECT_IDS,
                 }
             )
-            if source_id in EDEN_NORMAL_PILL_IDS:
-                entries.append(
-                    {
-                        **base,
-                        "wiki_key": f"{base['wiki_key']}-horse",
-                        "kind": "pill",
-                        "search_id": source_id + 55,
-                        "variant": "horse",
-                        "quality": None,
-                        "name_zh": f"大胶囊：{base['name_zh']}",
-                        "name_en": f"Horse Pill: {base['name_en']}",
-                        "aliases": unique(
-                            [
-                                *base["aliases"],
-                                base["name_zh"],
-                                base["name_en"],
-                                *(f"大胶囊：{alias}" for alias in base["aliases"]),
-                            ]
-                        ),
-                        "pinyin": unique(
-                            [*base["pinyin"], *(f"dajiaonang{value}" for value in base["pinyin"])]
-                        ),
-                        "available_for_eden": True,
-                    }
-                )
         else:
             raise ValueError(f"unsupported Wiki item type: {source_type}")
 
@@ -210,7 +201,7 @@ def build_catalog(
         "sources": source_metadata,
         "normalization": {
             "trinket": "golden trinkets use the base trinket ID",
-            "horse_pill": "search_id = source pill effect ID + 55",
+            "horse_pill": "normal and horse pills use the same raw effect ID; pill_color carries the horse flag",
             "backend_contract": "the WebUI submits search_id values; names never reach the RNG kernel",
         },
         "counts": {

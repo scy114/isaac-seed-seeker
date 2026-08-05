@@ -1,6 +1,7 @@
 #include "isaac_seed_seeker/core.hpp"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 #include <exception>
@@ -19,8 +20,6 @@ constexpr std::uint64_t qword_b1f504 = 47'244'640'257ULL;
 constexpr std::uint32_t dword_b1f50c = 16;
 constexpr std::uint64_t qword_eden = 21'474'836'481ULL;
 constexpr std::uint32_t dword_eden = 19;
-constexpr std::uint64_t qword_pill = 12'884'901'891ULL;
-constexpr std::uint32_t dword_pill = 29;
 constexpr std::uint64_t qword_pool_init = 38'654'705'665ULL;
 constexpr std::uint32_t dword_pool_init = 29;
 constexpr std::uint64_t qword_trinket_retry = 38'654'705'669ULL;
@@ -33,6 +32,11 @@ double fire_rate_from_tears_modifier(double modifier) noexcept {
     // Repentance Found HUD displays fire rate as 30 / (tear delay + 1).
     // Eden's generated modifier stays inside (-0.77, Tmax), so only the two
     // middle branches of the game's tear-delay formula are reachable here.
+    if (modifier < 0.0) {
+        // Repentance compresses Eden's negative random-tears range so the
+        // generated offset bottoms out near -0.515 instead of -0.75.
+        modifier *= 0.686655;
+    }
     auto tear_delay = 16.0 - 6.0 * std::sqrt(modifier * 1.3 + 1.0);
     if (modifier < 0.0) {
         tear_delay -= 6.0 * modifier;
@@ -53,9 +57,9 @@ std::uint32_t eden_step(std::uint32_t seed) noexcept {
 }
 
 std::uint32_t card_step(std::uint32_t seed) noexcept {
-    auto value = seed ^ (seed >> 2U);
-    value ^= value << 7U;
-    return value ^ (value >> 9U);
+    auto value = seed ^ (seed >> 3U);
+    value ^= value << 3U;
+    return value ^ (value >> 29U);
 }
 
 std::int32_t roll_card(std::uint32_t roll_seed) noexcept {
@@ -76,15 +80,107 @@ std::int32_t roll_card(std::uint32_t roll_seed) noexcept {
     return card;
 }
 
-std::int32_t roll_pill(std::uint32_t roll_seed) noexcept {
-    auto state = mix(roll_seed, qword_pill, dword_pill);
-    state = mix(state, qword_pill, dword_pill);
-    auto effect = static_cast<std::int32_t>(state % 22U + 1U);
-    state = mix(state, qword_pill, dword_pill);
-    if (state % 7U == 0) {
-        effect += 55;
+std::uint32_t pill_color_step(std::uint32_t seed) noexcept {
+    auto value = seed ^ (seed >> 2U);
+    value ^= value << 7U;
+    return value ^ (value >> 9U);
+}
+
+std::uint32_t item_pool_step(std::uint32_t seed) noexcept {
+    auto value = seed ^ (seed >> 1U);
+    value ^= value << 9U;
+    return value ^ (value >> 29U);
+}
+
+std::array<std::int32_t, 14> pill_effect_pool(std::uint32_t start_seed) noexcept {
+    // J460, full unlocks. The run seed initializes the item-pool RNG before
+    // the 13 normal colors and 50 available effects are independently
+    // shuffled. Effects are then assigned by the game's strength pattern.
+    constexpr std::array<std::int8_t, 50> strengths{
+        1, 2, 2, 2, 1, 2, 3, 3, 0, 0, 2, 3, 3, 3, 3, 3, 3,
+        3, 3, 1, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 0, 1, 1, 1,
+        1, 1, 1, 1, 1, 0, 0, 1, 1, 2, 0, 1, 2, 1, 1, 3,
+    };
+    constexpr std::array<std::int8_t, 13> required_strengths{
+        3, 3, 3, 3, 2, 1, 0, -1, -1, 3, 2, 1, -1,
+    };
+
+    auto state = start_seed;
+    for (int iteration = 0; iteration < 17; ++iteration) {
+        state = mix(state, qword_9eb880, dword_9eb880);
     }
-    return effect;
+    for (int iteration = 0; iteration < 63; ++iteration) {
+        state = item_pool_step(state);
+    }
+
+    std::array<std::int32_t, 13> colors{};
+    for (std::size_t index = 0; index < colors.size(); ++index) {
+        colors[index] = static_cast<std::int32_t>(index + 1);
+    }
+    for (std::size_t remaining = colors.size(); remaining > 1; --remaining) {
+        state = item_pool_step(state);
+        const auto picked = static_cast<std::size_t>(state % remaining);
+        std::swap(colors[remaining - 1], colors[picked]);
+    }
+
+    std::array<std::int32_t, 50> available{};
+    for (std::size_t index = 0; index < available.size(); ++index) {
+        available[index] = static_cast<std::int32_t>(index);
+    }
+    for (std::size_t remaining = available.size(); remaining > 1; --remaining) {
+        state = item_pool_step(state);
+        const auto picked = static_cast<std::size_t>(state % remaining);
+        std::swap(available[remaining - 1], available[picked]);
+    }
+
+    std::array<std::int32_t, 14> effects{};
+    std::size_t available_count = available.size();
+    for (std::size_t index = 0; index < colors.size(); ++index) {
+        std::size_t picked = 0;
+        if (required_strengths[index] < 0) {
+            state = item_pool_step(state);
+            picked = static_cast<std::size_t>(state % available_count);
+        } else {
+            while (picked < available_count
+                   && strengths[static_cast<std::size_t>(available[picked])]
+                       != required_strengths[index]) {
+                ++picked;
+            }
+        }
+        effects[static_cast<std::size_t>(colors[index])] = available[picked];
+        for (std::size_t move = picked + 1; move < available_count; ++move) {
+            available[move - 1] = available[move];
+        }
+        --available_count;
+    }
+    return effects;
+}
+
+struct PillRoll {
+    std::int32_t color = 0;
+    std::int32_t effect = -1;
+};
+
+PillRoll roll_pill(std::uint32_t start_seed, std::uint32_t roll_seed) noexcept {
+    auto state = pill_color_step(roll_seed);
+    auto color = static_cast<std::int32_t>(state % 13U + 1U);
+
+    // With a full unlock file, Eden can also receive golden and horse pills.
+    state = pill_color_step(state);
+    if (state % 140U == 0) {
+        color = 14;
+    }
+    state = pill_color_step(state);
+    if (state % 70U == 0) {
+        color |= 2048;
+    }
+
+    const auto base_color = color & 2047;
+    if (base_color == 14) {
+        return {color, -1};
+    }
+    const auto effects = pill_effect_pool(start_seed);
+    return {color, effects[static_cast<std::size_t>(base_color)]};
 }
 
 std::uint32_t trinket_rng(std::uint32_t a5) noexcept {
@@ -177,11 +273,14 @@ void roll_pocket(EdenStart& result, const ProfileTables& tables) noexcept {
         result.pocket_id = roll_card(roll_seed);
     } else {
         result.pocket_kind = PocketKind::pill;
-        result.pocket_id = roll_pill(roll_seed);
+        const auto pill = roll_pill(result.seed, roll_seed);
+        result.pill_color = pill.color;
+        result.pocket_id = pill.effect;
     }
 }
 
 bool roll_and_match_pocket(
+    std::uint32_t start_seed,
     std::uint32_t a5,
     std::uint32_t p988,
     const ProfileTables& tables,
@@ -208,7 +307,9 @@ bool roll_and_match_pocket(
     if (!kind_matches(kind)) return false;
     if (criteria.pocket_ids.configured()) {
         const auto roll_seed = eden_step(selector);
-        pocket_id = kind == PocketKind::card ? roll_card(roll_seed) : roll_pill(roll_seed);
+        pocket_id = kind == PocketKind::card
+            ? roll_card(roll_seed)
+            : roll_pill(start_seed, roll_seed).effect;
     }
     return criteria.pocket_ids.matches(pocket_id);
 }
@@ -234,7 +335,7 @@ void roll_base_start(EdenStart& result) noexcept {
         if ((branch & 1U) != 0) {
             stat_state = eden_step(stat_state);
             const auto remainder = stat_state % 3U;
-            if (remainder == 0U) {
+            if (remainder == 0U || remainder == 2U) {
                 stat_state = eden_step(stat_state);
             }
         }
@@ -502,7 +603,10 @@ void IdSetCriteria::validate(std::string_view name, std::int32_t minimum_id) con
     const auto invalid = [minimum_id](std::int32_t value) { return value < minimum_id; };
     if (std::any_of(any_of.begin(), any_of.end(), invalid)
         || std::any_of(none_of.begin(), none_of.end(), invalid)) {
-        throw std::invalid_argument(std::string(name) + " IDs must be positive");
+        throw std::invalid_argument(
+            std::string(name)
+            + (minimum_id == 0 ? " IDs must be non-negative" : " IDs must be positive")
+        );
     }
     for (const auto value : any_of) {
         if (contains(none_of, value)) {
@@ -516,7 +620,7 @@ void EdenCriteria::validate() const {
     if (!configured()) {
         throw std::invalid_argument("at least one Eden criterion is required");
     }
-    pocket_ids.validate("pocket");
+    pocket_ids.validate("pocket", pocket_kind == PocketKind::pill ? 0 : 1);
     active_items.validate("active item");
     passive_items.validate("passive item");
     if (pocket_kind == PocketKind::none && pocket_ids.configured()) {
@@ -693,7 +797,7 @@ SearchResult search(
                             sort_start.a5 = a5;
                             sort_start.p988 = p988;
                             if (needs_pocket) {
-                                if (!roll_and_match_pocket(a5, p988, tables, criteria)) {
+                                if (!roll_and_match_pocket(seed, a5, p988, tables, criteria)) {
                                     continue;
                                 }
                             }

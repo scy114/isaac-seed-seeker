@@ -9,7 +9,8 @@
 - 不同类别之间使用 AND，同一个 `*_ids` 列表内部使用 OR。
 - `*_exclude_ids` 在对应类别命中后排除指定 ID。
 - `none`、`trinket`、`card`、`pill` 四种口袋状态互斥。
-- `pill_effect_ids` 是胶囊效果 ID，不是胶囊颜色 ID。
+- `pill_effect_ids` 是当前种子洗牌后的原始胶囊效果 ID（`0..49`），不是胶囊颜色 ID。
+- 结果中的 `pill_color` 保留颜色值；马胶囊带 `2048` 标志。金色胶囊没有单一固定效果，因此 `pocket_id` 为 `-1`。
 - 红心、魂心和属性都是道具结算前的伊甸生成值。
 - `damage`、`move_speed`、`tears`、`range`、`shot_speed`、`luck` 使用游戏 Found HUD 的真实数值口径。
 - 伤害、移速、弹速和幸运由角色模板基准叠加随机修正；`tears` 按 Repentance 泪延迟公式换算为每秒泪弹数。
@@ -85,14 +86,14 @@
 
 ```json
 {
-  "card_ids": [10],
+  "card_ids": [12],
   "active_ids": [639],
   "passive_ids": [393],
   "red_hearts_min": 2,
   "red_hearts_max": 2,
-  "damage_min": 4.05,
-  "range_min": 7.42,
-  "range_max": 7.43,
+  "damage_min": 2.87,
+  "range_min": 7.19,
+  "range_max": 7.20,
   "sort_key": "damage",
   "sort_direction": "desc",
   "start": 1,
@@ -131,5 +132,7 @@ WebUI 会把这批结果复制到浏览器内存并分页渲染，点击表头�
 
 - 饰品、主动和被动道具基于内置 J460 全解锁 Profile；Profile 改变时需要重新采集并复核。
 - 卡牌按 Repentance 的普通/特殊/逆位卡生成规则计算；伊甸不会从这一过程获得符文或魂石。
-- 胶囊当前输出 RNG 选中的效果 ID；游戏内药丸颜色映射和内容 Mod 仍应使用 Lua 观察器做最终确认。
+- 胶囊会从运行种子重建 J460 全解锁的 13 色效果洗牌，并计算金色/马胶囊分支。`pocket_id` 是未受 PHD、假 PHD、幸运脚等角色修正的原始效果；`pill_color` 是实际颜色值。
+- 胶囊效果 0（Bad Gas）是合法筛选值。金色胶囊会连续改变效果，不能用单个 `pill_effect_ids` 表示。
+- 改变胶囊池、解锁状态或胶囊规则的内容 Mod 仍需重新采集 Profile 并用 Lua 观察器复核。
 - 硬币、钥匙、炸弹，以及开局道具作用后的最终面板属性尚未进入原生筛选条件。

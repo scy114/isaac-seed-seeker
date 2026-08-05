@@ -1,4 +1,5 @@
 local seeker = RegisterMod("Isaac Seed Seeker - Eden Observer", 1)
+local json = require("json")
 
 local LOG_PREFIX = "ISAAC_SEED_SEEKER "
 local running = false
@@ -41,6 +42,17 @@ local function collect_items(player)
   return active_items, passive_items
 end
 
+local function collect_pill_pool(player)
+  local raw_effects = {}
+  local resolved_effects = {}
+  local item_pool = Game():GetItemPool()
+  for pill_color = 1, 14 do
+    table.insert(raw_effects, item_pool:GetPillEffect(pill_color))
+    table.insert(resolved_effects, item_pool:GetPillEffect(pill_color, player))
+  end
+  return raw_effects, resolved_effects
+end
+
 local function observe_eden(is_continued)
   local player = Isaac.GetPlayer(0)
   if player:GetPlayerType() ~= PlayerType.PLAYER_EDEN then
@@ -54,6 +66,14 @@ local function observe_eden(is_continued)
   local active_items, passive_items = collect_items(player)
   local start_seed = Game():GetSeeds():GetStartSeed()
   local trinket_raw = player:GetTrinket(0)
+  local pill_color = player:GetPill(0)
+  local pill_effect_raw = 0
+  local pill_effect = 0
+  if pill_color ~= 0 then
+    pill_effect_raw = Game():GetItemPool():GetPillEffect(pill_color)
+    pill_effect = Game():GetItemPool():GetPillEffect(pill_color, player)
+  end
+  local pill_pool_raw, pill_pool_resolved = collect_pill_pool(player)
   local observation = {
     schema_version = 1,
     profile_id = job.profile_id,
@@ -85,7 +105,11 @@ local function observe_eden(is_continued)
     passive_items = passive_items,
     pocket = {
       card = player:GetCard(0),
-      pill = player:GetPill(0),
+      pill = pill_color,
+      pill_effect_raw = pill_effect_raw,
+      pill_effect = pill_effect,
+      pill_pool_raw = pill_pool_raw,
+      pill_pool = pill_pool_resolved,
       trinket = trinket_raw & 0x7FFF,
       trinket_raw = trinket_raw,
       trinket_golden = (trinket_raw & 0x8000) ~= 0 and 1 or 0

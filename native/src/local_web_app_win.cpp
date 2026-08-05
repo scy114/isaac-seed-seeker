@@ -127,7 +127,7 @@ std::vector<std::int32_t> json_id_array(std::string_view text, std::string_view 
         }
         std::int32_t value = 0;
         const auto parsed = std::from_chars(text.data() + position, text.data() + text.size(), value);
-        if (parsed.ec != std::errc() || value <= 0) {
+        if (parsed.ec != std::errc() || value < 0) {
             throw std::invalid_argument("invalid item ID in JSON field: " + std::string(key));
         }
         values.push_back(value);
@@ -286,6 +286,7 @@ void append_start_json(std::ostream& output, const EdenStart& start, std::string
            << ",\"p988\":" << start.p988
            << ",\"pocket_kind\":\"" << pocket_kind_name(start.pocket_kind)
            << "\",\"pocket_id\":" << start.pocket_id
+           << ",\"pill_color\":" << start.pill_color
            << ",\"trinket_id\":" << (start.pocket_kind == PocketKind::trinket ? start.pocket_id : 0)
            << ",\"active_id\":" << start.active_id
            << ",\"passive_id\":" << start.passive_id
@@ -433,7 +434,7 @@ public:
         std::lock_guard lock(mutex_);
         std::ostringstream output;
         output << std::setprecision(10)
-               << "seed\tseed_u32\tpocket_kind\tpocket_id\tactive_id\tpassive_id"
+               << "seed\tseed_u32\tpocket_kind\tpocket_id\tpill_color\tactive_id\tpassive_id"
                   "\tactive_quality\tpassive_quality\ttotal_quality"
                   "\tred_hearts\tsoul_hearts\tdamage\tmove_speed\ttears\trange"
                   "\tshot_speed\tluck\tdamage_delta\tmove_speed_delta\ttears_delta"
@@ -441,6 +442,7 @@ public:
         for (const auto& match : result_.matches) {
             output << match.label << '\t' << match.start.seed
                    << '\t' << pocket_kind_name(match.start.pocket_kind) << '\t' << match.start.pocket_id
+                   << '\t' << match.start.pill_color
                    << '\t' << match.start.active_id << '\t' << match.start.passive_id
                    << '\t' << match.start.active_quality << '\t' << match.start.passive_quality
                    << '\t' << match.start.active_quality + match.start.passive_quality

@@ -199,7 +199,7 @@ class CatalogPicker {
     this.root.append(this.tokens, this.query, this.options);
 
     const initialIds = valueInput.value.split(/[，,\s]+/).filter(Boolean).map(Number)
-      .filter((id) => Number.isInteger(id) && id > 0);
+      .filter((id) => Number.isInteger(id) && (this.kind === "pill" ? id >= 0 : id > 0));
     valueInput.type = "hidden";
     valueInput.insertAdjacentElement("afterend", this.root);
     this.setIds(initialIds, false);
@@ -223,7 +223,9 @@ class CatalogPicker {
   }
 
   setIds(ids, notify = true) {
-    this.selectedIds = [...new Set(ids.filter((id) => Number.isInteger(id) && id > 0))];
+    this.selectedIds = [...new Set(ids.filter((id) =>
+      Number.isInteger(id) && (this.kind === "pill" ? id >= 0 : id > 0)
+    ))];
     this.valueInput.value = this.selectedIds.join(", ");
     this.renderTokens();
     this.renderOptions();
@@ -454,11 +456,11 @@ async function loadCatalog() {
   state.className = "catalog-state ready";
 }
 
-function parseOptionalIds(value, label) {
+function parseOptionalIds(value, label, allowZero = false) {
   if (!value.trim()) return null;
   const ids = value.split(/[，,\s]+/).filter(Boolean).map(Number);
-  if (ids.some((id) => !Number.isInteger(id) || id <= 0 || id > 2147483647)) {
-    throw new Error(`${label}必须是用逗号分隔的正整数`);
+  if (ids.some((id) => !Number.isInteger(id) || id < (allowZero ? 0 : 1) || id > 2147483647)) {
+    throw new Error(`${label}必须是用逗号分隔的${allowZero ? "非负整数" : "正整数"}`);
   }
   return [...new Set(ids)];
 }
@@ -470,8 +472,8 @@ function parseOptionalNumber(value, label) {
   return parsed;
 }
 
-function setOptionalIds(payload, key, selector, label) {
-  const values = parseOptionalIds($(selector).value, label);
+function setOptionalIds(payload, key, selector, label, allowZero = false) {
+  const values = parseOptionalIds($(selector).value, label, allowZero);
   if (values) payload[key] = values;
 }
 
@@ -483,7 +485,7 @@ function updatePocketControls(clearOnKindChange = false) {
     "": ["先选择口袋物类型", "选择类型后可按名称、俗称、拼音或 ID 搜索", "先选择类型"],
     trinket: ["饰品（任意一个）", "普通与金色饰品按基础 ID 匹配", "搜索饰品名称、俗称、拼音或 ID"],
     card: ["卡牌（任意一个）", "包含普通、特殊与逆位卡牌", "搜索卡牌名称、拼音或 ID"],
-    pill: ["胶囊效果（任意一个）", "普通和大胶囊按各自效果 ID 匹配", "搜索胶囊效果名称、拼音或 ID"],
+    pill: ["胶囊效果（任意一个）", "按本局颜色映射后的原始效果 ID 匹配；马胶囊使用相同基础效果", "搜索胶囊效果名称、拼音或 ID"],
     none: ["无需选择条目", "只筛选没有口袋物的开局", "没有口袋物"],
   };
   const [label, help, placeholder] = labels[kind];
@@ -554,8 +556,8 @@ function buildSearchPayload() {
   if (kind !== "none") {
     const pocketKey = ({trinket: "trinket_ids", card: "card_ids", pill: "pill_effect_ids"})[kind]
       || "pocket_ids";
-    setOptionalIds(payload, pocketKey, "#pocket-ids", "口袋物 ID");
-    setOptionalIds(payload, "pocket_exclude_ids", "#pocket-exclude-ids", "排除口袋物 ID");
+    setOptionalIds(payload, pocketKey, "#pocket-ids", "口袋物 ID", kind === "pill");
+    setOptionalIds(payload, "pocket_exclude_ids", "#pocket-exclude-ids", "排除口袋物 ID", kind === "pill");
   }
   setOptionalIds(payload, "active_ids", "#active-ids", "主动道具 ID");
   setOptionalIds(payload, "active_exclude_ids", "#active-exclude-ids", "排除主动道具 ID");
@@ -634,11 +636,17 @@ function namedId(kind, id, fallback) {
 }
 
 function pocketLabel(match) {
+  const pillColor = Number(match.pill_color || 0);
+  const basePillColor = pillColor & 2047;
+  const horseSuffix = (pillColor & 2048) !== 0 ? " · 马胶囊" : "";
+  const pillLabel = basePillColor === 14
+    ? `金色胶囊${horseSuffix}`
+    : `${namedId("pill", match.pocket_id, "胶囊")} · 颜色 #${basePillColor}${horseSuffix}`;
   return ({
     none: "无",
     trinket: namedId("trinket", match.pocket_id, "饰品"),
     card: namedId("card", match.pocket_id, "卡牌"),
-    pill: namedId("pill", match.pocket_id, "胶囊"),
+    pill: pillLabel,
   })[match.pocket_kind] || match.pocket_kind;
 }
 
@@ -827,7 +835,7 @@ function sortCurrentResults() {
 
 function resultText(matches) {
   const header = [
-    "seed", "seed_u32", "pocket_kind", "pocket_id", "active_id", "passive_id",
+    "seed", "seed_u32", "pocket_kind", "pocket_id", "pill_color", "active_id", "passive_id",
     "active_quality", "passive_quality", "total_quality", "red_hearts", "soul_hearts",
     "damage", "move_speed", "tears", "range", "shot_speed", "luck",
     "damage_delta", "move_speed_delta", "tears_delta", "shot_speed_delta", "luck_delta",

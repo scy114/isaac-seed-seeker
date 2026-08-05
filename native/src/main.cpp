@@ -76,7 +76,7 @@ std::vector<std::int32_t> parse_ids(const std::string& text, const std::string& 
         );
         std::int32_t value = 0;
         const auto parsed = std::from_chars(part.data(), part.data() + part.size(), value);
-        if (parsed.ec != std::errc() || parsed.ptr != part.data() + part.size() || value <= 0) {
+        if (parsed.ec != std::errc() || parsed.ptr != part.data() + part.size() || value < 0) {
             throw std::invalid_argument("invalid item list for --" + name + ": " + text);
         }
         result.push_back(value);
@@ -246,6 +246,7 @@ void write_result(std::ostream& output, const iss::SearchResult& result, const i
                << "\", \"seed_u32\": " << start.seed
                << ", \"pocket_kind\": \"" << iss::pocket_kind_name(start.pocket_kind)
                << "\", \"pocket_id\": " << start.pocket_id
+               << ", \"pill_color\": " << start.pill_color
                << ", \"trinket_id\": "
                << (start.pocket_kind == iss::PocketKind::trinket ? start.pocket_id : 0)
                << ", \"active_id\": " << start.active_id
@@ -316,6 +317,7 @@ int main(int argc, char** argv) {
                       << ",\"p988\":" << start.p988
                       << ",\"pocket_kind\":\"" << iss::pocket_kind_name(start.pocket_kind) << "\""
                       << ",\"pocket_id\":" << start.pocket_id
+                      << ",\"pill_color\":" << start.pill_color
                       << ",\"active_id\":" << start.active_id
                       << ",\"passive_id\":" << start.passive_id
                       << ",\"active_quality\":" << start.active_quality

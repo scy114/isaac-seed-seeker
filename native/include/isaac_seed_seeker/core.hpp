@@ -74,6 +74,10 @@ struct EdenStart {
     std::uint32_t p988 = 0;
     PocketKind pocket_kind = PocketKind::none;
     std::int32_t pocket_id = 0;
+    // For pills, pocket_id is the run-specific raw effect ID and pill_color
+    // is the PillColor value (including the 2048 horse-pill flag). A golden
+    // pill has no single fixed effect, so its pocket_id is -1.
+    std::int32_t pill_color = 0;
     std::int32_t active_id = 0;
     std::int32_t passive_id = 0;
     std::int32_t active_quality = 0;

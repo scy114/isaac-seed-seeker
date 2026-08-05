@@ -74,8 +74,13 @@ try {
         throw "embedded WebUI should start with generic empty filters"
     }
     $Catalog = Invoke-RestMethod ($BaseUrl + "catalog.json")
-    if ($Catalog.catalog_id -ne "huiji-j460-169621-169298" -or $Catalog.counts.entries -ne 1078) {
+    if ($Catalog.catalog_id -ne "huiji-j460-169621-169298" -or $Catalog.counts.entries -ne 1056) {
         throw "embedded item catalog has unexpected metadata"
+    }
+    $BadGasCatalog = @($Catalog.entries | Where-Object { $_.kind -eq "pill" -and $_.search_id -eq 0 })
+    if ($BadGasCatalog.Count -ne 1 -or -not $BadGasCatalog[0].available_for_eden -or
+        $Catalog.counts.available_for_eden.pill -ne 50) {
+        throw "embedded item catalog does not expose all J460 pill effects"
     }
     $Drawing = @($Catalog.entries | Where-Object { $_.kind -eq "trinket" -and $_.search_id -eq 169 })
     if (
@@ -167,29 +172,41 @@ try {
         -ContentType "application/json" `
         -Headers $Headers `
         -Body $InspectBody
-    if ($Inspected.pocket_kind -ne "card" -or $Inspected.pocket_id -ne 10) {
+    if ($Inspected.pocket_kind -ne "card" -or $Inspected.pocket_id -ne 12) {
         throw "inspect endpoint returned the wrong pocket item"
     }
     if ($Inspected.active_quality -lt 0 -or $Inspected.passive_quality -lt 0 -or
         $Inspected.total_quality -ne ($Inspected.active_quality + $Inspected.passive_quality)) {
         throw "inspect endpoint returned invalid item qualities"
     }
-    if ($Inspected.red_hearts -ne 2 -or [Math]::Abs($Inspected.range - 7.426721965) -gt 0.000001) {
+    if ($Inspected.red_hearts -ne 2 -or [Math]::Abs($Inspected.range - 7.194700883) -gt 0.000001) {
         throw "inspect endpoint returned the wrong base rolls"
     }
-    if ([Math]::Abs($Inspected.damage - 4.056472253) -gt 0.000001 -or $null -eq $Inspected.tears) {
+    if ([Math]::Abs($Inspected.damage - 2.877413690) -gt 0.000001 -or $null -eq $Inspected.tears) {
         throw "inspect endpoint returned the wrong Found HUD stats"
     }
 
+    $PillInspectBody = @{seed_u32 = 230816840} | ConvertTo-Json -Compress
+    $PillInspected = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/inspect") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $PillInspectBody
+    if ($PillInspected.pocket_kind -ne "pill" -or $PillInspected.pocket_id -ne 6 -or
+        $PillInspected.pill_color -ne 6) {
+        throw "inspect endpoint did not rebuild the run-specific pill mapping"
+    }
+
     $GenericBody = @{
-        card_ids = @(10)
+        card_ids = @(12)
         active_ids = @(639)
         passive_ids = @(393)
         red_hearts_min = 2
         red_hearts_max = 2
-        damage_min = 4.05
-        range_min = 7.42
-        range_max = 7.43
+        damage_min = 2.87
+        range_min = 7.19
+        range_max = 7.20
         start = 1
         end = 100
         threads = 2
@@ -208,6 +225,29 @@ try {
     $GenericResults = Invoke-RestMethod ($BaseUrl + "api/v1/search/results")
     if ($GenericResults.total_count -ne 1 -or $GenericResults.matches[0].seed_u32 -ne 2) {
         throw "generic search endpoint returned the wrong seed"
+    }
+
+    $BadGasBody = @{
+        pill_effect_ids = @(0)
+        start = 1
+        end = 1000
+        threads = 2
+        max_results = 10
+    } | ConvertTo-Json -Compress
+    Invoke-RestMethod `
+        ($BaseUrl + "api/v1/search") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $BadGasBody | Out-Null
+    do {
+        Start-Sleep -Milliseconds 50
+        $BadGasStatus = Invoke-RestMethod ($BaseUrl + "api/v1/search/status")
+    } while ($BadGasStatus.state -eq "running")
+    $BadGasResults = Invoke-RestMethod ($BaseUrl + "api/v1/search/results")
+    if ($BadGasResults.total_count -ne 2 -or $BadGasResults.matches[0].seed_u32 -ne 791 -or
+        $BadGasResults.matches[0].pocket_id -ne 0 -or $BadGasResults.matches[0].pill_color -ne 8) {
+        throw "pill effect zero search returned the wrong run-specific mapping"
     }
 
     $SortedBody = @{
