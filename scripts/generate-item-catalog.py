@@ -116,6 +116,7 @@ def build_catalog(
                     "kind": profile_entry["kind"],
                     "search_id": source_id,
                     "variant": "normal",
+                    "quality": int(profile_entry["quality"]),
                     "available_for_eden": bool(profile_entry["available_for_eden"]),
                 }
             )
@@ -129,6 +130,7 @@ def build_catalog(
                     "kind": "trinket",
                     "search_id": source_id,
                     "variant": "normal",
+                    "quality": None,
                     "available_for_eden": bool(profile_entry["available_for_eden"]),
                 }
             )
@@ -139,6 +141,7 @@ def build_catalog(
                     "kind": "card",
                     "search_id": source_id,
                     "variant": "normal",
+                    "quality": None,
                     "available_for_eden": source_id in EDEN_CARD_IDS,
                 }
             )
@@ -149,6 +152,7 @@ def build_catalog(
                     "kind": "pill",
                     "search_id": source_id,
                     "variant": "normal",
+                    "quality": None,
                     "available_for_eden": source_id in EDEN_NORMAL_PILL_IDS,
                 }
             )
@@ -160,6 +164,7 @@ def build_catalog(
                         "kind": "pill",
                         "search_id": source_id + 55,
                         "variant": "horse",
+                        "quality": None,
                         "name_zh": f"大胶囊：{base['name_zh']}",
                         "name_en": f"Horse Pill: {base['name_en']}",
                         "aliases": unique(

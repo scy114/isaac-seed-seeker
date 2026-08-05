@@ -36,6 +36,7 @@
 - `name_zh` / `name_en`：主显示名；
 - `aliases` / `pinyin`：补充搜索键；
 - `variant`：普通条目或 `horse` 大胶囊；
+- `quality`：主动/被动收藏品的 `0..4` 品质，其他类型为 `null`；
 - `available_for_eden`：当前内置全解锁 J460 Profile 是否可能作为伊甸开局出现。
 
 完整机器契约见 `schemas/item-catalog.schema.json`。

@@ -111,6 +111,7 @@
         "kind",
         "search_id",
         "variant",
+        "quality",
         "available_for_eden"
       ],
       "properties": {
@@ -131,6 +132,12 @@
         "kind": { "$ref": "#/$defs/kind" },
         "search_id": { "type": "integer", "minimum": 0 },
         "variant": { "enum": ["normal", "horse"] },
+        "quality": {
+          "oneOf": [
+            { "type": "integer", "minimum": 0, "maximum": 4 },
+            { "type": "null" }
+          ]
+        },
         "available_for_eden": { "type": "boolean" }
       }
     }

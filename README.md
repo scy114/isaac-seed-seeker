@@ -8,6 +8,7 @@
 
 - 双击单个 EXE，自动打开本地 WebUI。
 - WebUI 可按中文名、英文名、俗称、拼音或 ID 多选口袋物、主动/被动道具，并组合基础血量和六项随机属性区间。
+- 结果可按血量、属性、主动/被动品质或两件道具总品质升降序排列；完整扫描仍统计真实命中数，只在内存中保留排序后的全局 Top-K。
 - 不同筛选类别之间为 AND，同一 ID 列表内部为 OR；各 ID 类别也支持排除列表。
 - 普通/金色饰品统一按基础 ID 匹配。
 - 多线程扫描任意 `uint32` 区间或全部 `2^32 - 1` 个可搜索值。
@@ -79,7 +80,7 @@ C++ 全域扫描在当前机器的 Release 检查中以 8 线程耗时约 18–1
   --end 100
 ```
 
-CLI 完整参数和本地 HTTP 请求字段见 [`docs/native-api.md`](docs/native-api.md)。搜索结果默认只保留种子值最小的 10,000 条，但仍会扫描完整范围并返回真实 `total_count`；可用 `--max-results` 或 HTTP 的 `max_results` 调整。
+CLI 完整参数和本地 HTTP 请求字段见 [`docs/native-api.md`](docs/native-api.md)。搜索结果默认按种子数值升序保留全局最优的 1,000 条，但仍会扫描完整范围并返回真实 `total_count`；WebUI 最多保留 10,000 条，可用排序控件和“最多保留结果”调整。
 
 仓库也提供标准 `CMakeLists.txt`，用于后续 MSVC/GitHub Actions Release 构建。
 

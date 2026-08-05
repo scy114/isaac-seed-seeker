@@ -109,6 +109,27 @@ iss::PocketKind parse_pocket_kind(const std::string& text) {
     throw std::invalid_argument("invalid --pocket-kind: " + text);
 }
 
+iss::SortKey parse_sort_key(const std::string& text) {
+    if (text == "seed") return iss::SortKey::seed;
+    if (text == "health") return iss::SortKey::health;
+    if (text == "damage") return iss::SortKey::damage;
+    if (text == "move-speed") return iss::SortKey::move_speed;
+    if (text == "tears") return iss::SortKey::tears;
+    if (text == "range") return iss::SortKey::range;
+    if (text == "shot-speed") return iss::SortKey::shot_speed;
+    if (text == "luck") return iss::SortKey::luck;
+    if (text == "active-quality") return iss::SortKey::active_quality;
+    if (text == "passive-quality") return iss::SortKey::passive_quality;
+    if (text == "total-quality") return iss::SortKey::total_quality;
+    throw std::invalid_argument("invalid --sort: " + text);
+}
+
+iss::SortDirection parse_sort_direction(const std::string& text) {
+    if (text == "asc") return iss::SortDirection::ascending;
+    if (text == "desc") return iss::SortDirection::descending;
+    throw std::invalid_argument("invalid --direction: " + text);
+}
+
 void select_pocket_kind(iss::EdenCriteria& criteria, iss::PocketKind kind, const std::string& option) {
     if (criteria.pocket_kind.has_value() && *criteria.pocket_kind != kind) {
         throw std::invalid_argument("conflicting pocket kind from --" + option);
@@ -213,6 +234,9 @@ void write_result(std::ostream& output, const iss::SearchResult& result, const i
            << "  \"count\": " << result.matches.size() << ",\n"
            << "  \"total_count\": " << result.total_matches << ",\n"
            << "  \"truncated\": " << (result.truncated() ? "true" : "false") << ",\n"
+           << "  \"sort_key\": \"" << iss::sort_key_name(result.sort_key) << "\",\n"
+           << "  \"sort_direction\": \"" << iss::sort_direction_name(result.sort_direction) << "\",\n"
+           << "  \"result_limit\": " << result.result_limit << ",\n"
            << "  \"matches\": [\n";
     output << std::defaultfloat << std::setprecision(10);
     for (std::size_t index = 0; index < result.matches.size(); ++index) {
@@ -226,6 +250,9 @@ void write_result(std::ostream& output, const iss::SearchResult& result, const i
                << (start.pocket_kind == iss::PocketKind::trinket ? start.pocket_id : 0)
                << ", \"active_id\": " << start.active_id
                << ", \"passive_id\": " << start.passive_id
+               << ", \"active_quality\": " << start.active_quality
+               << ", \"passive_quality\": " << start.passive_quality
+               << ", \"total_quality\": " << start.active_quality + start.passive_quality
                << ", \"red_hearts\": " << start.red_hearts
                << ", \"soul_hearts\": " << start.soul_hearts
                << ", \"damage\": " << start.damage
@@ -257,8 +284,10 @@ void print_usage() {
         << "  --pocket-kind none|trinket|card|pill; --pocket/--card/--pill ID[,ID]\n"
         << "  --active ID[,ID]; --passive ID[,ID]; each also supports -exclude\n"
         << "  --red-hearts-min/max, --soul-hearts-min/max, --damage-min/max,\n"
-        << "  --move-speed-min/max, --tears-min/max, --range-min/max,\n"
-        << "  --shot-speed-min/max, --luck-min/max, --max-results N\n";
+         << "  --move-speed-min/max, --tears-min/max, --range-min/max,\n"
+         << "  --shot-speed-min/max, --luck-min/max, --max-results N\n"
+         << "  --sort seed|health|damage|move-speed|tears|range|shot-speed|luck|\n"
+         << "         active-quality|passive-quality|total-quality; --direction asc|desc\n";
 }
 
 }  // namespace
@@ -289,6 +318,9 @@ int main(int argc, char** argv) {
                       << ",\"pocket_id\":" << start.pocket_id
                       << ",\"active_id\":" << start.active_id
                       << ",\"passive_id\":" << start.passive_id
+                      << ",\"active_quality\":" << start.active_quality
+                      << ",\"passive_quality\":" << start.passive_quality
+                      << ",\"total_quality\":" << start.active_quality + start.passive_quality
                       << ",\"red_hearts\":" << start.red_hearts
                       << ",\"soul_hearts\":" << start.soul_hearts
                       << ",\"damage\":" << start.damage
@@ -315,7 +347,9 @@ int main(int argc, char** argv) {
         options.end = parse_u32(optional(arguments, "end", "4294967295"), "end");
         options.threads = std::min(64U, parse_unsigned(optional(arguments, "threads", "0"), "threads"));
         options.block_size = parse_u32(optional(arguments, "block-size", "1000000"), "block-size");
-        options.max_results = parse_u32(optional(arguments, "max-results", "10000"), "max-results");
+        options.max_results = parse_u32(optional(arguments, "max-results", "1000"), "max-results");
+        options.sort_key = parse_sort_key(optional(arguments, "sort", "seed"));
+        options.sort_direction = parse_sort_direction(optional(arguments, "direction", "asc"));
 
         const auto result = iss::search(tables, criteria, options);
         const auto output_path = optional(arguments, "output");

@@ -11,3606 +11,4327 @@
     {
       "id": 1,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 2,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 3,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 4,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 5,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 6,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 7,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 8,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 9,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 10,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 11,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 12,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 13,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 14,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 15,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 16,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 17,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 18,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 19,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 20,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 21,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 22,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 23,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 24,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 25,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 26,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 27,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 28,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 29,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 30,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 31,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 32,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 33,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 34,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 35,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 36,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 37,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 38,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 39,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 40,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 41,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 42,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 44,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 45,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 46,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 47,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 48,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 49,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 50,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 51,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 52,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 53,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 54,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 55,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 56,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 57,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 58,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 59,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 60,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 62,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 63,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 64,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 65,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 66,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 67,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 68,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 69,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 70,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 71,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 72,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 73,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 74,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 75,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 76,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 77,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 78,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 79,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 80,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 81,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 82,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 83,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 84,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 85,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 86,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 87,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 88,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 89,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 90,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 91,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 92,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 93,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 94,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 95,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 96,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 97,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 98,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 99,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 100,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 101,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 102,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 103,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 104,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 105,
       "kind": "active",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 106,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 107,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 108,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 109,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 110,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 111,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 112,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 113,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 114,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 115,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 116,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 117,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 118,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 119,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 120,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 121,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 122,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 123,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 124,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 125,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 126,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 127,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 128,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 129,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 130,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 131,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 132,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 133,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 134,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 135,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 136,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 137,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 138,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 139,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 140,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 141,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 142,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 143,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 144,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 145,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 146,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 147,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 148,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 149,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 150,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 151,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 152,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 153,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 154,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 155,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 156,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 157,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 158,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 159,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 160,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 161,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 162,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 163,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 164,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 165,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 166,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 167,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 168,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 169,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 170,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 171,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 172,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 173,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 174,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 175,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 176,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 177,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 178,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 179,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 180,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 181,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 182,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 183,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 184,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 185,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 186,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 187,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 188,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 189,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 190,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 191,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 192,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 193,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 194,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 195,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 196,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 197,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 198,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 199,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 200,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 201,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 202,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 203,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 204,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 205,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 206,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 207,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 208,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 209,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 210,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 211,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 212,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 213,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 214,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 215,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 216,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 217,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 218,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 219,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 220,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 221,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 222,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 223,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 224,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 225,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 226,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 227,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 228,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 229,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 230,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 231,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 232,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 233,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 234,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 236,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 237,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 238,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": false
     },
     {
       "id": 239,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": false
     },
     {
       "id": 240,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 241,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 242,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 243,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 244,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 245,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 246,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 247,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 248,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 249,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 250,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 251,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 252,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 253,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 254,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 255,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 256,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 257,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 258,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 259,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 260,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 261,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 262,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 263,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 264,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 265,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 266,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 267,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 268,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 269,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 270,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 271,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 272,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 273,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 274,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 275,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 276,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 277,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 278,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 279,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 280,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 281,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 282,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 283,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 284,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 285,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 286,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 287,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 288,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 289,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 290,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 291,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 292,
       "kind": "active",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 293,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 294,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 295,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 296,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 297,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 298,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 299,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 300,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 301,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 302,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 303,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 304,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 305,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 306,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 307,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 308,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 309,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 310,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 311,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 312,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 313,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 314,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 315,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 316,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 317,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 318,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 319,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 320,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 321,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 322,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 323,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 324,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 325,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 326,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 327,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": false
     },
     {
       "id": 328,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": false
     },
     {
       "id": 329,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 330,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 331,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 332,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 333,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 334,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 335,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 336,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 337,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 338,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 339,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 340,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 341,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 342,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 343,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 344,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 345,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 346,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 347,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 348,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 349,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 350,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 351,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 352,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 353,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 354,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 355,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 356,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 357,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 358,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 359,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 360,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 361,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 362,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 363,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 364,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 365,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 366,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 367,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 368,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 369,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 370,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 371,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 372,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 373,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 374,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 375,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 376,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 377,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 378,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 379,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 380,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 381,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 382,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 383,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 384,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 385,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 386,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 387,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 388,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 389,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 390,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 391,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 392,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 393,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 394,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 395,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 396,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 397,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 398,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 399,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 400,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 401,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 402,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 403,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 404,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 405,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 406,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 407,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 408,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 409,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 410,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 411,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 412,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 413,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 414,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 415,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 416,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 417,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 418,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 419,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 420,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 421,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 422,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 423,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 424,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 425,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 426,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 427,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 428,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 429,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 430,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 431,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 432,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 433,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 434,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 435,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 436,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 437,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 438,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 439,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 440,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 441,
       "kind": "active",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 442,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 443,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 444,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 445,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 446,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 447,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 448,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 449,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 450,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 451,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 452,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 453,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 454,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 455,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 456,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 457,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 458,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 459,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 460,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 461,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 462,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 463,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 464,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 465,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 466,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 467,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 468,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 469,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 470,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 471,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 472,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 473,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 474,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": false
     },
     {
       "id": 475,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 476,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 477,
       "kind": "active",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 478,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 479,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 480,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 481,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 482,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 483,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 484,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 485,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 486,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 487,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 488,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 489,
       "kind": "active",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 490,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 491,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 492,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 493,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 494,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 495,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 496,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 497,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 498,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 499,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 500,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 501,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 502,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 503,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 504,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 505,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 506,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 507,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 508,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 509,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 510,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 511,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 512,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 513,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 514,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 515,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 516,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 517,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 518,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 519,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 520,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 521,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 522,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 523,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 524,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 525,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 526,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 527,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 528,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 529,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 530,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 531,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 532,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 533,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 534,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 535,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 536,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 537,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 538,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 539,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 540,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 541,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 542,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 543,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 544,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 545,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 546,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 547,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 548,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 549,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 550,
       "kind": "active",
+      "quality": 4,
       "available_for_eden": false
     },
     {
       "id": 551,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": false
     },
     {
       "id": 552,
       "kind": "active",
+      "quality": 4,
       "available_for_eden": false
     },
     {
       "id": 553,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 554,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 555,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 556,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 557,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 558,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 559,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 560,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 561,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 562,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 563,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 564,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 565,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 566,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 567,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 568,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 569,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 570,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 571,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 572,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 573,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 574,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 575,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 576,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 577,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 578,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 579,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 580,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 581,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 582,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 583,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 584,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 585,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 586,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 588,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 589,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 590,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 591,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 592,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 593,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 594,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 595,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 596,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 597,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 598,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 599,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 600,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 601,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 602,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 603,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 604,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 605,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 606,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 607,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 608,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 609,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 610,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 611,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 612,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 614,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 615,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 616,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 617,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 618,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 619,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 621,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 622,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 623,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 624,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 625,
       "kind": "active",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 626,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": false
     },
     {
       "id": 627,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": false
     },
     {
       "id": 628,
       "kind": "active",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 629,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 631,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 632,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 633,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": false
     },
     {
       "id": 634,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 635,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 636,
       "kind": "active",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 637,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 638,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 639,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 640,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 641,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 642,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 643,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 644,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 645,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 646,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 647,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 649,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 650,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 651,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 652,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 653,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 654,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 655,
       "kind": "active",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 656,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 657,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 658,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 659,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 660,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 661,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 663,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 664,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 665,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 667,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 668,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": false
     },
     {
       "id": 669,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 670,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 671,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 672,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 673,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 674,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 675,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 676,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 677,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 678,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 679,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 680,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 681,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 682,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 683,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 684,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 685,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 686,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 687,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 688,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 689,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 690,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 691,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 692,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 693,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 694,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 695,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 696,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 697,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 698,
       "kind": "passive",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 699,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 700,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 701,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 702,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 703,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 704,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 705,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 706,
       "kind": "active",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 707,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 708,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 709,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 710,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 711,
       "kind": "active",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 712,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 713,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 714,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": false
     },
     {
       "id": 715,
       "kind": "active",
+      "quality": 0,
       "available_for_eden": false
     },
     {
       "id": 716,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 717,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 719,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 720,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 721,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 722,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 723,
       "kind": "active",
+      "quality": 4,
       "available_for_eden": true
     },
     {
       "id": 724,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 725,
       "kind": "passive",
+      "quality": 0,
       "available_for_eden": true
     },
     {
       "id": 726,
       "kind": "passive",
+      "quality": 1,
       "available_for_eden": true
     },
     {
       "id": 727,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 728,
       "kind": "active",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 729,
       "kind": "active",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 730,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     },
     {
       "id": 731,
       "kind": "passive",
+      "quality": 2,
       "available_for_eden": true
     },
     {
       "id": 732,
       "kind": "passive",
+      "quality": 3,
       "available_for_eden": true
     }
   ],

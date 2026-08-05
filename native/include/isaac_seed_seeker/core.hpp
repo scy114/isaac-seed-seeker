@@ -20,11 +20,34 @@ enum class PocketKind : std::uint8_t {
 
 std::string_view pocket_kind_name(PocketKind kind) noexcept;
 
+enum class SortKey : std::uint8_t {
+    seed = 0,
+    health,
+    damage,
+    move_speed,
+    tears,
+    range,
+    shot_speed,
+    luck,
+    active_quality,
+    passive_quality,
+    total_quality,
+};
+
+enum class SortDirection : std::uint8_t {
+    ascending = 0,
+    descending = 1,
+};
+
+std::string_view sort_key_name(SortKey key) noexcept;
+std::string_view sort_direction_name(SortDirection direction) noexcept;
+
 struct CollectibleEntry {
     std::int32_t item_id = 0;
     bool blocked = true;
     bool active_slot = false;
     bool present = false;
+    std::uint8_t quality = 0;
 };
 
 struct TrinketEntry {
@@ -53,6 +76,8 @@ struct EdenStart {
     std::int32_t pocket_id = 0;
     std::int32_t active_id = 0;
     std::int32_t passive_id = 0;
+    std::int32_t active_quality = 0;
+    std::int32_t passive_quality = 0;
 
     // Health is expressed in full-heart units.  The primary stat fields are
     // the pre-item values shown by Found HUD.  Raw Eden modifiers are retained
@@ -125,7 +150,9 @@ struct SearchOptions {
     std::uint32_t end = 0xffffffffU;
     std::uint32_t block_size = 1'000'000;
     unsigned threads = 0;
-    std::size_t max_results = 10'000;
+    std::size_t max_results = 1'000;
+    SortKey sort_key = SortKey::seed;
+    SortDirection sort_direction = SortDirection::ascending;
 };
 
 struct Match {
@@ -146,6 +173,9 @@ struct SearchResult {
     std::uint64_t scanned = 0;
     double elapsed_seconds = 0.0;
     unsigned threads = 0;
+    SortKey sort_key = SortKey::seed;
+    SortDirection sort_direction = SortDirection::ascending;
+    std::size_t result_limit = 1'000;
 
     [[nodiscard]] bool truncated() const noexcept {
         return total_matches > matches.size();

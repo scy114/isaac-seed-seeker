@@ -64,6 +64,8 @@ int main(int argc, char** argv) {
         require(builtin_start.pocket_id == 169, "builtin trinket mismatch");
         require(builtin_start.active_id == 145, "builtin active mismatch");
         require(builtin_start.passive_id == 134, "builtin passive mismatch");
+        require(builtin_start.active_quality == 2, "builtin active quality mismatch");
+        require(builtin_start.passive_quality == 2, "builtin passive quality mismatch");
         require_near(builtin_start.red_hearts, 1.0, "builtin red hearts mismatch");
         require_near(builtin_start.soul_hearts, 1.0, "builtin soul hearts mismatch");
         require_near(builtin_start.damage, 2.924349875850715, "builtin actual damage mismatch");
@@ -194,6 +196,75 @@ int main(int argc, char** argv) {
         require(capped_result.matches[0].start.seed < capped_result.matches[1].start.seed
                     && capped_result.matches[1].start.seed < capped_result.matches[2].start.seed,
                 "capped results are not sorted");
+
+        iss::SearchOptions exhaustive_sort_options;
+        exhaustive_sort_options.end = 5'000U;
+        exhaustive_sort_options.threads = 1;
+        exhaustive_sort_options.max_results = 5'000U;
+        exhaustive_sort_options.sort_key = iss::SortKey::damage;
+        exhaustive_sort_options.sort_direction = iss::SortDirection::descending;
+        const auto exhaustive_damage = iss::search(builtin, capped, exhaustive_sort_options);
+
+        auto top_damage_options = exhaustive_sort_options;
+        top_damage_options.threads = 4;
+        top_damage_options.block_size = 37U;
+        top_damage_options.max_results = 7U;
+        const auto top_damage = iss::search(builtin, capped, top_damage_options);
+        require(top_damage.total_matches == exhaustive_damage.total_matches,
+                "sorted Top-K changed the total match count");
+        require(top_damage.matches.size() == 7, "sorted Top-K retained the wrong count");
+        require(top_damage.sort_key == iss::SortKey::damage
+                    && top_damage.sort_direction == iss::SortDirection::descending,
+                "sorted Top-K metadata mismatch");
+        for (std::size_t index = 0; index < top_damage.matches.size(); ++index) {
+            require(top_damage.matches[index].start.seed == exhaustive_damage.matches[index].start.seed,
+                    "parallel damage Top-K differs from exhaustive ordering");
+            if (index != 0) {
+                require(top_damage.matches[index - 1].start.damage
+                            >= top_damage.matches[index].start.damage,
+                        "damage results are not descending");
+            }
+        }
+
+        auto total_quality_options = exhaustive_sort_options;
+        total_quality_options.sort_key = iss::SortKey::total_quality;
+        total_quality_options.max_results = 11U;
+        total_quality_options.threads = 3;
+        const auto total_quality = iss::search(builtin, capped, total_quality_options);
+        for (std::size_t index = 1; index < total_quality.matches.size(); ++index) {
+            const auto previous = total_quality.matches[index - 1].start.active_quality
+                + total_quality.matches[index - 1].start.passive_quality;
+            const auto current = total_quality.matches[index].start.active_quality
+                + total_quality.matches[index].start.passive_quality;
+            require(previous >= current, "total quality results are not descending");
+            if (previous == current) {
+                const auto& left = total_quality.matches[index - 1].start;
+                const auto& right = total_quality.matches[index].start;
+                require(left.active_id < right.active_id
+                            || (left.active_id == right.active_id
+                                && (left.passive_id < right.passive_id
+                                    || (left.passive_id == right.passive_id
+                                        && left.seed < right.seed))),
+                        "total quality tie-break is unstable");
+            }
+        }
+
+        auto health_options = exhaustive_sort_options;
+        health_options.sort_key = iss::SortKey::health;
+        health_options.sort_direction = iss::SortDirection::ascending;
+        health_options.max_results = 20U;
+        health_options.threads = 2;
+        const auto health_sorted = iss::search(builtin, capped, health_options);
+        for (std::size_t index = 1; index < health_sorted.matches.size(); ++index) {
+            const auto& left = health_sorted.matches[index - 1].start;
+            const auto& right = health_sorted.matches[index].start;
+            require(left.red_hearts < right.red_hearts
+                        || (left.red_hearts == right.red_hearts
+                            && (left.soul_hearts < right.soul_hearts
+                                || (left.soul_hearts == right.soul_hearts
+                                    && left.seed < right.seed))),
+                    "health sort did not compare red hearts before soul hearts");
+        }
 
         iss::SearchOptions exception_options;
         exception_options.end = 10'000U;

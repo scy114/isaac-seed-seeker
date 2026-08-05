@@ -1,4 +1,5 @@
 #include "isaac_seed_seeker/core.hpp"
+#include "isaac_seed_seeker/builtin_profile.hpp"
 
 #include <algorithm>
 #include <charconv>
@@ -7,6 +8,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string_view>
+#include <unordered_map>
 
 namespace isaac_seed_seeker {
 namespace {
@@ -159,6 +161,17 @@ ProfileTables ProfileTables::load(
         entry.present = true;
         return entry;
     });
+    const auto quality_reference = builtin_j460_profile();
+    std::unordered_map<std::int32_t, std::uint8_t> quality_by_id;
+    quality_by_id.reserve(quality_reference.collectibles.size());
+    for (const auto& entry : quality_reference.collectibles) {
+        if (entry.present) quality_by_id.emplace(entry.item_id, entry.quality);
+    }
+    for (auto& entry : result.collectibles) {
+        if (const auto quality = quality_by_id.find(entry.item_id); quality != quality_by_id.end()) {
+            entry.quality = quality->second;
+        }
+    }
     result.trinkets = parse_entries(trinket_json, [](std::string_view object) {
         TrinketEntry entry;
         entry.base_id = static_cast<std::int32_t>(named_integer(object, "raw") & 0x7fff);

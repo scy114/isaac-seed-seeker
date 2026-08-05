@@ -11,6 +11,7 @@ Embedded WebUI
     -> localhost HTTP API
     -> C++20 SearchSession
     -> parallel Eden RNG kernel
+    -> per-worker bounded Top-K + deterministic global merge
     -> built-in or imported GameProfile
     -> downloadable results
 ```

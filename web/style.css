@@ -96,6 +96,7 @@ input:disabled { color: #6f6861; background: #191715; border-color: #302d2a; }
 .catalog-picker.is-exclude .catalog-token { background: rgba(82,49,44,.6); border-color: rgba(193,126,113,.3); }
 .catalog-token-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .catalog-token-id { color: #c6aa82; font-variant-numeric: tabular-nums; }
+.catalog-token-quality { color: #efc174; font-weight: 800; }
 .catalog-token button {
   display: grid; place-items: center; width: 17px; height: 17px; padding: 0; color: #d8c8b7;
   background: rgba(0,0,0,.2); border: 0; line-height: 1;
@@ -137,6 +138,7 @@ input:disabled { color: #6f6861; background: #191715; border-color: #302d2a; }
 .inline-note { color: #aa9f93; border-left: 2px solid var(--red-dark); padding-left: 10px; margin: 15px 0 0; font-size: 12px; }
 
 .search-settings { border: 1px solid var(--line); padding: 15px 18px; }
+.sort-settings { border-left: 3px solid var(--red-dark); background: rgba(112,28,25,.055); }
 .search-settings summary { color: #c9beb1; cursor: pointer; font-weight: 700; }
 .search-settings summary small { color: var(--muted); font-weight: 400; margin-left: 8px; }
 .search-settings .field-grid { margin-top: 17px; }
@@ -162,13 +164,14 @@ button:disabled, .disabled { opacity: .4; pointer-events: none; }
 
 .download { color: #efe6d6; border: 1px solid var(--line-strong); white-space: nowrap; }
 .table-wrap { max-height: 520px; overflow: auto; border: 1px solid var(--line); }
-table { width: 100%; min-width: 1160px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+table { width: 100%; min-width: 1280px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 th { position: sticky; top: 0; z-index: 1; background: #24211f; color: #bdb4aa; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
 tbody tr:hover { background: rgba(255,255,255,.025); }
 .seed-cell strong { display: block; color: #f0c48a; letter-spacing: .06em; }
 .seed-cell small { color: #7f776f; }
 .id-value { color: #e2d4c1; }
+.quality-value { color: #e5b96f; font-weight: 800; text-align: center; }
 .delta-positive { color: #90bf91; }
 .delta-negative { color: #dc8b81; }
 .empty { color: var(--muted) !important; text-align: center; padding: 42px; font-weight: 400 !important; }

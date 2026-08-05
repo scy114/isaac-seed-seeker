@@ -35,8 +35,10 @@ try {
     $ClientScript = Invoke-WebRequest ($BaseUrl + "app.js") -UseBasicParsing
     if (
         $Page.Content -notmatch 'id="red-hearts-min"' -or
+        $Page.Content -notmatch 'id="sort-key"' -or
         $Page.Content -notmatch 'id="catalog-state"' -or
         $ClientScript.Content -notmatch "pill_effect_ids" -or
+        $ClientScript.Content -notmatch "sort_direction" -or
         $ClientScript.Content -notmatch "class CatalogPicker"
     ) {
         throw "embedded WebUI does not expose the generic Eden filters"
@@ -110,6 +112,10 @@ try {
     if ($Inspected.pocket_kind -ne "pill" -or $Inspected.pocket_id -ne 12) {
         throw "inspect endpoint returned the wrong pocket item"
     }
+    if ($Inspected.active_quality -lt 0 -or $Inspected.passive_quality -lt 0 -or
+        $Inspected.total_quality -ne ($Inspected.active_quality + $Inspected.passive_quality)) {
+        throw "inspect endpoint returned invalid item qualities"
+    }
     if ($Inspected.red_hearts -ne 2 -or [Math]::Abs($Inspected.range - 7.426721965) -gt 0.000001) {
         throw "inspect endpoint returned the wrong base rolls"
     }
@@ -144,6 +150,36 @@ try {
     $GenericResults = Invoke-RestMethod ($BaseUrl + "api/v1/search/results")
     if ($GenericResults.total_count -ne 1 -or $GenericResults.matches[0].seed_u32 -ne 2) {
         throw "generic search endpoint returned the wrong seed"
+    }
+
+    $SortedBody = @{
+        pocket_kind = "none"
+        sort_key = "damage"
+        sort_direction = "desc"
+        start = 1
+        end = 5000
+        threads = 4
+        max_results = 7
+    } | ConvertTo-Json -Compress
+    Invoke-RestMethod `
+        ($BaseUrl + "api/v1/search") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $SortedBody | Out-Null
+    do {
+        Start-Sleep -Milliseconds 50
+        $SortedStatus = Invoke-RestMethod ($BaseUrl + "api/v1/search/status")
+    } while ($SortedStatus.state -eq "running")
+    $SortedResults = Invoke-RestMethod ($BaseUrl + "api/v1/search/results")
+    if ($SortedResults.count -ne 7 -or -not $SortedResults.truncated -or
+        $SortedResults.sort_key -ne "damage" -or $SortedResults.sort_direction -ne "desc") {
+        throw "sorted Top-K endpoint returned invalid metadata"
+    }
+    for ($Index = 1; $Index -lt $SortedResults.matches.Count; $Index++) {
+        if ($SortedResults.matches[$Index - 1].damage -lt $SortedResults.matches[$Index].damage) {
+            throw "sorted Top-K endpoint did not return descending damage"
+        }
     }
 
     $CancelBody = @{

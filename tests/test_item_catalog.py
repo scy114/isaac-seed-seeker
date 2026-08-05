@@ -53,6 +53,7 @@ def test_guppy_target_names_and_aliases() -> None:
     dead_cat = entries[("passive", 81)]
     assert dead_cat["name_zh"] == "嗝屁猫"
     assert dead_cat["name_en"] == "Dead Cat"
+    assert dead_cat["quality"] == 3
     assert {"死猫", "9命猫", "九命猫"} <= set(dead_cat["aliases"])
     assert "gepimao" in dead_cat["pinyin"]
     assert dead_cat["available_for_eden"] is True
@@ -60,10 +61,12 @@ def test_guppy_target_names_and_aliases() -> None:
     guppys_head = entries[("active", 145)]
     assert guppys_head["name_zh"] == "嗝屁猫的头"
     assert guppys_head["name_en"] == "Guppy's Head"
+    assert guppys_head["quality"] == 2
     assert "猫头" in guppys_head["aliases"]
 
     kids_drawing = entries[("trinket", 169)]
     assert kids_drawing["name_zh"] == "儿童涂鸦"
+    assert kids_drawing["quality"] is None
     assert "猫片" in kids_drawing["aliases"]
     assert kids_drawing["available_for_eden"] is True
 
@@ -101,3 +104,13 @@ def test_catalog_keys_are_unique() -> None:
     keys = [(entry["kind"], entry["search_id"]) for entry in catalog["entries"]]
 
     assert len(keys) == len(set(keys)) == catalog["counts"]["entries"]
+
+
+def test_all_collectibles_have_a_quality() -> None:
+    catalog = load_catalog()
+    collectibles = [
+        entry for entry in catalog["entries"] if entry["kind"] in {"active", "passive"}
+    ]
+
+    assert len(collectibles) == 721
+    assert all(entry["quality"] in {0, 1, 2, 3, 4} for entry in collectibles)

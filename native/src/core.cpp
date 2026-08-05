@@ -4,7 +4,9 @@
 #include <chrono>
 #include <cmath>
 #include <exception>
+#include <iterator>
 #include <mutex>
+#include <queue>
 #include <stdexcept>
 #include <thread>
 
@@ -258,13 +260,20 @@ void roll_base_start(EdenStart& result) noexcept {
     result.luck = result.luck_delta;
 }
 
-std::pair<std::int32_t, std::int32_t> roll_items(
+struct RolledItems {
+    std::int32_t active_id = 0;
+    std::int32_t passive_id = 0;
+    std::int32_t active_quality = 0;
+    std::int32_t passive_quality = 0;
+};
+
+RolledItems roll_items(
     std::uint32_t p988,
     const ProfileTables& tables
 ) noexcept {
     const auto count = static_cast<std::uint32_t>(tables.collectibles.size());
     if (count <= 1) {
-        return {0, 0};
+        return {};
     }
     const auto bound = count - 1;
     auto state = after_pocket_roll(p988);
@@ -295,9 +304,16 @@ std::pair<std::int32_t, std::int32_t> roll_items(
             break;
         }
     }
-    const auto active_id = active_index == 0 ? 0 : tables.collectibles[active_index].item_id;
-    const auto passive_id = passive_index == 0 ? 0 : tables.collectibles[passive_index].item_id;
-    return {active_id, passive_id};
+    RolledItems result;
+    if (active_index != 0) {
+        result.active_id = tables.collectibles[active_index].item_id;
+        result.active_quality = tables.collectibles[active_index].quality;
+    }
+    if (passive_index != 0) {
+        result.passive_id = tables.collectibles[passive_index].item_id;
+        result.passive_quality = tables.collectibles[passive_index].quality;
+    }
+    return result;
 }
 
 bool contains(const std::vector<std::int32_t>& values, std::int32_t value) noexcept {
@@ -340,6 +356,88 @@ bool matches_base_start(const EdenStart& start, const EdenCriteria& criteria) no
         && criteria.luck_delta.matches(start.luck_delta);
 }
 
+bool sort_needs_base_rolls(SortKey key) noexcept {
+    return key == SortKey::health || key == SortKey::damage || key == SortKey::move_speed
+        || key == SortKey::tears || key == SortKey::range || key == SortKey::shot_speed
+        || key == SortKey::luck;
+}
+
+bool sort_needs_item_rolls(SortKey key) noexcept {
+    return key == SortKey::active_quality || key == SortKey::passive_quality
+        || key == SortKey::total_quality;
+}
+
+template <typename Value>
+bool directed_before(Value left, Value right, SortDirection direction) noexcept {
+    if (left == right) return false;
+    return direction == SortDirection::ascending ? left < right : left > right;
+}
+
+struct MatchOrder {
+    SortKey key = SortKey::seed;
+    SortDirection direction = SortDirection::ascending;
+
+    bool operator()(const Match& left, const Match& right) const noexcept {
+        const auto& a = left.start;
+        const auto& b = right.start;
+        switch (key) {
+            case SortKey::seed:
+                return directed_before(a.seed, b.seed, direction);
+            case SortKey::health:
+                if (a.red_hearts != b.red_hearts) {
+                    return directed_before(a.red_hearts, b.red_hearts, direction);
+                }
+                if (a.soul_hearts != b.soul_hearts) {
+                    return directed_before(a.soul_hearts, b.soul_hearts, direction);
+                }
+                break;
+            case SortKey::damage:
+                if (a.damage != b.damage) return directed_before(a.damage, b.damage, direction);
+                break;
+            case SortKey::move_speed:
+                if (a.move_speed != b.move_speed) {
+                    return directed_before(a.move_speed, b.move_speed, direction);
+                }
+                break;
+            case SortKey::tears:
+                if (a.tears != b.tears) return directed_before(a.tears, b.tears, direction);
+                break;
+            case SortKey::range:
+                if (a.range != b.range) return directed_before(a.range, b.range, direction);
+                break;
+            case SortKey::shot_speed:
+                if (a.shot_speed != b.shot_speed) {
+                    return directed_before(a.shot_speed, b.shot_speed, direction);
+                }
+                break;
+            case SortKey::luck:
+                if (a.luck != b.luck) return directed_before(a.luck, b.luck, direction);
+                break;
+            case SortKey::active_quality:
+                if (a.active_quality != b.active_quality) {
+                    return directed_before(a.active_quality, b.active_quality, direction);
+                }
+                if (a.active_id != b.active_id) return a.active_id < b.active_id;
+                break;
+            case SortKey::passive_quality:
+                if (a.passive_quality != b.passive_quality) {
+                    return directed_before(a.passive_quality, b.passive_quality, direction);
+                }
+                if (a.passive_id != b.passive_id) return a.passive_id < b.passive_id;
+                break;
+            case SortKey::total_quality: {
+                const auto total_a = a.active_quality + a.passive_quality;
+                const auto total_b = b.active_quality + b.passive_quality;
+                if (total_a != total_b) return directed_before(total_a, total_b, direction);
+                if (a.active_id != b.active_id) return a.active_id < b.active_id;
+                if (a.passive_id != b.passive_id) return a.passive_id < b.passive_id;
+                break;
+            }
+        }
+        return a.seed < b.seed;
+    }
+};
+
 }  // namespace
 
 std::string_view pocket_kind_name(PocketKind kind) noexcept {
@@ -350,6 +448,27 @@ std::string_view pocket_kind_name(PocketKind kind) noexcept {
         case PocketKind::pill: return "pill";
     }
     return "unknown";
+}
+
+std::string_view sort_key_name(SortKey key) noexcept {
+    switch (key) {
+        case SortKey::seed: return "seed";
+        case SortKey::health: return "health";
+        case SortKey::damage: return "damage";
+        case SortKey::move_speed: return "move_speed";
+        case SortKey::tears: return "tears";
+        case SortKey::range: return "range";
+        case SortKey::shot_speed: return "shot_speed";
+        case SortKey::luck: return "luck";
+        case SortKey::active_quality: return "active_quality";
+        case SortKey::passive_quality: return "passive_quality";
+        case SortKey::total_quality: return "total_quality";
+    }
+    return "unknown";
+}
+
+std::string_view sort_direction_name(SortDirection direction) noexcept {
+    return direction == SortDirection::ascending ? "asc" : "desc";
 }
 
 bool NumberRange::configured() const noexcept {
@@ -490,9 +609,11 @@ EdenStart predict_eden_start(std::uint32_t seed, const ProfileTables& tables) {
     result.a5 = a5_from_seed(seed);
     result.p988 = p988_from_a5(result.a5);
     roll_pocket(result, tables);
-    const auto [active_id, passive_id] = roll_items(result.p988, tables);
-    result.active_id = active_id;
-    result.passive_id = passive_id;
+    const auto items = roll_items(result.p988, tables);
+    result.active_id = items.active_id;
+    result.passive_id = items.passive_id;
+    result.active_quality = items.active_quality;
+    result.passive_quality = items.passive_quality;
     roll_base_start(result);
     return result;
 }
@@ -517,6 +638,9 @@ SearchResult search(
     if (options.block_size == 0) {
         throw std::invalid_argument("block size must be positive");
     }
+    if (options.max_results == 0 || options.max_results > 100'000) {
+        throw std::invalid_argument("max results must be within 1..100000");
+    }
 
     const auto total = static_cast<std::uint64_t>(options.end) - options.start + 1U;
     unsigned thread_count = options.threads == 0 ? std::thread::hardware_concurrency() : options.threads;
@@ -529,10 +653,12 @@ SearchResult search(
     std::mutex error_mutex;
     std::exception_ptr worker_error;
     std::vector<Match> all_matches;
+    const MatchOrder order{options.sort_key, options.sort_direction};
     const auto started = std::chrono::steady_clock::now();
     const bool needs_pocket = criteria.needs_pocket();
-    const bool needs_base_rolls = criteria.needs_base_rolls();
-    const bool needs_items = criteria.needs_items();
+    const bool needs_base_rolls = criteria.needs_base_rolls()
+        || sort_needs_base_rolls(options.sort_key);
+    const bool needs_items = criteria.needs_items() || sort_needs_item_rolls(options.sort_key);
 
     std::vector<std::thread> workers;
     workers.reserve(thread_count);
@@ -540,7 +666,7 @@ SearchResult search(
         for (unsigned worker_index = 0; worker_index < thread_count; ++worker_index) {
             workers.emplace_back([&] {
                 try {
-                    std::vector<Match> local;
+                    std::priority_queue<Match, std::vector<Match>, MatchOrder> local(order);
                     while (true) {
                         if (abort.load(std::memory_order_relaxed)
                             || (cancel != nullptr && cancel->load(std::memory_order_relaxed))) {
@@ -562,23 +688,29 @@ SearchResult search(
                             const auto seed = static_cast<std::uint32_t>(first + completed);
                             const auto a5 = a5_from_seed(seed);
                             const auto p988 = p988_from_a5(a5);
+                            EdenStart sort_start;
+                            sort_start.seed = seed;
+                            sort_start.a5 = a5;
+                            sort_start.p988 = p988;
                             if (needs_pocket) {
                                 if (!roll_and_match_pocket(a5, p988, tables, criteria)) {
                                     continue;
                                 }
                             }
                             if (needs_base_rolls) {
-                                EdenStart base_start;
-                                base_start.p988 = p988;
-                                roll_base_start(base_start);
-                                if (!matches_base_start(base_start, criteria)) {
+                                roll_base_start(sort_start);
+                                if (!matches_base_start(sort_start, criteria)) {
                                     continue;
                                 }
                             }
                             if (needs_items) {
-                                const auto [active_id, passive_id] = roll_items(p988, tables);
-                                if (!criteria.active_items.matches(active_id)
-                                    || !criteria.passive_items.matches(passive_id)) {
+                                const auto items = roll_items(p988, tables);
+                                sort_start.active_id = items.active_id;
+                                sort_start.passive_id = items.passive_id;
+                                sort_start.active_quality = items.active_quality;
+                                sort_start.passive_quality = items.passive_quality;
+                                if (!criteria.active_items.matches(items.active_id)
+                                    || !criteria.passive_items.matches(items.passive_id)) {
                                     continue;
                                 }
                             }
@@ -587,27 +719,16 @@ SearchResult search(
                                 continue;
                             }
                             match_count.fetch_add(1, std::memory_order_relaxed);
-                            if (local.size() < options.max_results) {
-                                local.push_back(Match{label, predict_eden_start(seed, tables)});
+                            Match candidate{label, sort_start};
+                            if (local.size() < options.max_results || order(candidate, local.top())) {
+                                candidate.start = predict_eden_start(seed, tables);
+                                if (local.size() == options.max_results) {
+                                    local.pop();
+                                }
+                                local.push(std::move(candidate));
                             }
                         }
                         scanned.fetch_add(completed, std::memory_order_relaxed);
-                        if (!local.empty()) {
-                            std::lock_guard lock(matches_mutex);
-                            all_matches.insert(all_matches.end(), local.begin(), local.end());
-                            if (all_matches.size() > options.max_results) {
-                                const auto keep = all_matches.begin()
-                                    + static_cast<std::vector<Match>::difference_type>(options.max_results);
-                                std::nth_element(
-                                    all_matches.begin(), keep, all_matches.end(),
-                                    [](const Match& left, const Match& right) {
-                                        return left.start.seed < right.start.seed;
-                                    }
-                                );
-                                all_matches.resize(options.max_results);
-                            }
-                            local.clear();
-                        }
                         if (progress) {
                             const auto now = std::chrono::steady_clock::now();
                             progress(SearchProgress{
@@ -619,6 +740,26 @@ SearchResult search(
                         }
                         if (completed != count) {
                             break;
+                        }
+                    }
+                    std::vector<Match> retained;
+                    retained.reserve(local.size());
+                    while (!local.empty()) {
+                        retained.push_back(local.top());
+                        local.pop();
+                    }
+                    if (!retained.empty()) {
+                        std::lock_guard lock(matches_mutex);
+                        all_matches.insert(
+                            all_matches.end(),
+                            std::make_move_iterator(retained.begin()),
+                            std::make_move_iterator(retained.end())
+                        );
+                        if (all_matches.size() > options.max_results) {
+                            const auto keep = all_matches.begin()
+                                + static_cast<std::vector<Match>::difference_type>(options.max_results);
+                            std::nth_element(all_matches.begin(), keep, all_matches.end(), order);
+                            all_matches.resize(options.max_results);
                         }
                     }
                 } catch (...) {
@@ -643,9 +784,7 @@ SearchResult search(
     if (worker_error != nullptr) {
         std::rethrow_exception(worker_error);
     }
-    std::sort(all_matches.begin(), all_matches.end(), [](const Match& left, const Match& right) {
-        return left.start.seed < right.start.seed;
-    });
+    std::sort(all_matches.begin(), all_matches.end(), order);
     const auto finished = std::chrono::steady_clock::now();
     return SearchResult{
         std::move(all_matches),
@@ -653,6 +792,9 @@ SearchResult search(
         scanned.load(std::memory_order_relaxed),
         std::chrono::duration<double>(finished - started).count(),
         thread_count,
+        options.sort_key,
+        options.sort_direction,
+        options.max_results,
     };
 }
 

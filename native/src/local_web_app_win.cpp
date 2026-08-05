@@ -187,6 +187,27 @@ PocketKind parse_pocket_kind(std::string_view text) {
     throw std::invalid_argument("invalid pocket_kind");
 }
 
+SortKey parse_sort_key(std::string_view text) {
+    if (text == "seed") return SortKey::seed;
+    if (text == "health") return SortKey::health;
+    if (text == "damage") return SortKey::damage;
+    if (text == "move_speed") return SortKey::move_speed;
+    if (text == "tears") return SortKey::tears;
+    if (text == "range") return SortKey::range;
+    if (text == "shot_speed") return SortKey::shot_speed;
+    if (text == "luck") return SortKey::luck;
+    if (text == "active_quality") return SortKey::active_quality;
+    if (text == "passive_quality") return SortKey::passive_quality;
+    if (text == "total_quality") return SortKey::total_quality;
+    throw std::invalid_argument("invalid sort_key");
+}
+
+SortDirection parse_sort_direction(std::string_view text) {
+    if (text == "asc") return SortDirection::ascending;
+    if (text == "desc") return SortDirection::descending;
+    throw std::invalid_argument("invalid sort_direction");
+}
+
 void select_pocket_kind(EdenCriteria& criteria, PocketKind kind, std::string_view field) {
     if (criteria.pocket_kind.has_value() && *criteria.pocket_kind != kind) {
         throw std::invalid_argument("conflicting pocket kind in JSON field: " + std::string(field));
@@ -265,6 +286,9 @@ void append_start_json(std::ostream& output, const EdenStart& start, std::string
            << ",\"trinket_id\":" << (start.pocket_kind == PocketKind::trinket ? start.pocket_id : 0)
            << ",\"active_id\":" << start.active_id
            << ",\"passive_id\":" << start.passive_id
+           << ",\"active_quality\":" << start.active_quality
+           << ",\"passive_quality\":" << start.passive_quality
+           << ",\"total_quality\":" << start.active_quality + start.passive_quality
            << ",\"red_hearts\":" << start.red_hearts
            << ",\"soul_hearts\":" << start.soul_hearts
            << ",\"damage\":" << start.damage
@@ -389,6 +413,9 @@ public:
         output << "{\"count\":" << result_.matches.size()
                << ",\"total_count\":" << result_.total_matches
                << ",\"truncated\":" << (result_.truncated() ? "true" : "false")
+               << ",\"sort_key\":\"" << sort_key_name(result_.sort_key)
+               << "\",\"sort_direction\":\"" << sort_direction_name(result_.sort_direction)
+               << "\",\"result_limit\":" << result_.result_limit
                << ",\"matches\":[";
         for (std::size_t index = 0; index < result_.matches.size(); ++index) {
             const auto& match = result_.matches[index];
@@ -404,6 +431,7 @@ public:
         std::ostringstream output;
         output << std::setprecision(10)
                << "seed\tseed_u32\tpocket_kind\tpocket_id\tactive_id\tpassive_id"
+                  "\tactive_quality\tpassive_quality\ttotal_quality"
                   "\tred_hearts\tsoul_hearts\tdamage\tmove_speed\ttears\trange"
                   "\tshot_speed\tluck\tdamage_delta\tmove_speed_delta\ttears_delta"
                   "\tshot_speed_delta\tluck_delta\n";
@@ -411,6 +439,8 @@ public:
             output << match.label << '\t' << match.start.seed
                    << '\t' << pocket_kind_name(match.start.pocket_kind) << '\t' << match.start.pocket_id
                    << '\t' << match.start.active_id << '\t' << match.start.passive_id
+                   << '\t' << match.start.active_quality << '\t' << match.start.passive_quality
+                   << '\t' << match.start.active_quality + match.start.passive_quality
                    << '\t' << match.start.red_hearts << '\t' << match.start.soul_hearts
                    << '\t' << match.start.damage << '\t' << match.start.move_speed
                    << '\t' << match.start.tears << '\t' << match.start.range
@@ -694,7 +724,16 @@ int run_local_web_app(bool open_browser) {
                 options.end = json_u32(request.body, "end");
                 options.threads = std::min(64U, json_u32(request.body, "threads"));
                 options.block_size = 1'000'000;
-                options.max_results = optional_json_u32(request.body, "max_results").value_or(10'000U);
+                options.max_results = optional_json_u32(request.body, "max_results").value_or(1'000U);
+                if (options.max_results == 0 || options.max_results > 10'000) {
+                    throw std::invalid_argument("max_results must be within 1..10000");
+                }
+                if (const auto key = optional_json_string(request.body, "sort_key")) {
+                    options.sort_key = parse_sort_key(*key);
+                }
+                if (const auto direction = optional_json_string(request.body, "sort_direction")) {
+                    options.sort_direction = parse_sort_direction(*direction);
+                }
                 session.start(std::move(criteria), options);
                 respond(client, 202, "Accepted", "application/json; charset=utf-8", session.status_json());
             } else if (request.method == "POST" && request.path == "/api/v1/search/cancel") {
