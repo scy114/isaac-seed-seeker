@@ -608,32 +608,44 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
 .seed-code-field input {
   padding: 15px 18px;
   color: #f2d6a6;
-  font-family: var(--font-mono);
-  font-size: 25px;
-  font-weight: 800;
-  letter-spacing: .14em;
+  font-family: "IsaacSans", var(--font-mono);
+  font-size: 27px;
+  font-weight: 400;
+  letter-spacing: .09em;
   text-transform: uppercase;
+  -webkit-font-smoothing: none;
+  text-rendering: optimizeSpeed;
 }
 .inspector-form button { min-width: 142px; padding: 17px 20px; }
 .inspector-result-panel { scroll-margin-top: 18px; }
 .inspector-result-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 25px; }
+.inspector-seed-summary { display: grid; justify-items: center; gap: 3px; }
 .inspector-seed-card {
-  min-width: 285px;
-  padding: 18px 24px;
+  display: grid;
+  place-items: center;
+  width: 288px;
+  height: 216px;
   color: var(--paper-ink);
-  background: transparent url("/game-assets/ui/seed-paper.png") no-repeat center / 100% 100%;
+  background-color: transparent;
+  background-image: url("/game-assets/ui/seed-entry.png");
+  background-repeat: no-repeat;
+  background-position: left top;
+  background-size: 133.333% 266.667%;
   filter: drop-shadow(3px 4px 0 rgba(0, 0, 0, .42));
 }
 .inspector-seed-card strong {
   display: block;
   font-family: "IsaacSans", var(--font-mono);
-  font-size: 27px;
+  font-size: 39px;
   font-weight: 400;
-  letter-spacing: .06em;
+  line-height: 1.06;
+  letter-spacing: .035em;
+  white-space: pre-line;
+  text-align: left;
   -webkit-font-smoothing: none;
   text-rendering: optimizeSpeed;
 }
-.inspector-seed-card small { color: #59443a; }
+.inspector-seed-summary > small { color: #a99483; }
 .inspector-layout { display: grid; grid-template-columns: 1.35fr .65fr; gap: 18px; }
 .inspector-block { padding: 18px; background: #171310; border: 1px solid var(--line); }
 .inspector-block h3 { margin: 0 0 14px; color: #d8c4a7; font-family: var(--font-display); font-size: 18px; font-weight: 400; }
@@ -703,7 +715,7 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
   .inspector-form,
   .inspector-layout { grid-template-columns: 1fr; }
   .inspector-result-heading { display: grid; }
-  .inspector-seed-card { min-width: 0; }
+  .inspector-seed-card { width: min(288px, 100%); height: auto; aspect-ratio: 4 / 3; }
   .inspector-stat-grid { grid-template-columns: repeat(2, 1fr); }
   .treatment-rule-strip { display: grid; gap: 5px; }
   .treatment-health-card { grid-template-columns: 1fr !important; }

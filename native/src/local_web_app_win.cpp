@@ -701,6 +701,8 @@ public:
             relative = std::filesystem::path("gfx") / "backdrop" / "01_basement.png";
         } else if (name == "seed-paper") {
             relative = std::filesystem::path("gfx") / "ui" / "seed paper.png";
+        } else if (name == "seed-entry") {
+            relative = std::filesystem::path("gfx") / "ui" / "main menu" / "seedentry.png";
         } else {
             return std::nullopt;
         }
@@ -1028,6 +1030,13 @@ int run_local_web_app(bool open_browser) {
                 }
             } else if (request.method == "GET" && request.path == "/game-assets/ui/seed-paper.png") {
                 const auto path = game_icons.find_ui("seed-paper");
+                if (path) {
+                    respond(client, 200, "OK", "image/png", read_binary_file(*path));
+                } else {
+                    respond(client, 404, "Not Found", "application/json; charset=utf-8", "{\"error\":\"asset not found\"}");
+                }
+            } else if (request.method == "GET" && request.path == "/game-assets/ui/seed-entry.png") {
+                const auto path = game_icons.find_ui("seed-entry");
                 if (path) {
                     respond(client, 200, "OK", "image/png", read_binary_file(*path));
                 } else {

@@ -117,7 +117,7 @@ function pocketDescription(result) {
 }
 
 function renderResult(result) {
-  $("#result-seed").textContent = result.seed;
+  $("#result-seed").textContent = result.seed.replace(" ", "\n");
   $("#result-seed-u32").textContent = result.seed_u32.toLocaleString("zh-CN");
 
   const pocket = pocketDescription(result);
