@@ -34,9 +34,9 @@ Isaac Seed Seeker 使用原生 C++ 内核枚举种子，并通过本地 WebUI �
 
 ## 安装
 
-当前正式版本为 [v0.3.0](https://github.com/scy114/isaac-seed-seeker/releases/tag/v0.3.0)。
+当前正式版本为 [v0.3.1](https://github.com/scy114/isaac-seed-seeker/releases/tag/v0.3.1)。
 
-1. 从 [GitHub Releases](https://github.com/scy114/isaac-seed-seeker/releases) 下载 `IsaacSeedSeeker-v0.3.0-windows-x64.zip`；
+1. 从 [GitHub Releases](https://github.com/scy114/isaac-seed-seeker/releases) 下载 `IsaacSeedSeeker-v0.3.1-windows-x64.zip`；
 2. 完整解压 ZIP；
 3. 运行 `IsaacSeedSeeker.exe`；
 4. 程序将在默认浏览器中打开本地 WebUI；
