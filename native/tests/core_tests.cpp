@@ -219,6 +219,39 @@ int main(int argc, char** argv) {
         require(!iss::score_daily_bad_v0(daily_bad_damage_three).eligible,
                 "3.xx damage passed the daily bad gate");
 
+        auto daily_bad_v1_boundary = daily_bad_boundary;
+        daily_bad_v1_boundary.active_id = 1;
+        daily_bad_v1_boundary.active_quality = 1;
+        daily_bad_v1_boundary.passive_id = 2;
+        daily_bad_v1_boundary.passive_quality = 0;
+        const auto daily_bad_v1_boundary_score = iss::score_daily_bad_v1(daily_bad_v1_boundary);
+        require(daily_bad_v1_boundary_score.eligible,
+                "daily bad v1 boundary seed was rejected");
+        require(daily_bad_v1_boundary_score.selection_weight == 10,
+                "daily bad v1 normal weight mismatch");
+        auto daily_bad_v1_passive_q1 = daily_bad_v1_boundary;
+        daily_bad_v1_passive_q1.active_quality = 0;
+        daily_bad_v1_passive_q1.passive_quality = 1;
+        require(!iss::score_daily_bad_v1(daily_bad_v1_passive_q1).eligible,
+                "passive Q1 passed the daily bad v1 gate");
+        auto daily_bad_v1_active_q2 = daily_bad_v1_boundary;
+        daily_bad_v1_active_q2.active_quality = 2;
+        require(!iss::score_daily_bad_v1(daily_bad_v1_active_q2).eligible,
+                "active Q2 passed the daily bad v1 gate");
+        for (const auto excluded_id : std::array<std::uint16_t, 4>{19, 59, 137, 161}) {
+            auto excluded_daily_bad = daily_bad_v1_boundary;
+            excluded_daily_bad.passive_id = excluded_id;
+            require(!iss::score_daily_bad_v1(excluded_daily_bad).eligible,
+                    "excluded item passed the daily bad v1 gate");
+        }
+        auto daily_bad_tmtrainer = daily_bad_v1_boundary;
+        daily_bad_tmtrainer.passive_id = 721;
+        const auto daily_bad_tmtrainer_score = iss::score_daily_bad_v1(daily_bad_tmtrainer);
+        require(daily_bad_tmtrainer_score.eligible,
+                "TMTRAINER was removed from the daily bad v1 pool");
+        require(daily_bad_tmtrainer_score.selection_weight == 7,
+                "TMTRAINER daily bad v1 weight mismatch");
+
         iss::DailyGoodOptions daily_options;
         daily_options.date_utc8 = "2026-08-06";
         daily_options.candidates = 25'000;
@@ -255,24 +288,33 @@ int main(int argc, char** argv) {
                 "daily v1 reroll variant changed with thread count");
         daily_options.draw_variant = 0;
         daily_options.threads = 1;
-        const auto daily_bad_single_thread = iss::select_daily_bad_v0(builtin, daily_options);
+        const auto daily_bad_single_thread = iss::select_daily_bad_v1(builtin, daily_options);
         daily_options.threads = 4;
-        const auto daily_bad_four_threads = iss::select_daily_bad_v0(builtin, daily_options);
-        require(daily_bad_single_thread.rules_version == iss::daily_bad_rules_version_v0,
+        const auto daily_bad_four_threads = iss::select_daily_bad_v1(builtin, daily_options);
+        require(daily_bad_single_thread.rules_version == iss::daily_bad_rules_version_v1,
                 "daily bad result version mismatch");
         require(daily_bad_single_thread.eligible > 0,
                 "daily bad scan produced no eligible seeds");
         require(daily_bad_single_thread.primary.seed == daily_bad_four_threads.primary.seed,
                 "daily bad selection changed with thread count");
-        require(daily_bad_single_thread.primary.active_quality
-                    + daily_bad_single_thread.primary.passive_quality <= 1,
-                "daily bad selection exceeded total quality one");
+        require(daily_bad_single_thread.primary.active_quality <= 1
+                    && daily_bad_single_thread.primary.passive_quality == 0,
+                "daily bad selection exceeded the v1 quality gate");
+        require(daily_bad_single_thread.primary.active_id != 19
+                    && daily_bad_single_thread.primary.active_id != 59
+                    && daily_bad_single_thread.primary.active_id != 137
+                    && daily_bad_single_thread.primary.active_id != 161
+                    && daily_bad_single_thread.primary.passive_id != 19
+                    && daily_bad_single_thread.primary.passive_id != 59
+                    && daily_bad_single_thread.primary.passive_id != 137
+                    && daily_bad_single_thread.primary.passive_id != 161,
+                "daily bad selection included an excluded item");
         require(daily_bad_single_thread.primary.move_speed < 1.0
                     && daily_bad_single_thread.primary.tears < 3.0
                     && daily_bad_single_thread.primary.damage < 3.0,
                 "daily bad selection exceeded the 022 stat gate");
         daily_options.draw_variant = 0x12345678U;
-        const auto daily_bad_variant = iss::select_daily_bad_v0(builtin, daily_options);
+        const auto daily_bad_variant = iss::select_daily_bad_v1(builtin, daily_options);
         require(daily_bad_variant.primary.seed != daily_bad_four_threads.primary.seed,
                 "daily bad reroll variant repeated the first seed");
         daily_options.draw_variant = 0;

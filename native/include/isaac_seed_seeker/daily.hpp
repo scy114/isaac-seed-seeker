@@ -11,7 +11,8 @@ inline constexpr std::string_view daily_good_rules_version_v0 = "daily-good-v0";
 inline constexpr std::string_view daily_good_rules_version_v1 = "daily-good-v1";
 inline constexpr std::string_view daily_good_rules_version = daily_good_rules_version_v1;
 inline constexpr std::string_view daily_bad_rules_version_v0 = "daily-bad-v0";
-inline constexpr std::string_view daily_bad_rules_version = daily_bad_rules_version_v0;
+inline constexpr std::string_view daily_bad_rules_version_v1 = "daily-bad-v1";
+inline constexpr std::string_view daily_bad_rules_version = daily_bad_rules_version_v1;
 
 struct DailyGoodScore {
     bool eligible = false;
@@ -52,6 +53,7 @@ using DailyBadResult = DailyGoodResult;
 DailyGoodScore score_daily_good_v0(const EdenStart& start) noexcept;
 DailyGoodScore score_daily_good_v1(const EdenStart& start) noexcept;
 DailyBadScore score_daily_bad_v0(const EdenStart& start) noexcept;
+DailyBadScore score_daily_bad_v1(const EdenStart& start) noexcept;
 
 DailyGoodResult select_daily_good_v0(
     const ProfileTables& tables,
@@ -64,6 +66,11 @@ DailyGoodResult select_daily_good_v1(
 );
 
 DailyBadResult select_daily_bad_v0(
+    const ProfileTables& tables,
+    const DailyGoodOptions& options
+);
+
+DailyBadResult select_daily_bad_v1(
     const ProfileTables& tables,
     const DailyGoodOptions& options
 );

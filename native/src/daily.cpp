@@ -146,6 +146,24 @@ DailyBadScore score_daily_bad_v0(const EdenStart& start) noexcept {
     return result;
 }
 
+DailyBadScore score_daily_bad_v1(const EdenStart& start) noexcept {
+    DailyBadScore result;
+    const auto excluded_item = [](std::uint16_t item_id) noexcept {
+        return item_id == 19 || item_id == 59 || item_id == 137 || item_id == 161;
+    };
+    result.eligible = start.active_quality <= 1
+        && start.passive_quality == 0
+        && !excluded_item(start.active_id)
+        && !excluded_item(start.passive_id)
+        && start.move_speed < 1.0
+        && start.tears < 3.0
+        && start.damage < 3.0;
+    if (result.eligible) {
+        result.selection_weight = start.active_id == 721 || start.passive_id == 721 ? 7 : 10;
+    }
+    return result;
+}
+
 namespace {
 
 using DailyScoreFunction = DailyGoodScore (*)(const EdenStart&) noexcept;
@@ -285,6 +303,19 @@ DailyBadResult select_daily_bad_v0(
         options,
         daily_bad_rules_version_v0,
         score_daily_bad_v0,
+        0x6461696c792d6261ULL
+    );
+}
+
+DailyBadResult select_daily_bad_v1(
+    const ProfileTables& tables,
+    const DailyGoodOptions& options
+) {
+    return select_daily_impl(
+        tables,
+        options,
+        daily_bad_rules_version_v1,
+        score_daily_bad_v1,
         0x6461696c792d6261ULL
     );
 }
