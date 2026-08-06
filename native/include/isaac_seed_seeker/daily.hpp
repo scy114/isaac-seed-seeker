@@ -22,8 +22,10 @@ inline constexpr std::string_view daily_bad_rules_version_v5 = "daily-bad-v5";
 inline constexpr std::string_view daily_bad_rules_version = daily_bad_rules_version_v5;
 inline constexpr std::string_view daily_bad_challenge_rules_version_v0 =
     "daily-bad-challenge-v0";
+inline constexpr std::string_view daily_bad_challenge_rules_version_v1 =
+    "daily-bad-challenge-v1";
 inline constexpr std::string_view daily_bad_challenge_rules_version =
-    daily_bad_challenge_rules_version_v0;
+    daily_bad_challenge_rules_version_v1;
 
 struct DailyGoodScore {
     bool eligible = false;
@@ -64,6 +66,7 @@ using DailyBadResult = DailyGoodResult;
 struct DailyBadChallengeCandidate {
     std::uint32_t seed = 0;
     std::int32_t selection_weight = 0;
+    std::uint16_t passive_id = 0;
 };
 
 struct DailyBadChallengePool {
@@ -81,7 +84,7 @@ DailyBadScore score_daily_bad_v2(const EdenStart& start) noexcept;
 DailyBadScore score_daily_bad_v3(const EdenStart& start) noexcept;
 DailyBadScore score_daily_bad_v4(const EdenStart& start) noexcept;
 DailyBadScore score_daily_bad_v5(const EdenStart& start) noexcept;
-DailyBadScore score_daily_bad_challenge_v0(const EdenStart& start) noexcept;
+DailyBadScore score_daily_bad_challenge_v1(const EdenStart& start) noexcept;
 
 DailyGoodResult select_daily_good_v0(
     const ProfileTables& tables,
@@ -123,29 +126,24 @@ DailyBadResult select_daily_bad_v5(
     const DailyGoodOptions& options
 );
 
-DailyBadResult select_daily_bad_challenge_v0(
-    const ProfileTables& tables,
-    const DailyGoodOptions& options
-);
-
-DailyBadChallengePool scan_daily_bad_challenge_pool_v0(
+DailyBadChallengePool scan_daily_bad_challenge_pool_v1(
     const ProfileTables& tables,
     std::uint64_t candidates = std::uint64_t{1} << 32U,
     unsigned threads = 0
 );
 
-DailyBadResult select_daily_bad_challenge_v0_from_pool(
+DailyBadResult select_daily_bad_challenge_v1_from_pool(
     const ProfileTables& tables,
     const DailyGoodOptions& options,
     const DailyBadChallengePool& pool
 );
 
-std::optional<DailyBadChallengePool> load_daily_bad_challenge_pool_v0(
+std::optional<DailyBadChallengePool> load_daily_bad_challenge_pool_v1(
     const std::filesystem::path& path,
     const ProfileTables& tables
 );
 
-void save_daily_bad_challenge_pool_v0(
+void save_daily_bad_challenge_pool_v1(
     const std::filesystem::path& path,
     const DailyBadChallengePool& pool
 );

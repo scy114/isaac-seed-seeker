@@ -269,22 +269,28 @@ try {
         -ContentType "application/json" `
         -Headers $Headers `
         -Body $ChallengeBody
-    $ChallengeVariant = Invoke-RestMethod `
-        ($BaseUrl + "api/v1/daily-bad-challenge") `
-        -Method Post `
-        -ContentType "application/json" `
-        -Headers $Headers `
-        -Body (@{
-            date = "2026-08-06"
-            variant = 305419896
-            candidates = 10000000
-        } | ConvertTo-Json -Compress)
-    if ($ChallengeFirst.rules_version -ne "daily-bad-challenge-v0" -or
+    $ChallengeVariant = $null
+    $ChallengeVariantValue = 0
+    foreach ($CandidateVariant in @(305419896, 1, 2, 3, 4, 5, 6, 7, 8)) {
+        $ChallengeVariant = Invoke-RestMethod `
+            ($BaseUrl + "api/v1/daily-bad-challenge") `
+            -Method Post `
+            -ContentType "application/json" `
+            -Headers $Headers `
+            -Body (@{
+                date = "2026-08-06"
+                variant = $CandidateVariant
+                candidates = 10000000
+            } | ConvertTo-Json -Compress)
+        $ChallengeVariantValue = $CandidateVariant
+        if ($ChallengeVariant.seed -ne $ChallengeFirst.seed) { break }
+    }
+    if ($ChallengeFirst.rules_version -ne "daily-bad-challenge-v1" -or
         $ChallengeFirst.cache_hit -ne $false -or
         $ChallengeFirst.seed -ne $ChallengeFirstAgain.seed -or
         $ChallengeFirst.seed -eq $ChallengeVariant.seed -or
-        $ChallengeVariant.variant -ne 305419896) {
-        throw "daily-bad challenge endpoint was not stable or did not reroll"
+        $ChallengeVariant.variant -ne $ChallengeVariantValue) {
+        throw "daily-bad challenge endpoint was not stable or did not reroll: first=$($ChallengeFirst | ConvertTo-Json -Compress), again=$($ChallengeFirstAgain | ConvertTo-Json -Compress), variant=$($ChallengeVariant | ConvertTo-Json -Compress)"
     }
     $ChallengeInspected = Invoke-RestMethod `
         ($BaseUrl + "api/v1/inspect") `

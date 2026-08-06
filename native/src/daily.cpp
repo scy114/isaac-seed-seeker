@@ -229,7 +229,7 @@ DailyBadScore score_daily_bad_v5(const EdenStart& start) noexcept {
     return result;
 }
 
-DailyBadScore score_daily_bad_challenge_v0(const EdenStart& start) noexcept {
+DailyBadScore score_daily_bad_challenge_v1(const EdenStart& start) noexcept {
     static constexpr std::array<std::uint16_t, 12> active_ids{
         36, 39, 41, 177, 287, 290, 294, 325, 475, 480, 481, 582,
     };
@@ -260,8 +260,9 @@ DailyBadScore score_daily_bad_challenge_v0(const EdenStart& start) noexcept {
         && resource_gate
         && (low_panel_passive || treatment_passive);
     if (result.eligible) {
-        const auto branch_weight = treatment_passive ? 1'000 : 10;
-        result.selection_weight = bad_pill ? branch_weight * 3 : branch_weight;
+        // Passive branches are balanced separately during selection. This
+        // weight only controls the bad-pill preference inside one branch.
+        result.selection_weight = bad_pill ? 3 : 1;
     }
     return result;
 }
@@ -474,20 +475,7 @@ DailyBadResult select_daily_bad_v5(
     );
 }
 
-DailyBadResult select_daily_bad_challenge_v0(
-    const ProfileTables& tables,
-    const DailyGoodOptions& options
-) {
-    return select_daily_impl(
-        tables,
-        options,
-        daily_bad_challenge_rules_version_v0,
-        score_daily_bad_challenge_v0,
-        0x6368616c6c656e67ULL
-    );
-}
-
-DailyBadChallengePool scan_daily_bad_challenge_pool_v0(
+DailyBadChallengePool scan_daily_bad_challenge_pool_v1(
     const ProfileTables& tables,
     std::uint64_t candidates,
     unsigned threads
@@ -514,11 +502,14 @@ DailyBadChallengePool scan_daily_bad_challenge_pool_v0(
             for (std::uint64_t value = begin; value < end; ++value) {
                 const auto seed = static_cast<std::uint32_t>(value);
                 if (seed == 0) continue;
-                const auto score = score_daily_bad_challenge_v0(
-                    predict_eden_start(seed, tables)
-                );
+                const auto start = predict_eden_start(seed, tables);
+                const auto score = score_daily_bad_challenge_v1(start);
                 if (score.eligible) {
-                    output.push_back({seed, score.selection_weight});
+                    output.push_back({
+                        seed,
+                        score.selection_weight,
+                        static_cast<std::uint16_t>(start.passive_id),
+                    });
                 }
             }
         });
@@ -549,7 +540,7 @@ DailyBadChallengePool scan_daily_bad_challenge_pool_v0(
     return pool;
 }
 
-DailyBadResult select_daily_bad_challenge_v0_from_pool(
+DailyBadResult select_daily_bad_challenge_v1_from_pool(
     const ProfileTables& tables,
     const DailyGoodOptions& options,
     const DailyBadChallengePool& pool
@@ -562,7 +553,7 @@ DailyBadResult select_daily_bad_challenge_v0_from_pool(
     }
     const auto started = std::chrono::steady_clock::now();
     const auto key = options.date_utc8 + "|j460-full-unlock|"
-        + std::string(daily_bad_challenge_rules_version_v0);
+        + std::string(daily_bad_challenge_rules_version_v1);
     const auto key_hash = stable_hash(key);
     const auto sequence_seed = splitmix64(key_hash);
     const auto sequence_step = static_cast<std::uint32_t>(sequence_seed >> 32U) | 1U;
@@ -581,19 +572,64 @@ DailyBadResult select_daily_bad_challenge_v0_from_pool(
         return left_index < right_index;
     });
 
-    std::uint64_t total_weight = 0;
+    struct ChallengeBranch {
+        std::uint16_t passive_id;
+        std::uint64_t draw_weight;
+    };
+    static constexpr std::array branches{
+        ChallengeBranch{240, 40},
+        ChallengeBranch{697, 30},
+        ChallengeBranch{561, 30},
+    };
+    std::array<std::uint64_t, branches.size()> candidate_weights{};
     for (const auto& candidate : pool.candidates) {
-        if (candidate.seed == 0 || candidate.selection_weight <= 0) {
+        if (candidate.seed == 0
+            || (candidate.selection_weight != 1 && candidate.selection_weight != 3)) {
             throw std::invalid_argument("challenge pool contains an invalid candidate");
         }
-        total_weight += static_cast<std::uint64_t>(candidate.selection_weight);
+        const auto branch = std::find_if(
+            branches.begin(),
+            branches.end(),
+            [&](const auto& value) { return value.passive_id == candidate.passive_id; }
+        );
+        if (branch == branches.end()) {
+            throw std::invalid_argument("challenge pool contains an invalid passive branch");
+        }
+        const auto index = static_cast<std::size_t>(branch - branches.begin());
+        candidate_weights[index] += static_cast<std::uint64_t>(candidate.selection_weight);
     }
     auto draw_salt = 0x6368616c6c656e67ULL;
     if (options.draw_variant != 0) draw_salt ^= splitmix64(options.draw_variant);
-    auto target = splitmix64(key_hash ^ draw_salt) % total_weight;
+
+    std::uint64_t available_branch_weight = 0;
+    for (std::size_t index = 0; index < branches.size(); ++index) {
+        if (candidate_weights[index] != 0) {
+            available_branch_weight += branches[index].draw_weight;
+        }
+    }
+    if (available_branch_weight == 0) {
+        throw std::runtime_error("challenge pool has no selectable passive branch");
+    }
+    auto branch_target = splitmix64(
+        key_hash ^ draw_salt ^ 0x6272616e63682d76ULL
+    ) % available_branch_weight;
+    std::size_t selected_branch = 0;
+    for (; selected_branch < branches.size(); ++selected_branch) {
+        if (candidate_weights[selected_branch] == 0) continue;
+        if (branch_target < branches[selected_branch].draw_weight) break;
+        branch_target -= branches[selected_branch].draw_weight;
+    }
+    if (selected_branch == branches.size()) {
+        throw std::runtime_error("daily challenge branch draw failed");
+    }
+
+    auto target = splitmix64(
+        key_hash ^ draw_salt ^ 0x63616e6469646174ULL
+    ) % candidate_weights[selected_branch];
     const DailyBadChallengeCandidate* selected = nullptr;
     for (const auto index : order) {
         const auto& candidate = pool.candidates[index];
+        if (candidate.passive_id != branches[selected_branch].passive_id) continue;
         const auto weight = static_cast<std::uint64_t>(candidate.selection_weight);
         if (target < weight) {
             selected = &candidate;
@@ -605,9 +641,9 @@ DailyBadResult select_daily_bad_challenge_v0_from_pool(
 
     DailyBadResult result;
     result.date_utc8 = options.date_utc8;
-    result.rules_version = std::string(daily_bad_challenge_rules_version_v0);
+    result.rules_version = std::string(daily_bad_challenge_rules_version_v1);
     result.primary = predict_eden_start(selected->seed, tables);
-    result.primary_score = score_daily_bad_challenge_v0(result.primary);
+    result.primary_score = score_daily_bad_challenge_v1(result.primary);
     result.scanned = pool.scanned;
     result.eligible = pool.candidates.size();
     result.threads = pool.threads;
@@ -615,13 +651,14 @@ DailyBadResult select_daily_bad_challenge_v0_from_pool(
         std::chrono::steady_clock::now() - started
     ).count();
     if (!result.primary_score.eligible
-        || result.primary_score.selection_weight != selected->selection_weight) {
+        || result.primary_score.selection_weight != selected->selection_weight
+        || result.primary.passive_id != selected->passive_id) {
         throw std::runtime_error("challenge pool candidate no longer matches its rules");
     }
     return result;
 }
 
-std::optional<DailyBadChallengePool> load_daily_bad_challenge_pool_v0(
+std::optional<DailyBadChallengePool> load_daily_bad_challenge_pool_v1(
     const std::filesystem::path& path,
     const ProfileTables& tables
 ) {
@@ -633,8 +670,8 @@ std::optional<DailyBadChallengePool> load_daily_bad_challenge_pool_v0(
     std::uint64_t scanned = 0;
     std::size_t count = 0;
     if (!(input >> magic >> rules_version >> profile_id >> scanned >> count)
-        || magic != "ISSS_CHALLENGE_POOL_V1"
-        || rules_version != daily_bad_challenge_rules_version_v0
+        || magic != "ISSS_CHALLENGE_POOL_V2"
+        || rules_version != daily_bad_challenge_rules_version_v1
         || profile_id != "j460-full-unlock"
         || scanned != (std::uint64_t{1} << 32U)
         || count == 0
@@ -647,15 +684,16 @@ std::optional<DailyBadChallengePool> load_daily_bad_challenge_pool_v0(
     pool.candidates.reserve(count);
     for (std::size_t index = 0; index < count; ++index) {
         DailyBadChallengeCandidate candidate;
-        if (!(input >> candidate.seed >> candidate.selection_weight)
+        if (!(input >> candidate.seed >> candidate.selection_weight >> candidate.passive_id)
             || candidate.seed == 0
-            || candidate.selection_weight <= 0) {
+            || (candidate.selection_weight != 1 && candidate.selection_weight != 3)) {
             return std::nullopt;
         }
-        const auto score = score_daily_bad_challenge_v0(
-            predict_eden_start(candidate.seed, tables)
-        );
-        if (!score.eligible || score.selection_weight != candidate.selection_weight) {
+        const auto start = predict_eden_start(candidate.seed, tables);
+        const auto score = score_daily_bad_challenge_v1(start);
+        if (!score.eligible
+            || score.selection_weight != candidate.selection_weight
+            || start.passive_id != candidate.passive_id) {
             return std::nullopt;
         }
         pool.candidates.push_back(candidate);
@@ -674,7 +712,7 @@ std::optional<DailyBadChallengePool> load_daily_bad_challenge_pool_v0(
     return pool;
 }
 
-void save_daily_bad_challenge_pool_v0(
+void save_daily_bad_challenge_pool_v1(
     const std::filesystem::path& path,
     const DailyBadChallengePool& pool
 ) {
@@ -686,13 +724,14 @@ void save_daily_bad_challenge_pool_v0(
     temporary += ".tmp";
     std::ofstream output(temporary, std::ios::binary | std::ios::trunc);
     if (!output) throw std::runtime_error("cannot create challenge pool cache");
-    output << "ISSS_CHALLENGE_POOL_V1\n"
-           << daily_bad_challenge_rules_version_v0 << '\n'
+    output << "ISSS_CHALLENGE_POOL_V2\n"
+           << daily_bad_challenge_rules_version_v1 << '\n'
            << "j460-full-unlock\n"
            << pool.scanned << '\n'
            << pool.candidates.size() << '\n';
     for (const auto& candidate : pool.candidates) {
-        output << candidate.seed << ' ' << candidate.selection_weight << '\n';
+        output << candidate.seed << ' ' << candidate.selection_weight << ' '
+               << candidate.passive_id << '\n';
     }
     output.close();
     if (!output) throw std::runtime_error("cannot finish challenge pool cache");

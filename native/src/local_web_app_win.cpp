@@ -588,7 +588,7 @@ std::filesystem::path challenge_pool_cache_path() {
     return root
         / "IsaacSeedSeeker"
         / "cache"
-        / "j460-daily-bad-challenge-v0.pool";
+        / "j460-daily-bad-challenge-v1.pool";
 }
 
 void append_unique_path(
@@ -1135,14 +1135,17 @@ int run_local_web_app(bool open_browser) {
                 DailyBadResult result;
                 bool cache_hit = false;
                 if (requested_candidates != 0) {
-                    options.candidates = requested_candidates;
-                    result = select_daily_bad_challenge_v0(
-                        builtin_j460_profile(), options
+                    const auto debug_pool = scan_daily_bad_challenge_pool_v1(
+                        builtin_j460_profile(), requested_candidates
+                    );
+                    options.candidates = debug_pool.scanned;
+                    result = select_daily_bad_challenge_v1_from_pool(
+                        builtin_j460_profile(), options, debug_pool
                     );
                 } else {
                     const auto cache_path = challenge_pool_cache_path();
                     if (!challenge_pool) {
-                        challenge_pool = load_daily_bad_challenge_pool_v0(
+                        challenge_pool = load_daily_bad_challenge_pool_v1(
                             cache_path, builtin_j460_profile()
                         );
                         cache_hit = challenge_pool.has_value();
@@ -1150,17 +1153,17 @@ int run_local_web_app(bool open_browser) {
                         cache_hit = true;
                     }
                     if (!challenge_pool) {
-                        challenge_pool = scan_daily_bad_challenge_pool_v0(
+                        challenge_pool = scan_daily_bad_challenge_pool_v1(
                             builtin_j460_profile()
                         );
                         try {
-                            save_daily_bad_challenge_pool_v0(cache_path, *challenge_pool);
+                            save_daily_bad_challenge_pool_v1(cache_path, *challenge_pool);
                         } catch (const std::exception&) {
                             // The in-memory pool remains usable when the cache directory is unwritable.
                         }
                     }
                     options.candidates = challenge_pool->scanned;
-                    result = select_daily_bad_challenge_v0_from_pool(
+                    result = select_daily_bad_challenge_v1_from_pool(
                         builtin_j460_profile(), options, *challenge_pool
                     );
                 }
