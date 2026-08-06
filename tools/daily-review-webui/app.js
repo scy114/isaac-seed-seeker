@@ -2,6 +2,10 @@ const state = {
   payload: null,
   ratings: new Map(),
   filter: "all",
+  q3Items: [],
+  q3Ratings: new Map(),
+  q3Loaded: false,
+  q3SelectedKey: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -90,6 +94,111 @@ function updateSummary() {
   $("#summary-weight").textContent = meanWeight.toFixed(1);
 }
 
+const q3Scale = ["不推荐", "一般", "不错", "很爽", "核心"];
+let q3SaveTimer = null;
+
+async function loadQ3Items() {
+  if (state.q3Loaded) return;
+  $("#q3-save-status").textContent = "正在读取评分……";
+  try {
+    const [itemsResponse, ratingsResponse] = await Promise.all([
+      fetch("/api/q3-items"),
+      fetch("/api/q3-ratings"),
+    ]);
+    const itemsPayload = await itemsResponse.json();
+    const ratingsPayload = await ratingsResponse.json();
+    if (!itemsResponse.ok) throw new Error(itemsPayload.error || "读取道具失败");
+    if (!ratingsResponse.ok) throw new Error(ratingsPayload.error || "读取评分失败");
+    state.q3Items = itemsPayload.items;
+    state.q3Ratings = new Map(
+      Object.entries(ratingsPayload.ratings || {}).map(([key, score]) => [key, Number(score)]),
+    );
+    state.q3Loaded = true;
+    $("#q3-save-status").textContent = state.q3Ratings.size ? "已恢复上次评分" : "尚未开始评分";
+    renderQ3Items();
+  } catch (error) {
+    $("#q3-save-status").textContent = `读取失败：${error.message}`;
+  }
+}
+
+function visibleQ3Items() {
+  const kind = $("#q3-kind").value;
+  const status = $("#q3-status-filter").value;
+  const query = $("#q3-search").value.trim().toLocaleLowerCase("zh-CN");
+  return state.q3Items.filter((item) => {
+    const rated = state.q3Ratings.has(item.key);
+    if (kind !== "all" && item.kind !== kind) return false;
+    if (status === "pending" && rated) return false;
+    if (status === "rated" && !rated) return false;
+    if (!query) return true;
+    return `${item.id} ${item.name_zh} ${item.name_en}`.toLocaleLowerCase("zh-CN").includes(query);
+  });
+}
+
+function renderQ3Items(nextFocusKey = null) {
+  if (!state.q3Loaded) return;
+  const items = visibleQ3Items();
+  $("#q3-list").innerHTML = items.map((item) => {
+    const currentScore = state.q3Ratings.get(item.key);
+    const visual = item.has_icon
+      ? `<img src="/icon/${item.id}.png" alt="">`
+      : `<span class="fallback">#${item.id}</span>`;
+    const buttons = q3Scale.map((label, score) => (
+      `<button class="q3-score ${currentScore === score ? "selected" : ""}" data-score="${score}" title="${score}：${label}"><b>${score}</b>${label}</button>`
+    )).join("");
+    return `<article class="q3-row ${state.q3SelectedKey === item.key ? "selected" : ""}" tabindex="0" data-key="${item.key}">
+      ${visual}
+      <div class="q3-item-copy">
+        <strong>${escapeHtml(item.name_zh)}</strong>
+        <small>${item.kind === "active" ? "主动" : "被动"} #${item.id} · ${escapeHtml(item.name_en)}</small>
+      </div>
+      ${buttons}
+    </article>`;
+  }).join("") || '<div class="empty">当前筛选下没有道具</div>';
+
+  $("#q3-rated").textContent = state.q3Ratings.size;
+  $("#q3-pending").textContent = Math.max(0, state.q3Items.length - state.q3Ratings.size);
+  $("#q3-visible").textContent = items.length;
+  if (nextFocusKey) {
+    requestAnimationFrame(() => {
+      const row = [...document.querySelectorAll(".q3-row")].find((element) => element.dataset.key === nextFocusKey);
+      row?.focus({ preventScroll: false });
+    });
+  }
+}
+
+function rateQ3Item(key, score) {
+  const before = visibleQ3Items();
+  const index = before.findIndex((item) => item.key === key);
+  const next = [...before.slice(index + 1), ...before.slice(0, Math.max(index, 0))]
+    .find((item) => item.key !== key);
+  state.q3Ratings.set(key, score);
+  state.q3SelectedKey = next?.key || key;
+  renderQ3Items(next?.key);
+  scheduleQ3Save();
+}
+
+function scheduleQ3Save() {
+  clearTimeout(q3SaveTimer);
+  $("#q3-save-status").textContent = "正在保存……";
+  q3SaveTimer = setTimeout(saveQ3Ratings, 250);
+}
+
+async function saveQ3Ratings() {
+  try {
+    const response = await fetch("/api/q3-ratings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ratings: Object.fromEntries(state.q3Ratings) }),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "保存失败");
+    $("#q3-save-status").textContent = `已自动保存 ${payload.saved} 项`;
+  } catch (error) {
+    $("#q3-save-status").textContent = `保存失败：${error.message}`;
+  }
+}
+
 async function generateSamples() {
   const button = $("#generate");
   button.disabled = true;
@@ -163,3 +272,56 @@ $("#export").addEventListener("click", () => {
 });
 
 $("#generate").addEventListener("click", generateSamples);
+
+document.querySelector(".page-tabs").addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-page]");
+  if (!button) return;
+  const page = button.dataset.page;
+  $("#daily-page").hidden = page !== "daily";
+  $("#q3-page").hidden = page !== "q3";
+  document.querySelectorAll(".page-tabs button").forEach((element) => {
+    element.classList.toggle("active", element === button);
+  });
+  if (page === "q3") loadQ3Items();
+});
+
+$("#q3-list").addEventListener("click", (event) => {
+  const row = event.target.closest(".q3-row");
+  if (!row) return;
+  state.q3SelectedKey = row.dataset.key;
+  const button = event.target.closest("button[data-score]");
+  if (button) rateQ3Item(row.dataset.key, Number(button.dataset.score));
+  else {
+    document.querySelectorAll(".q3-row.selected").forEach((element) => element.classList.remove("selected"));
+    row.classList.add("selected");
+    row.focus();
+  }
+});
+
+$("#q3-list").addEventListener("keydown", (event) => {
+  if (!/^[0-4]$/.test(event.key)) return;
+  const row = event.target.closest(".q3-row");
+  if (!row) return;
+  event.preventDefault();
+  rateQ3Item(row.dataset.key, Number(event.key));
+});
+
+for (const selector of ["#q3-kind", "#q3-status-filter"]) {
+  $(selector).addEventListener("change", () => renderQ3Items());
+}
+$("#q3-search").addEventListener("input", () => renderQ3Items());
+
+$("#q3-export").addEventListener("click", () => {
+  const payload = {
+    schema_version: 1,
+    rules_target: "daily-good-v1",
+    scale: Object.fromEntries(q3Scale.map((label, score) => [score, label])),
+    ratings: Object.fromEntries(state.q3Ratings),
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "daily-good-q3-ratings.json";
+  link.click();
+  URL.revokeObjectURL(link.href);
+});

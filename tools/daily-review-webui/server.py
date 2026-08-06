@@ -24,6 +24,7 @@ HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[1]
 DEFAULT_CANDIDATES = 10_000_000
 MAX_DAYS = 100
+RATINGS_PATH = REPO_ROOT / "output" / "daily-good-q3-ratings.json"
 
 
 def find_executable(explicit: Path | None) -> Path:
@@ -53,6 +54,7 @@ def load_item_names() -> dict[tuple[str, int], dict[str, object]]:
             "name_zh": entry.get("name_zh") or entry.get("name_en") or "未知道具",
             "name_en": entry.get("name_en") or "",
             "quality": entry.get("quality"),
+            "available_for_eden": bool(entry.get("available_for_eden")),
         }
     return result
 
@@ -118,6 +120,87 @@ class ReviewApplication:
         self.executable = executable
         self.items = load_item_names()
         self.icons = locate_collectible_icons(game_dir)
+        self.ratings_lock = threading.Lock()
+
+    def q3_items(self) -> dict[str, object]:
+        items = []
+        for (kind, item_id), item in self.items.items():
+            if item.get("quality") != 3 or not item.get("available_for_eden"):
+                continue
+            items.append(
+                {
+                    "key": f"{kind}:{item_id}",
+                    "kind": kind,
+                    "id": item_id,
+                    "name_zh": item["name_zh"],
+                    "name_en": item["name_en"],
+                    "quality": 3,
+                    "has_icon": item_id in self.icons,
+                }
+            )
+        items.sort(key=lambda item: (item["kind"], item["id"]))
+        return {
+            "items": items,
+            "active_count": sum(item["kind"] == "active" for item in items),
+            "passive_count": sum(item["kind"] == "passive" for item in items),
+        }
+
+    def load_q3_ratings(self) -> dict[str, int]:
+        with self.ratings_lock:
+            if not RATINGS_PATH.is_file():
+                return {}
+            with RATINGS_PATH.open("r", encoding="utf-8") as stream:
+                payload = json.load(stream)
+        ratings = payload.get("ratings", payload)
+        return self._validate_q3_ratings(ratings)
+
+    def save_q3_ratings(self, ratings: object) -> dict[str, object]:
+        validated = self._validate_q3_ratings(ratings)
+        payload = {
+            "schema_version": 1,
+            "rules_target": "daily-good-v1",
+            "scale": {
+                "0": "不推荐",
+                "1": "一般",
+                "2": "不错",
+                "3": "很爽",
+                "4": "足以决定开局",
+            },
+            "ratings": dict(sorted(validated.items())),
+        }
+        RATINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        temporary_path = RATINGS_PATH.with_suffix(".json.tmp")
+        with self.ratings_lock:
+            temporary_path.write_text(
+                json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            temporary_path.replace(RATINGS_PATH)
+        return {"saved": len(validated), "path": str(RATINGS_PATH)}
+
+    def _validate_q3_ratings(self, ratings: object) -> dict[str, int]:
+        if not isinstance(ratings, dict):
+            raise ValueError("ratings 必须是对象。")
+        allowed = {
+            f"{kind}:{item_id}"
+            for (kind, item_id), item in self.items.items()
+            if item.get("quality") == 3 and item.get("available_for_eden")
+        }
+        result: dict[str, int] = {}
+        for raw_key, raw_score in ratings.items():
+            key = str(raw_key)
+            if key not in allowed:
+                raise ValueError(f"不是当前资料表中的 Q3 道具：{key}")
+            if isinstance(raw_score, bool):
+                raise ValueError(f"{key} 的评分必须是 0 到 4。")
+            try:
+                score = int(raw_score)
+            except (TypeError, ValueError) as error:
+                raise ValueError(f"{key} 的评分必须是 0 到 4。") from error
+            if score < 0 or score > 4 or str(score) != str(raw_score):
+                raise ValueError(f"{key} 的评分必须是 0 到 4。")
+            result[key] = score
+        return result
 
     def generate(self, payload: dict[str, object]) -> dict[str, object]:
         start_date, days, candidates = parse_generation_request(payload)
@@ -216,6 +299,12 @@ class ReviewHandler(BaseHTTPRequestHandler):
         if path == "/style.css":
             self._send_file(HERE / "style.css")
             return
+        if path == "/api/q3-items":
+            self._send_json(HTTPStatus.OK, self.app.q3_items())
+            return
+        if path == "/api/q3-ratings":
+            self._send_json(HTTPStatus.OK, {"ratings": self.app.load_q3_ratings()})
+            return
         match = re.fullmatch(r"/icon/(\d+)\.png", path)
         if match:
             icon = self.app.icons.get(int(match.group(1)))
@@ -225,7 +314,8 @@ class ReviewHandler(BaseHTTPRequestHandler):
         self.send_error(HTTPStatus.NOT_FOUND)
 
     def do_POST(self) -> None:  # noqa: N802
-        if urlparse(self.path).path != "/api/generate":
+        path = urlparse(self.path).path
+        if path not in {"/api/generate", "/api/q3-ratings"}:
             self.send_error(HTTPStatus.NOT_FOUND)
             return
         try:
@@ -233,7 +323,11 @@ class ReviewHandler(BaseHTTPRequestHandler):
             if length > 64 * 1024:
                 raise ValueError("请求体过大。")
             payload = json.loads(self.rfile.read(length) or b"{}")
-            response = self.app.generate(payload)
+            response = (
+                self.app.generate(payload)
+                if path == "/api/generate"
+                else self.app.save_q3_ratings(payload.get("ratings"))
+            )
             self._send_json(HTTPStatus.OK, response)
         except (ValueError, json.JSONDecodeError) as error:
             self._send_json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
