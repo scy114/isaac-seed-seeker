@@ -1,9 +1,11 @@
 #include "isaac_seed_seeker/core.hpp"
 #include "isaac_seed_seeker/builtin_profile.hpp"
+#include "isaac_seed_seeker/daily.hpp"
 #include "isaac_seed_seeker/local_web_app.hpp"
 
 #include <algorithm>
 #include <charconv>
+#include <chrono>
 #include <cmath>
 #include <fstream>
 #include <iomanip>
@@ -257,6 +259,75 @@ std::string json_escape(std::string_view value) {
     return result;
 }
 
+std::chrono::sys_days parse_iso_date(const std::string& text) {
+    if (text.size() != 10 || text[4] != '-' || text[7] != '-') {
+        throw std::invalid_argument("invalid date: " + text);
+    }
+    const auto part = [&](std::size_t offset, std::size_t length) {
+        unsigned value = 0;
+        const auto parsed = std::from_chars(
+            text.data() + offset,
+            text.data() + offset + length,
+            value
+        );
+        if (parsed.ec != std::errc() || parsed.ptr != text.data() + offset + length) {
+            throw std::invalid_argument("invalid date: " + text);
+        }
+        return value;
+    };
+    using namespace std::chrono;
+    const year_month_day date{
+        year{static_cast<int>(part(0, 4))},
+        month{part(5, 2)},
+        day{part(8, 2)},
+    };
+    if (!date.ok()) throw std::invalid_argument("invalid date: " + text);
+    return sys_days{date};
+}
+
+std::string iso_date(std::chrono::sys_days value) {
+    const std::chrono::year_month_day date{value};
+    std::ostringstream output;
+    output << std::setfill('0')
+           << std::setw(4) << static_cast<int>(date.year()) << '-'
+           << std::setw(2) << static_cast<unsigned>(date.month()) << '-'
+           << std::setw(2) << static_cast<unsigned>(date.day());
+    return output.str();
+}
+
+void write_daily_good_header(std::ostream& output) {
+    output
+        << "date,seed,seed_u32,weight,active_id,active_quality,passive_id,passive_quality,"
+           "damage,tears,move_speed,active_q4_bonus,passive_q4_bonus,death_certificate_bonus,"
+           "damage_bonus,tears_bonus,move_speed_bonus,eligible,scanned,elapsed_seconds\n";
+}
+
+void write_daily_good_row(std::ostream& output, const iss::DailyGoodResult& result) {
+    const auto& start = result.primary;
+    const auto& score = result.primary_score;
+    output << result.date_utc8 << ','
+           << iss::seed_to_string(start.seed) << ','
+           << start.seed << ','
+           << score.selection_weight << ','
+           << start.active_id << ','
+           << start.active_quality << ','
+           << start.passive_id << ','
+           << start.passive_quality << ','
+           << std::fixed << std::setprecision(6)
+           << start.damage << ','
+           << start.tears << ','
+           << start.move_speed << ','
+           << score.active_quality_bonus << ','
+           << score.passive_quality_bonus << ','
+           << score.death_certificate_bonus << ','
+           << score.damage_bonus << ','
+           << score.tears_bonus << ','
+           << score.move_speed_bonus << ','
+           << result.eligible << ','
+           << result.scanned << ','
+           << result.elapsed_seconds << '\n';
+}
+
 void write_result(std::ostream& output, const iss::SearchResult& result, const iss::SearchOptions& options) {
     output << "{\n"
            << "  \"schema_version\": 2,\n"
@@ -329,6 +400,9 @@ void print_usage() {
         << "Inspect one seed:\n"
         << "  IsaacSeedSeeker inspect --seed 10161220\n"
         << "  IsaacSeedSeeker inspect --seed-label \"B74H HQPR\"\n\n"
+        << "Simulate spoiler-visible daily good seeds for rule calibration:\n"
+        << "  IsaacSeedSeeker simulate-daily-good --start-date 2026-01-01 "
+           "--days 100 --candidates 10000000 --output daily-good.csv\n\n"
         << "Search a range:\n"
         << "  IsaacSeedSeeker search "
            "--trinket 1,2 --active 105 --damage-min 4.0 "
@@ -363,6 +437,51 @@ int main(int argc, char** argv) {
             return iss::run_local_web_app(optional(arguments, "no-browser", "0") != "1");
         }
         const auto tables = load_tables(arguments);
+        if (arguments.command == "simulate-daily-good") {
+            const auto first_date = parse_iso_date(required(arguments, "start-date"));
+            const auto days = parse_unsigned(optional(arguments, "days", "100"), "days");
+            if (days == 0 || days > 3660) {
+                throw std::invalid_argument("--days must be between 1 and 3660");
+            }
+            iss::DailyGoodOptions options;
+            options.candidates = parse_u32(
+                optional(arguments, "candidates", "10000000"),
+                "candidates"
+            );
+            options.threads = std::min(
+                64U,
+                parse_unsigned(optional(arguments, "threads", "0"), "threads")
+            );
+            const auto output_path = optional(arguments, "output");
+            std::ofstream file;
+            std::ostream* output = &std::cout;
+            if (!output_path.empty()) {
+                file.open(output_path, std::ios::binary);
+                if (!file) throw std::runtime_error("cannot write output: " + output_path);
+                output = &file;
+            }
+            write_daily_good_header(*output);
+            std::uint64_t total_scanned = 0;
+            std::uint64_t total_eligible = 0;
+            double total_elapsed = 0.0;
+            for (unsigned index = 0; index < days; ++index) {
+                options.date_utc8 = iso_date(first_date + std::chrono::days{index});
+                const auto result = iss::select_daily_good_v0(tables, options);
+                write_daily_good_row(*output, result);
+                total_scanned += result.scanned;
+                total_eligible += result.eligible;
+                total_elapsed += result.elapsed_seconds;
+            }
+            if (!output_path.empty()) {
+                std::cout << "rules=" << iss::daily_good_rules_version
+                          << " days=" << days
+                          << " scanned=" << total_scanned
+                          << " eligible=" << total_eligible
+                          << " elapsed=" << std::fixed << std::setprecision(3)
+                          << total_elapsed << "s output=" << output_path << '\n';
+            }
+            return 0;
+        }
         if (arguments.command == "inspect") {
             const auto seed_label = optional(arguments, "seed-label");
             const auto seed = seed_label.empty()

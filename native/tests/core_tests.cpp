@@ -1,5 +1,6 @@
 #include "isaac_seed_seeker/core.hpp"
 #include "isaac_seed_seeker/builtin_profile.hpp"
+#include "isaac_seed_seeker/daily.hpp"
 
 #include <cstdlib>
 #include <array>
@@ -124,6 +125,68 @@ int main(int argc, char** argv) {
                 "maximum starting coins mismatch");
         require(iss::predict_eden_start(33U, builtin).bombs == 2,
                 "maximum starting bombs mismatch");
+
+        iss::EdenStart daily_good_boundary;
+        daily_good_boundary.active_id = 58;
+        daily_good_boundary.active_quality = 3;
+        daily_good_boundary.passive_id = 1;
+        daily_good_boundary.passive_quality = 3;
+        daily_good_boundary.damage = 3.0;
+        daily_good_boundary.tears = 3.0;
+        daily_good_boundary.move_speed = 1.0;
+        const auto daily_boundary_score = iss::score_daily_good_v0(daily_good_boundary);
+        require(daily_boundary_score.eligible, "daily good boundary seed was rejected");
+        require(daily_boundary_score.selection_weight == 100,
+                "daily good boundary weight mismatch");
+
+        auto daily_good_maximum = daily_good_boundary;
+        daily_good_maximum.active_id = 628;
+        daily_good_maximum.active_quality = 4;
+        daily_good_maximum.passive_id = 4;
+        daily_good_maximum.passive_quality = 4;
+        daily_good_maximum.damage = 4.5;
+        daily_good_maximum.tears = 3.501433905;
+        daily_good_maximum.move_speed = 1.15;
+        const auto daily_maximum_score = iss::score_daily_good_v0(daily_good_maximum);
+        require(daily_maximum_score.eligible, "maximum daily good seed was rejected");
+        require(daily_maximum_score.selection_weight == 285,
+                "maximum daily good weight mismatch");
+        require(daily_maximum_score.death_certificate_bonus == 30,
+                "Death Certificate daily bonus mismatch");
+
+        auto daily_ipecac = daily_good_boundary;
+        daily_ipecac.passive_id = 149;
+        daily_ipecac.passive_quality = 4;
+        require(!iss::score_daily_good_v0(daily_ipecac).eligible,
+                "Ipecac was accepted as a daily good seed");
+        auto daily_low_tears = daily_good_boundary;
+        daily_low_tears.tears = 2.999;
+        require(!iss::score_daily_good_v0(daily_low_tears).eligible,
+                "low tears passed the daily good gate");
+
+        iss::DailyGoodOptions daily_options;
+        daily_options.date_utc8 = "2026-08-06";
+        daily_options.candidates = 25'000;
+        daily_options.threads = 1;
+        const auto daily_single_thread = iss::select_daily_good_v0(builtin, daily_options);
+        daily_options.threads = 4;
+        const auto daily_four_threads = iss::select_daily_good_v0(builtin, daily_options);
+        require(daily_single_thread.eligible > 0, "daily scan produced no eligible seeds");
+        require(daily_single_thread.primary.seed == daily_four_threads.primary.seed,
+                "daily selection changed with thread count");
+        require(daily_single_thread.eligible == daily_four_threads.eligible,
+                "daily eligible count changed with thread count");
+        require(daily_single_thread.primary_score.selection_weight
+                    == daily_four_threads.primary_score.selection_weight,
+                "daily weight changed with thread count");
+        bool invalid_daily_date_rejected = false;
+        try {
+            daily_options.date_utc8 = "2026-02-30";
+            static_cast<void>(iss::select_daily_good_v0(builtin, daily_options));
+        } catch (const std::invalid_argument&) {
+            invalid_daily_date_rejected = true;
+        }
+        require(invalid_daily_date_rejected, "invalid daily date was accepted");
 
         const auto pill_start = iss::predict_eden_start(5U, builtin);
         require(pill_start.pocket_kind == iss::PocketKind::pill, "pill pocket kind mismatch");

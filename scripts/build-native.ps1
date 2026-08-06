@@ -25,6 +25,7 @@ $Common = @(
 $CoreSources = @(
     "$ProjectRoot\native\generated\builtin_profile_j460.cpp",
     "$ProjectRoot\native\src\core.cpp",
+    "$ProjectRoot\native\src\daily.cpp",
     "$ProjectRoot\native\src\profile_tables.cpp"
 )
 
