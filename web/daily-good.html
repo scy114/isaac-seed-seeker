@@ -19,7 +19,7 @@
             <p class="step">DAILY EDEN</p>
             <h1>每日一爽</h1>
             <p class="treatment-title-en" lang="en">One Eden seed a day</p>
-            <p class="treatment-tagline">今天玩什么？种子替你决定。</p>
+            <p class="treatment-tagline">来都来了，开一把吧。</p>
           </div>
         </div>
       </div>
@@ -33,8 +33,8 @@
     <section class="panel daily-good-panel">
       <div class="daily-good-heading">
         <p class="step">TODAY'S SEED</p>
-        <h2 id="daily-heading">今天的第一颗种子</h2>
-        <p>开局内容已经藏好。复制进游戏，再看看它到底爽不爽。</p>
+        <h2 id="daily-heading">今天就玩这个</h2>
+        <p>想盲开就直接复制，想先看看也能揭晓。</p>
       </div>
 
       <div class="daily-good-reveal" aria-live="polite">
@@ -47,14 +47,54 @@
       <div class="daily-good-actions">
         <button class="primary" id="copy-daily-seed" type="button" disabled>复制种子</button>
         <button class="secondary" id="reroll-daily-seed" type="button" disabled>换一个</button>
+        <button class="secondary" id="reveal-daily-seed" type="button" disabled>揭晓开局</button>
       </div>
 
-      <p class="daily-good-rule">第一次领取时，所有玩家看到的种子相同。不合口味就换一个；这里只给种子，不剧透道具和属性。</p>
+      <p class="daily-good-rule">每天的第一颗种子固定。不喜欢就换，想保留惊喜就别点揭晓。</p>
       <p class="error" id="daily-error" hidden></p>
+
+      <section class="daily-details" id="daily-details" hidden>
+        <div class="daily-details-heading">
+          <p class="step">SPOILERS</p>
+          <h3>这局带了什么</h3>
+        </div>
+
+        <div class="daily-detail-items">
+          <article class="inspector-item-card">
+            <img id="daily-pocket-icon" alt="" hidden>
+            <span><small>口袋物</small><strong id="daily-pocket">—</strong><b id="daily-pocket-meta">—</b></span>
+          </article>
+          <article class="inspector-item-card">
+            <img id="daily-active-icon" alt="" hidden>
+            <span><small>主动道具</small><strong id="daily-active">—</strong><b id="daily-active-meta">—</b></span>
+          </article>
+          <article class="inspector-item-card">
+            <img id="daily-passive-icon" alt="" hidden>
+            <span><small>被动道具</small><strong id="daily-passive">—</strong><b id="daily-passive-meta">—</b></span>
+          </article>
+        </div>
+
+        <dl class="daily-detail-resources">
+          <div><dt>红心</dt><dd id="daily-red-hearts">—</dd></div>
+          <div><dt>魂心</dt><dd id="daily-soul-hearts">—</dd></div>
+          <div><dt>钱</dt><dd id="daily-coins">—</dd></div>
+          <div><dt>钥匙</dt><dd id="daily-keys">—</dd></div>
+          <div><dt>炸弹</dt><dd id="daily-bombs">—</dd></div>
+        </dl>
+
+        <dl class="daily-detail-stats">
+          <div><dt>伤害</dt><dd id="daily-damage">—</dd></div>
+          <div><dt>射速</dt><dd id="daily-tears">—</dd></div>
+          <div><dt>移速</dt><dd id="daily-move-speed">—</dd></div>
+          <div><dt>射程</dt><dd id="daily-range">—</dd></div>
+          <div><dt>弹速</dt><dd id="daily-shot-speed">—</dd></div>
+          <div><dt>幸运</dt><dd id="daily-luck">—</dd></div>
+        </dl>
+      </section>
     </section>
 
     <footer>
-      <span>每日一爽 · 不保证答案，只负责开局</span>
+      <span>每日一爽 · 玩得不爽就换一个</span>
       <button id="shutdown-button" type="button">关闭本地程序</button>
     </footer>
   </main>

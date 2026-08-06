@@ -768,6 +768,8 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
 .inspector-stat-grid { grid-template-columns: repeat(6, 1fr); gap: 10px; }
 
 .daily-good-shell { width: min(980px, calc(100% - 34px)); }
+.daily-good-shell .profile-card,
+.daily-good-shell .step { background-color: transparent; }
 .daily-good-hero { min-height: 240px; }
 .daily-good-hero-icon {
   flex: 0 0 auto;
@@ -808,10 +810,26 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
   text-rendering: optimizeSpeed;
 }
 .daily-good-reveal > p { min-height: 20px; margin: -2px 0 0; color: #b39e88; font-size: 13px; }
-.daily-good-actions { display: flex; justify-content: center; gap: 12px; width: min(420px, 100%); }
-.daily-good-actions button { min-width: 150px; }
+.daily-good-actions { display: flex; justify-content: center; gap: 12px; width: min(570px, 100%); }
+.daily-good-actions button { min-width: 160px; }
 .daily-good-rule { max-width: 650px; margin: 20px 0 0; padding-top: 16px; color: #8f8175; border-top: 1px solid #40332c; font-size: 12px; line-height: 1.65; }
 .daily-good-panel .error { width: min(650px, 100%); margin: 12px 0 0; }
+.daily-details { width: 100%; margin-top: 24px; padding-top: 24px; border-top: 1px solid #4b3a31; text-align: left; }
+.daily-details[hidden] { display: none; }
+.daily-details-heading { margin-bottom: 16px; text-align: center; }
+.daily-details-heading .step { margin-inline: auto; }
+.daily-details-heading h3 { margin: 7px 0 0; color: #e9d8bd; font-family: var(--font-display); font-size: 24px; font-weight: 400; }
+.daily-detail-items { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.daily-detail-resources,
+.daily-detail-stats { display: grid; gap: 10px; margin: 12px 0 0; }
+.daily-detail-resources { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.daily-detail-stats { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.daily-detail-resources div,
+.daily-detail-stats div { padding: 11px 12px; background: #0f0c0a; border: 1px solid #352a24; text-align: center; }
+.daily-detail-resources dt,
+.daily-detail-stats dt { color: #86796e; font-size: 11px; }
+.daily-detail-resources dd,
+.daily-detail-stats dd { margin: 4px 0 0; color: #ead5b5; font-family: var(--font-mono); font-size: 17px; font-weight: 700; }
 
 @media (max-width: 1040px) {
   .hero { align-items: start; }
@@ -875,6 +893,9 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
   .daily-good-paper strong { font-size: 41px; }
   .daily-good-actions { display: grid; grid-template-columns: 1fr; }
   .daily-good-actions button { width: 100%; }
+  .daily-detail-items { grid-template-columns: 1fr; }
+  .daily-detail-resources,
+  .daily-detail-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .treatment-rule-strip { display: grid; gap: 5px; }
   .treatment-health-card { grid-template-columns: 1fr !important; }
   .direction-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }

@@ -78,8 +78,11 @@ try {
         "daily-good page" = $DailyGoodPage.Content -match 'data-page="daily-good"'
         "daily-good seed" = $DailyGoodPage.Content -match 'id="daily-seed"'
         "daily-good reroll" = $DailyGoodPage.Content -match 'id="reroll-daily-seed"'
+        "daily-good reveal" = $DailyGoodPage.Content -match 'id="reveal-daily-seed"'
+        "daily-good details" = $DailyGoodPage.Content -match 'id="daily-details"'
         "daily-good random variant" = $DailyGoodScript.Content -match 'randomVariant'
         "daily-good persistence" = $DailyGoodScript.Content -match 'localStorage'
+        "daily-good inspect" = $DailyGoodScript.Content -match '/api/v1/inspect'
         "generic page size" = $Page.Content -match 'id="page-size"'
         "generic catalog state" = $Page.Content -match 'id="catalog-state"'
         "generic pills" = $ClientScript.Content -match "pill_effect_ids"
