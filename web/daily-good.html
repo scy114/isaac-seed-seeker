@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>每日一爽 · Isaac Seed Seeker</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body data-page="daily-good">
+  <canvas id="basement-room" aria-hidden="true"></canvas>
+  <main class="shell daily-good-shell">
+    <header class="hero treatment-hero daily-good-hero">
+      <div class="treatment-hero-copy">
+        <a class="back-link" id="generic-page-link" href="/">← 返回伊甸搜索</a>
+        <div class="treatment-title-row">
+          <img class="daily-good-hero-icon" src="/game-assets/passive/381.png" alt="" data-game-icon>
+          <div>
+            <p class="step">DAILY EDEN</p>
+            <h1>每日一爽</h1>
+            <p class="treatment-title-en" lang="en">One Eden seed a day</p>
+            <p class="treatment-tagline">今天玩什么？种子替你决定。</p>
+          </div>
+        </div>
+      </div>
+      <aside class="profile-card">
+        <span class="profile-label">今日日期</span>
+        <strong id="daily-date">正在读取…</strong>
+        <small>命名致敬 112345</small>
+      </aside>
+    </header>
+
+    <section class="panel daily-good-panel">
+      <div class="daily-good-heading">
+        <p class="step">TODAY'S SEED</p>
+        <h2 id="daily-heading">今天的第一颗种子</h2>
+        <p>开局内容已经藏好。复制进游戏，再看看它到底爽不爽。</p>
+      </div>
+
+      <div class="daily-good-reveal" aria-live="polite">
+        <div class="daily-good-paper">
+          <strong id="daily-seed">—</strong>
+        </div>
+        <p id="daily-status">正在替你抽取今天的伊甸开局……</p>
+      </div>
+
+      <div class="daily-good-actions">
+        <button class="primary" id="copy-daily-seed" type="button" disabled>复制种子</button>
+        <button class="secondary" id="reroll-daily-seed" type="button" disabled>换一个</button>
+      </div>
+
+      <p class="daily-good-rule">第一次领取时，所有玩家看到的种子相同。不合口味就换一个；这里只给种子，不剧透道具和属性。</p>
+      <p class="error" id="daily-error" hidden></p>
+    </section>
+
+    <footer>
+      <span>每日一爽 · 不保证答案，只负责开局</span>
+      <button id="shutdown-button" type="button">关闭本地程序</button>
+    </footer>
+  </main>
+  <script src="/daily-good.js"></script>
+</body>
+</html>

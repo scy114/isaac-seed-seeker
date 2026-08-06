@@ -4,6 +4,7 @@
 
 #include "isaac_seed_seeker/builtin_profile.hpp"
 #include "isaac_seed_seeker/core.hpp"
+#include "isaac_seed_seeker/daily.hpp"
 #include "../resources/resource.h"
 
 #define WIN32_LEAN_AND_MEAN
@@ -960,6 +961,8 @@ int run_local_web_app(bool open_browser) {
     const auto treatment_html = load_resource(IDR_WEB_TREATMENT);
     const auto inspector_html = load_resource(IDR_WEB_INSPECTOR);
     const auto inspector_js = load_resource(IDR_WEB_INSPECTOR_APP);
+    const auto daily_good_html = load_resource(IDR_WEB_DAILY_GOOD);
+    const auto daily_good_js = load_resource(IDR_WEB_DAILY_GOOD_APP);
     const GameIconCatalog game_icons;
     SearchSession session;
     std::cout << "Isaac Seed Seeker: " << url << std::endl;
@@ -1002,12 +1005,18 @@ int run_local_web_app(bool open_browser) {
                        && (request.path == "/seed-inspector.html"
                            || request.path.starts_with("/seed-inspector.html?"))) {
                 respond(client, 200, "OK", "text/html; charset=utf-8", inspector_html);
+            } else if (request.method == "GET"
+                       && (request.path == "/daily-good.html"
+                           || request.path.starts_with("/daily-good.html?"))) {
+                respond(client, 200, "OK", "text/html; charset=utf-8", daily_good_html);
             } else if (request.method == "GET" && request.path == "/style.css") {
                 respond(client, 200, "OK", "text/css; charset=utf-8", style_css);
             } else if (request.method == "GET" && request.path == "/app.js") {
                 respond(client, 200, "OK", "text/javascript; charset=utf-8", app_js);
             } else if (request.method == "GET" && request.path == "/seed-inspector.js") {
                 respond(client, 200, "OK", "text/javascript; charset=utf-8", inspector_js);
+            } else if (request.method == "GET" && request.path == "/daily-good.js") {
+                respond(client, 200, "OK", "text/javascript; charset=utf-8", daily_good_js);
             } else if (request.method == "GET" && request.path == "/assets/isaacsans.ttf") {
                 respond(client, 200, "OK", "font/ttf", isaac_sans_font);
             } else if (request.method == "GET" && request.path == "/assets/isaac-seed-seeker-title.png") {
@@ -1061,6 +1070,22 @@ int run_local_web_app(bool open_browser) {
                 std::ostringstream output;
                 output << std::setprecision(10);
                 append_start_json(output, start, seed_to_string(seed));
+                respond(client, 200, "OK", "application/json; charset=utf-8", output.str());
+            } else if (request.method == "POST" && request.path == "/api/v1/daily-good") {
+                const auto date = optional_json_string(request.body, "date");
+                if (!date) {
+                    throw std::invalid_argument("missing JSON field: date");
+                }
+                DailyGoodOptions options;
+                options.date_utc8 = *date;
+                options.draw_variant = optional_json_u32(request.body, "variant").value_or(0U);
+                const auto result = select_daily_good_v1(builtin_j460_profile(), options);
+                std::ostringstream output;
+                output << "{\"rules_version\":\"" << result.rules_version
+                       << "\",\"date\":\"" << json_escape(result.date_utc8)
+                       << "\",\"seed\":\"" << seed_to_string(result.primary.seed)
+                       << "\",\"seed_u32\":" << result.primary.seed
+                       << ",\"variant\":" << options.draw_variant << '}';
                 respond(client, 200, "OK", "application/json; charset=utf-8", output.str());
             } else if (request.method == "GET" && request.path == "/api/v1/search/status") {
                 respond(client, 200, "OK", "application/json; charset=utf-8", session.status_json());

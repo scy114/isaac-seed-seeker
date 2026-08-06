@@ -218,6 +218,12 @@ h2 { margin: 0; color: #e9d8bd; font-size: 25px; letter-spacing: .01em; }
 .chip:hover,
 .chip.active { color: #fff0db; border-color: #7e352e; background: #501d19; }
 
+.special-search-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 11px;
+  margin: -2px 0 20px;
+}
 .special-search-card {
   display: flex;
   align-items: center;
@@ -230,7 +236,10 @@ h2 { margin: 0; color: #e9d8bd; font-size: 25px; letter-spacing: .01em; }
   box-shadow: inset 0 0 0 1px #2b211c, 3px 4px 0 #090606;
   text-decoration: none;
 }
+.special-search-grid .special-search-card { min-height: 112px; margin: 0; }
 .special-search-card:hover { border-color: #bd7f35; background: linear-gradient(100deg, #341812, #1d1512 62%, #2d2012); }
+.daily-good-entry { border-color: #756443; background: linear-gradient(100deg, #2a2113, #171210 62%, #211810); }
+.daily-good-entry:hover { border-color: #d5bd72; background: linear-gradient(100deg, #3b301a, #1d1712 62%, #302713); }
 .special-search-card img { flex: 0 0 auto; width: 60px; height: 60px; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(3px 4px 0 #050303); }
 .special-search-card img.is-missing { display: none; }
 .special-search-copy { display: grid; flex: 1 1 auto; gap: 2px; min-width: 0; }
@@ -238,6 +247,18 @@ h2 { margin: 0; color: #e9d8bd; font-size: 25px; letter-spacing: .01em; }
 .special-search-copy strong { font-family: var(--font-display); font-size: 21px; font-weight: 400; }
 .special-search-copy span { color: var(--muted); font-size: 12px; }
 .special-search-card > b { color: #dfb778; font-size: 13px; white-space: nowrap; }
+.special-search-card.coming-soon { cursor: default; opacity: .55; border-style: dashed; }
+.special-search-card.coming-soon:hover { border-color: #6a4931; background: linear-gradient(100deg, #251510, #171210 62%, #211810); }
+.special-icon-placeholder {
+  display: grid;
+  flex: 0 0 60px;
+  width: 60px;
+  height: 60px;
+  place-items: center;
+  color: #887266;
+  font: 400 44px var(--font-display);
+  border: 1px dashed #665148;
+}
 
 #search-form { display: grid; gap: 15px; }
 .filter-group {
@@ -746,6 +767,52 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
 .inspector-stats-block { margin-top: 18px; }
 .inspector-stat-grid { grid-template-columns: repeat(6, 1fr); gap: 10px; }
 
+.daily-good-shell { width: min(980px, calc(100% - 34px)); }
+.daily-good-hero { min-height: 240px; }
+.daily-good-hero-icon {
+  flex: 0 0 auto;
+  width: 86px;
+  height: 86px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(4px 5px 0 rgba(0, 0, 0, .5));
+}
+.daily-good-hero-icon.is-missing { display: none; }
+.daily-good-panel { display: grid; justify-items: center; padding: 22px 30px 27px; text-align: center; }
+.daily-good-heading { max-width: 620px; }
+.daily-good-heading .step { margin-inline: auto; }
+.daily-good-heading h2 { margin: 8px 0 6px; font-size: 28px; }
+.daily-good-heading > p:last-child { margin: 0; color: var(--muted); }
+.daily-good-reveal { display: grid; justify-items: center; gap: 4px; margin: 10px 0 8px; }
+.daily-good-paper {
+  display: grid;
+  width: 280px;
+  height: 210px;
+  place-items: center;
+  color: var(--paper-ink);
+  background-image: url("/game-assets/ui/seed-entry.png");
+  background-repeat: no-repeat;
+  background-position: left top;
+  background-size: 133.333% 266.667%;
+  filter: drop-shadow(4px 5px 0 rgba(0, 0, 0, .44));
+}
+.daily-good-paper strong {
+  font-family: "IsaacSans", var(--font-mono);
+  font-size: 41px;
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: .04em;
+  white-space: pre-line;
+  text-align: left;
+  -webkit-font-smoothing: none;
+  text-rendering: optimizeSpeed;
+}
+.daily-good-reveal > p { min-height: 20px; margin: -2px 0 0; color: #b39e88; font-size: 13px; }
+.daily-good-actions { display: flex; justify-content: center; gap: 12px; width: min(420px, 100%); }
+.daily-good-actions button { min-width: 150px; }
+.daily-good-rule { max-width: 650px; margin: 20px 0 0; padding-top: 16px; color: #8f8175; border-top: 1px solid #40332c; font-size: 12px; line-height: 1.65; }
+.daily-good-panel .error { width: min(650px, 100%); margin: 12px 0 0; }
+
 @media (max-width: 1040px) {
   .hero { align-items: start; }
   .hero-copy { padding-right: 265px; }
@@ -757,6 +824,8 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
   .three-columns > :last-child { grid-column: 1 / -1; }
   .treatment-hero-copy { padding-right: 255px; }
   .direction-grid { grid-template-columns: 1fr; }
+  .special-search-grid { grid-template-columns: 1fr 1fr; }
+  .special-search-grid .coming-soon { grid-column: 1 / -1; }
 }
 
 @media (max-width: 740px) {
@@ -788,6 +857,8 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
   .range-grid { grid-template-columns: 1fr; }
   .three-columns > :last-child { grid-column: auto; }
   .special-search-card { align-items: flex-start; }
+  .special-search-grid { grid-template-columns: 1fr; }
+  .special-search-grid .coming-soon { grid-column: auto; }
   .special-search-card > b { display: none; }
   .treatment-target-grid { grid-template-columns: 1fr; }
   .inspector-form,
@@ -798,6 +869,12 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
   .inspector-seed-caption h2 { margin-bottom: 6px; }
   .inspector-seed-card { width: min(252px, 100%); height: auto; aspect-ratio: 4 / 3; }
   .inspector-stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .daily-good-shell { width: min(100% - 20px, 980px); }
+  .daily-good-hero-icon { width: 72px; height: 72px; }
+  .daily-good-paper { width: min(300px, 100%); height: auto; aspect-ratio: 4 / 3; }
+  .daily-good-paper strong { font-size: 41px; }
+  .daily-good-actions { display: grid; grid-template-columns: 1fr; }
+  .daily-good-actions button { width: 100%; }
   .treatment-rule-strip { display: grid; gap: 5px; }
   .treatment-health-card { grid-template-columns: 1fr !important; }
   .direction-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }

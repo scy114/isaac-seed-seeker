@@ -218,6 +218,15 @@ int main(int argc, char** argv) {
         require(daily_v1_single_thread.primary_score.selection_weight
                     == daily_v1_four_threads.primary_score.selection_weight,
                 "daily v1 weight changed with thread count");
+        daily_options.draw_variant = 0x12345678U;
+        const auto daily_v1_variant = iss::select_daily_good_v1(builtin, daily_options);
+        require(daily_v1_variant.primary.seed != daily_v1_four_threads.primary.seed,
+                "daily v1 reroll variant repeated the first seed");
+        daily_options.threads = 1;
+        const auto daily_v1_variant_single_thread = iss::select_daily_good_v1(builtin, daily_options);
+        require(daily_v1_variant.primary.seed == daily_v1_variant_single_thread.primary.seed,
+                "daily v1 reroll variant changed with thread count");
+        daily_options.draw_variant = 0;
         bool invalid_daily_date_rejected = false;
         try {
             daily_options.date_utc8 = "2026-02-30";

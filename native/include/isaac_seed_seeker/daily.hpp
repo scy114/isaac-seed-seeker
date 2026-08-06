@@ -30,6 +30,7 @@ struct DailyGoodOptions {
     std::string date_utc8;
     std::uint64_t candidates = 10'000'000;
     unsigned threads = 0;
+    std::uint32_t draw_variant = 0;
 };
 
 struct DailyGoodResult {

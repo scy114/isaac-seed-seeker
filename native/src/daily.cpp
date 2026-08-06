@@ -202,7 +202,11 @@ DailyGoodResult select_daily_good_impl(
         throw std::runtime_error("daily scan produced no eligible good seeds");
     }
 
-    const auto draw_hash = splitmix64(key_hash ^ 0x6461696c792d676fULL);
+    auto draw_salt = 0x6461696c792d676fULL;
+    if (options.draw_variant != 0) {
+        draw_salt ^= splitmix64(options.draw_variant);
+    }
+    const auto draw_hash = splitmix64(key_hash ^ draw_salt);
     auto target = draw_hash % total_weight;
     const WeightedCandidate* selected = nullptr;
     for (const auto& candidates : local_candidates) {

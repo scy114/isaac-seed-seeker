@@ -46,45 +46,56 @@ try {
     $Page = Invoke-WebRequest $Url -UseBasicParsing
     $TreatmentPage = Invoke-WebRequest ($BaseUrl + "experimental-treatment.html?token=" + $Token) -UseBasicParsing
     $InspectorPage = Invoke-WebRequest ($BaseUrl + "seed-inspector.html?token=" + $Token) -UseBasicParsing
+    $DailyGoodPage = Invoke-WebRequest ($BaseUrl + "daily-good.html?token=" + $Token) -UseBasicParsing
     $ClientScript = Invoke-WebRequest ($BaseUrl + "app.js") -UseBasicParsing
     $InspectorScript = Invoke-WebRequest ($BaseUrl + "seed-inspector.js") -UseBasicParsing
+    $DailyGoodScript = Invoke-WebRequest ($BaseUrl + "daily-good.js") -UseBasicParsing
     $IsaacFont = Invoke-WebRequest ($BaseUrl + "assets/isaacsans.ttf") -UseBasicParsing
     $LanaPixelFont = Invoke-WebRequest ($BaseUrl + "assets/lanapixel.ttf") -UseBasicParsing
     $SeekerTitle = Invoke-WebRequest ($BaseUrl + "assets/isaac-seed-seeker-title.png") -UseBasicParsing
-    if (
-        $Page.Content -notmatch 'id="red-hearts-min"' -or
-        $Page.Content -notmatch 'id="coins-min"' -or
-        $Page.Content -notmatch 'id="treatment-page-link"' -or
-        $Page.Content -notmatch 'id="seed-inspector-link"' -or
-        $Page.Content -notmatch 'data-sort-key="damage"' -or
-        $TreatmentPage.Content -notmatch 'data-page="treatment"' -or
-        $TreatmentPage.Content -notmatch 'id="experimental-damage"' -or
-        $TreatmentPage.Content -notmatch 'id="post-damage-min"' -or
-        $TreatmentPage.Content -notmatch 'id="treatment-constraint-state"' -or
-        $TreatmentPage.Content -notmatch 'data-treatment-stat="damage"' -or
-        $TreatmentPage.Content -notmatch 'class="base-stats-panel"' -or
-        $TreatmentPage.Content -notmatch 'id="generic-page-link"' -or
-        $TreatmentPage.Content -notmatch 'class="treatment-tagline"' -or
-        $InspectorPage.Content -notmatch 'data-page="inspector"' -or
-        $InspectorPage.Content -notmatch 'id="seed-input"' -or
-        $InspectorPage.Content -notmatch 'id="inspector-result"' -or
-        $InspectorPage.Content -notmatch 'id="result-active"' -or
-        $InspectorScript.Content -notmatch 'normalizeSeed' -or
-        $InspectorScript.Content -notmatch 'JSON.stringify' -or
-        $Page.Content -notmatch 'id="page-size"' -or
-        $Page.Content -notmatch 'id="catalog-state"' -or
-        $ClientScript.Content -notmatch "pill_effect_ids" -or
-        $ClientScript.Content -notmatch "post_item_stats_available" -or
-        $ClientScript.Content -notmatch "treatmentMode" -or
-        $ClientScript.Content -notmatch "sort_direction" -or
-        $ClientScript.Content -notmatch "compareMatches" -or
-        $ClientScript.Content -notmatch "class CatalogPicker" -or
-        $IsaacFont.RawContentLength -lt 10000 -or
-        $LanaPixelFont.RawContentLength -lt 1000000 -or
-        $SeekerTitle.Headers["Content-Type"] -notmatch "image/png" -or
-        $SeekerTitle.RawContentLength -lt 100000
-    ) {
-        throw "embedded WebUI does not expose the generic Eden filters"
+    $EmbeddedChecks = [ordered]@{
+        "generic red hearts" = $Page.Content -match 'id="red-hearts-min"'
+        "generic coins" = $Page.Content -match 'id="coins-min"'
+        "treatment link" = $Page.Content -match 'id="treatment-page-link"'
+        "inspector link" = $Page.Content -match 'id="seed-inspector-link"'
+        "daily-good link" = $Page.Content -match 'id="daily-good-page-link"'
+        "daily-bad placeholder" = $Page.Content -match 'id="daily-bad-placeholder"'
+        "generic damage sort" = $Page.Content -match 'data-sort-key="damage"'
+        "treatment page" = $TreatmentPage.Content -match 'data-page="treatment"'
+        "treatment damage" = $TreatmentPage.Content -match 'id="experimental-damage"'
+        "treatment post damage" = $TreatmentPage.Content -match 'id="post-damage-min"'
+        "treatment constraint state" = $TreatmentPage.Content -match 'id="treatment-constraint-state"'
+        "treatment stat model" = $TreatmentPage.Content -match 'data-treatment-stat="damage"'
+        "treatment base stats" = $TreatmentPage.Content -match 'class="base-stats-panel"'
+        "treatment back link" = $TreatmentPage.Content -match 'id="generic-page-link"'
+        "treatment tagline" = $TreatmentPage.Content -match 'class="treatment-tagline"'
+        "inspector page" = $InspectorPage.Content -match 'data-page="inspector"'
+        "inspector input" = $InspectorPage.Content -match 'id="seed-input"'
+        "inspector result" = $InspectorPage.Content -match 'id="inspector-result"'
+        "inspector active" = $InspectorPage.Content -match 'id="result-active"'
+        "inspector normalization" = $InspectorScript.Content -match 'normalizeSeed'
+        "inspector request" = $InspectorScript.Content -match 'JSON.stringify'
+        "daily-good page" = $DailyGoodPage.Content -match 'data-page="daily-good"'
+        "daily-good seed" = $DailyGoodPage.Content -match 'id="daily-seed"'
+        "daily-good reroll" = $DailyGoodPage.Content -match 'id="reroll-daily-seed"'
+        "daily-good random variant" = $DailyGoodScript.Content -match 'randomVariant'
+        "daily-good persistence" = $DailyGoodScript.Content -match 'localStorage'
+        "generic page size" = $Page.Content -match 'id="page-size"'
+        "generic catalog state" = $Page.Content -match 'id="catalog-state"'
+        "generic pills" = $ClientScript.Content -match "pill_effect_ids"
+        "generic post-item stats" = $ClientScript.Content -match "post_item_stats_available"
+        "generic treatment mode" = $ClientScript.Content -match "treatmentMode"
+        "generic sort direction" = $ClientScript.Content -match "sort_direction"
+        "generic result comparator" = $ClientScript.Content -match "compareMatches"
+        "generic catalog picker" = $ClientScript.Content -match "class CatalogPicker"
+        "Isaac font" = $IsaacFont.RawContentLength -ge 10000
+        "LanaPixel font" = $LanaPixelFont.RawContentLength -ge 1000000
+        "title MIME" = $SeekerTitle.Headers["Content-Type"] -match "image/png"
+        "title image" = $SeekerTitle.RawContentLength -ge 100000
+    }
+    $FailedEmbeddedChecks = @($EmbeddedChecks.GetEnumerator() | Where-Object { -not $_.Value } | ForEach-Object Key)
+    if ($FailedEmbeddedChecks.Count) {
+        throw "embedded WebUI check failed: $($FailedEmbeddedChecks -join ', ')"
     }
     if ($Page.Content -match 'id="experimental-damage"' -or
         $Page.Content -match 'id="post-damage-min"' -or
@@ -158,6 +169,32 @@ try {
         }
     }
     if (-not $UnauthorizedBlocked) { throw "POST endpoint accepted a request without its session token" }
+
+    $DailyBody = @{date = "2026-08-06"; variant = 0} | ConvertTo-Json -Compress
+    $DailyFirst = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-good") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $DailyBody
+    $DailyFirstAgain = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-good") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $DailyBody
+    $DailyVariant = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-good") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body (@{date = "2026-08-06"; variant = 305419896} | ConvertTo-Json -Compress)
+    if ($DailyFirst.rules_version -ne "daily-good-v1" -or
+        $DailyFirst.seed -ne $DailyFirstAgain.seed -or
+        $DailyFirst.seed -eq $DailyVariant.seed -or
+        $DailyVariant.variant -ne 305419896) {
+        throw "daily-good endpoint did not provide a stable first seed and distinct reroll"
+    }
     $Body = @{
         trinket_id = 169
         active_ids = @(145, 133)

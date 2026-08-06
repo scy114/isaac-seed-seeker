@@ -709,6 +709,8 @@ function initializePageLinks() {
   };
   const treatmentLink = $("#treatment-page-link");
   if (treatmentLink) treatmentLink.href = withToken("/experimental-treatment.html");
+  const dailyGoodLink = $("#daily-good-page-link");
+  if (dailyGoodLink) dailyGoodLink.href = withToken("/daily-good.html");
   const inspectorLink = $("#seed-inspector-link");
   if (inspectorLink) inspectorLink.href = withToken("/seed-inspector.html");
   const genericLink = $("#generic-page-link");
