@@ -10,6 +10,9 @@ build/
 output/
 *.egg-info/
 
+# Local calibration and review tools
+tools/daily-review-webui/
+
 # Generated search artifacts
 data/*.jsonl
 data/*.txt

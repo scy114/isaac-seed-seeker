@@ -1,5 +1,6 @@
 #include "isaac_seed_seeker/core.hpp"
 #include "isaac_seed_seeker/builtin_profile.hpp"
+#include "isaac_seed_seeker/daily.hpp"
 
 #include <cstdlib>
 #include <array>
@@ -58,8 +59,20 @@ int main(int argc, char** argv) {
         };
         for (const auto& [seed, label] : seed_labels) {
             require(iss::seed_to_string(seed) == label, "seed codec golden mismatch");
+            require(iss::string_to_seed(label) == seed, "seed decoder golden mismatch");
         }
         require(iss::seed_to_string(1U) == "B911 99AC", "special seed label mismatch");
+        require(iss::string_to_seed("masv\tsyfs") == 1'473'169'325U,
+                "seed decoder normalization mismatch");
+        for (const auto invalid : {"MASV SYFA", "MASI SYFS", "ABC"}) {
+            bool rejected = false;
+            try {
+                static_cast<void>(iss::string_to_seed(invalid));
+            } catch (const std::invalid_argument&) {
+                rejected = true;
+            }
+            require(rejected, "invalid seed label was accepted");
+        }
         require(iss::a5_from_seed(10161220U) == 778875255U, "a5 golden mismatch");
         require(iss::p988_from_seed(10161220U) == 2935808445U, "p988 golden mismatch");
 
@@ -112,6 +125,416 @@ int main(int argc, char** argv) {
                 "maximum starting coins mismatch");
         require(iss::predict_eden_start(33U, builtin).bombs == 2,
                 "maximum starting bombs mismatch");
+
+        iss::EdenStart daily_good_boundary;
+        daily_good_boundary.active_id = 58;
+        daily_good_boundary.active_quality = 3;
+        daily_good_boundary.passive_id = 1;
+        daily_good_boundary.passive_quality = 3;
+        daily_good_boundary.damage = 3.0;
+        daily_good_boundary.tears = 3.0;
+        daily_good_boundary.move_speed = 1.0;
+        const auto daily_boundary_score = iss::score_daily_good_v0(daily_good_boundary);
+        require(daily_boundary_score.eligible, "daily good boundary seed was rejected");
+        require(daily_boundary_score.selection_weight == 100,
+                "daily good boundary weight mismatch");
+        const auto daily_v1_boundary_score = iss::score_daily_good_v1(daily_good_boundary);
+        require(daily_v1_boundary_score.eligible, "daily v1 boundary seed was rejected");
+        require(daily_v1_boundary_score.active_q3_rating == 1,
+                "daily v1 active Q3 rating mismatch");
+        require(daily_v1_boundary_score.passive_q3_rating == 1,
+                "daily v1 passive Q3 rating mismatch");
+        require(daily_v1_boundary_score.selection_weight == 100,
+                "daily v1 boundary weight mismatch");
+
+        auto daily_v1_high_q3 = daily_good_boundary;
+        daily_v1_high_q3.active_id = 127;
+        daily_v1_high_q3.passive_id = 562;
+        const auto daily_v1_high_q3_score = iss::score_daily_good_v1(daily_v1_high_q3);
+        require(daily_v1_high_q3_score.active_q3_rating == 3,
+                "daily v1 high active Q3 rating mismatch");
+        require(daily_v1_high_q3_score.passive_q3_rating == 4,
+                "daily v1 high passive Q3 rating mismatch");
+        require(daily_v1_high_q3_score.active_q3_rating_bonus == 30,
+                "daily v1 active Q3 bonus mismatch");
+        require(daily_v1_high_q3_score.passive_q3_rating_bonus == 50,
+                "daily v1 passive Q3 bonus mismatch");
+        require(daily_v1_high_q3_score.selection_weight == 180,
+                "daily v1 high Q3 weight mismatch");
+
+        auto daily_v1_unknown_q3 = daily_good_boundary;
+        daily_v1_unknown_q3.active_id = 999;
+        require(!iss::score_daily_good_v1(daily_v1_unknown_q3).eligible,
+                "unrated Q3 item passed the daily v1 gate");
+
+        auto daily_good_maximum = daily_good_boundary;
+        daily_good_maximum.active_id = 628;
+        daily_good_maximum.active_quality = 4;
+        daily_good_maximum.passive_id = 4;
+        daily_good_maximum.passive_quality = 4;
+        daily_good_maximum.damage = 4.5;
+        daily_good_maximum.tears = 3.501433905;
+        daily_good_maximum.move_speed = 1.15;
+        const auto daily_maximum_score = iss::score_daily_good_v0(daily_good_maximum);
+        require(daily_maximum_score.eligible, "maximum daily good seed was rejected");
+        require(daily_maximum_score.selection_weight == 285,
+                "maximum daily good weight mismatch");
+        require(daily_maximum_score.death_certificate_bonus == 30,
+                "Death Certificate daily bonus mismatch");
+
+        auto daily_ipecac = daily_good_boundary;
+        daily_ipecac.passive_id = 149;
+        daily_ipecac.passive_quality = 4;
+        require(!iss::score_daily_good_v0(daily_ipecac).eligible,
+                "Ipecac was accepted as a daily good seed");
+        auto daily_low_tears = daily_good_boundary;
+        daily_low_tears.tears = 2.999;
+        require(!iss::score_daily_good_v0(daily_low_tears).eligible,
+                "low tears passed the daily good gate");
+
+        iss::EdenStart daily_bad_boundary;
+        daily_bad_boundary.active_quality = 0;
+        daily_bad_boundary.passive_quality = 1;
+        daily_bad_boundary.damage = 2.999;
+        daily_bad_boundary.tears = 2.999;
+        daily_bad_boundary.move_speed = 0.999;
+        const auto daily_bad_boundary_score = iss::score_daily_bad_v0(daily_bad_boundary);
+        require(daily_bad_boundary_score.eligible, "daily bad boundary seed was rejected");
+        require(daily_bad_boundary_score.selection_weight == 1,
+                "daily bad boundary weight mismatch");
+        auto daily_bad_quality_two = daily_bad_boundary;
+        daily_bad_quality_two.active_quality = 1;
+        require(!iss::score_daily_bad_v0(daily_bad_quality_two).eligible,
+                "Q2 total passed the daily bad gate");
+        auto daily_bad_speed_one = daily_bad_boundary;
+        daily_bad_speed_one.move_speed = 1.0;
+        require(!iss::score_daily_bad_v0(daily_bad_speed_one).eligible,
+                "1.xx speed passed the daily bad gate");
+        auto daily_bad_tears_three = daily_bad_boundary;
+        daily_bad_tears_three.tears = 3.0;
+        require(!iss::score_daily_bad_v0(daily_bad_tears_three).eligible,
+                "3.xx tears passed the daily bad gate");
+        auto daily_bad_damage_three = daily_bad_boundary;
+        daily_bad_damage_three.damage = 3.0;
+        require(!iss::score_daily_bad_v0(daily_bad_damage_three).eligible,
+                "3.xx damage passed the daily bad gate");
+
+        auto daily_bad_v1_boundary = daily_bad_boundary;
+        daily_bad_v1_boundary.active_id = 1;
+        daily_bad_v1_boundary.active_quality = 1;
+        daily_bad_v1_boundary.passive_id = 2;
+        daily_bad_v1_boundary.passive_quality = 0;
+        const auto daily_bad_v1_boundary_score = iss::score_daily_bad_v1(daily_bad_v1_boundary);
+        require(daily_bad_v1_boundary_score.eligible,
+                "daily bad v1 boundary seed was rejected");
+        require(daily_bad_v1_boundary_score.selection_weight == 10,
+                "daily bad v1 normal weight mismatch");
+        auto daily_bad_v1_passive_q1 = daily_bad_v1_boundary;
+        daily_bad_v1_passive_q1.active_quality = 0;
+        daily_bad_v1_passive_q1.passive_quality = 1;
+        require(!iss::score_daily_bad_v1(daily_bad_v1_passive_q1).eligible,
+                "passive Q1 passed the daily bad v1 gate");
+        auto daily_bad_v1_active_q2 = daily_bad_v1_boundary;
+        daily_bad_v1_active_q2.active_quality = 2;
+        require(!iss::score_daily_bad_v1(daily_bad_v1_active_q2).eligible,
+                "active Q2 passed the daily bad v1 gate");
+        for (const auto excluded_id : std::array<std::uint16_t, 4>{19, 59, 137, 161}) {
+            auto excluded_daily_bad = daily_bad_v1_boundary;
+            excluded_daily_bad.passive_id = excluded_id;
+            require(!iss::score_daily_bad_v1(excluded_daily_bad).eligible,
+                    "excluded item passed the daily bad v1 gate");
+        }
+        auto daily_bad_tmtrainer = daily_bad_v1_boundary;
+        daily_bad_tmtrainer.passive_id = 721;
+        const auto daily_bad_tmtrainer_score = iss::score_daily_bad_v1(daily_bad_tmtrainer);
+        require(daily_bad_tmtrainer_score.eligible,
+                "TMTRAINER was removed from the daily bad v1 pool");
+        require(daily_bad_tmtrainer_score.selection_weight == 7,
+                "TMTRAINER daily bad v1 weight mismatch");
+
+        auto daily_bad_v2_boundary = daily_bad_boundary;
+        daily_bad_v2_boundary.active_id = 38;
+        daily_bad_v2_boundary.active_quality = 2;
+        daily_bad_v2_boundary.passive_id = 149;
+        daily_bad_v2_boundary.passive_quality = 4;
+        const auto daily_bad_v2_boundary_score = iss::score_daily_bad_v2(daily_bad_v2_boundary);
+        require(daily_bad_v2_boundary_score.eligible,
+                "daily bad v2 whitelist seed was rejected");
+        require(daily_bad_v2_boundary_score.selection_weight == 10,
+                "daily bad v2 weight mismatch");
+        auto daily_bad_v2_base_pool = daily_bad_v1_boundary;
+        daily_bad_v2_base_pool.active_quality = 0;
+        require(iss::score_daily_bad_v2(daily_bad_v2_base_pool).eligible,
+                "daily bad v2 rejected the original low-quality pool");
+        auto daily_bad_v2_unlisted_q1 = daily_bad_v2_base_pool;
+        daily_bad_v2_unlisted_q1.active_quality = 1;
+        require(!iss::score_daily_bad_v2(daily_bad_v2_unlisted_q1).eligible,
+                "unlisted Q1 active item passed the daily bad v2 gate");
+        for (const auto active_id : std::array<std::uint16_t, 7>{33, 38, 45, 298, 522, 639, 729}) {
+            auto allowed_daily_bad = daily_bad_v2_boundary;
+            allowed_daily_bad.active_id = active_id;
+            require(iss::score_daily_bad_v2(allowed_daily_bad).eligible,
+                    "allowed active item was rejected by daily bad v2");
+        }
+        for (const auto passive_id : std::array<std::uint16_t, 5>{149, 222, 329, 529, 561}) {
+            auto allowed_daily_bad = daily_bad_v2_boundary;
+            allowed_daily_bad.passive_id = passive_id;
+            require(iss::score_daily_bad_v2(allowed_daily_bad).eligible,
+                    "allowed passive item was rejected by daily bad v2");
+        }
+        auto daily_bad_v2_wrong_active = daily_bad_v2_boundary;
+        daily_bad_v2_wrong_active.active_id = 298 + 1;
+        require(!iss::score_daily_bad_v2(daily_bad_v2_wrong_active).eligible,
+                "unlisted active item passed the daily bad v2 gate");
+        auto daily_bad_v2_wrong_passive = daily_bad_v2_boundary;
+        daily_bad_v2_wrong_passive.passive_id = 149 + 1;
+        require(!iss::score_daily_bad_v2(daily_bad_v2_wrong_passive).eligible,
+                "unlisted passive item passed the daily bad v2 gate");
+        for (const auto excluded_id : std::array<std::uint16_t, 4>{19, 59, 137, 161}) {
+            auto excluded_daily_bad = daily_bad_v2_base_pool;
+            excluded_daily_bad.passive_id = excluded_id;
+            require(!iss::score_daily_bad_v2(excluded_daily_bad).eligible,
+                    "excluded item passed the daily bad v2 gate");
+        }
+        auto daily_bad_v2_tmtrainer = daily_bad_v2_base_pool;
+        daily_bad_v2_tmtrainer.passive_id = 721;
+        const auto daily_bad_v2_tmtrainer_score = iss::score_daily_bad_v2(daily_bad_v2_tmtrainer);
+        require(daily_bad_v2_tmtrainer_score.eligible,
+                "TMTRAINER was removed from the daily bad v2 pool");
+        require(daily_bad_v2_tmtrainer_score.selection_weight == 7,
+                "TMTRAINER daily bad v2 weight mismatch");
+        require(iss::score_daily_bad_v3(daily_bad_v2_base_pool).eligible,
+                "zero-bomb seed was rejected by daily bad v3");
+        auto daily_bad_v3_with_bomb = daily_bad_v2_base_pool;
+        daily_bad_v3_with_bomb.bombs = 1;
+        const auto daily_bad_v3_with_bomb_score = iss::score_daily_bad_v3(daily_bad_v3_with_bomb);
+        require(!daily_bad_v3_with_bomb_score.eligible,
+                "bomb start passed the daily bad v3 gate");
+        require(daily_bad_v3_with_bomb_score.selection_weight == 0,
+                "rejected daily bad v3 seed retained selection weight");
+        auto daily_bad_v4_boundary = daily_bad_v2_base_pool;
+        daily_bad_v4_boundary.tears = 2.499;
+        require(iss::score_daily_bad_v4(daily_bad_v4_boundary).eligible,
+                "sub-2.5 tears seed was rejected by daily bad v4");
+        daily_bad_v4_boundary.tears = 2.5;
+        const auto daily_bad_v4_tears_boundary_score = iss::score_daily_bad_v4(daily_bad_v4_boundary);
+        require(!daily_bad_v4_tears_boundary_score.eligible,
+                "2.5 tears passed the daily bad v4 gate");
+        require(daily_bad_v4_tears_boundary_score.selection_weight == 0,
+                "rejected daily bad v4 seed retained selection weight");
+        auto daily_bad_v5_clicker = daily_bad_v4_boundary;
+        daily_bad_v5_clicker.tears = 1.9;
+        daily_bad_v5_clicker.active_id = 482;
+        require(!iss::score_daily_bad_v5(daily_bad_v5_clicker).eligible,
+                "Clicker passed the daily bad v5 gate");
+        daily_bad_v5_clicker.active_id = 1;
+        require(iss::score_daily_bad_v5(daily_bad_v5_clicker).eligible,
+                "daily bad v5 rejected a non-Clicker v4 seed");
+
+        iss::EdenStart challenge_boundary;
+        challenge_boundary.active_id = 36;
+        challenge_boundary.passive_id = 561;
+        challenge_boundary.pocket_kind = iss::PocketKind::none;
+        challenge_boundary.coins = 0;
+        challenge_boundary.keys = 0;
+        challenge_boundary.bombs = 0;
+        challenge_boundary.move_speed = 0.999;
+        challenge_boundary.damage = 2.999;
+        challenge_boundary.tears = 1.999;
+        const auto challenge_boundary_score = iss::score_daily_bad_challenge_v0(challenge_boundary);
+        require(challenge_boundary_score.eligible,
+                "daily bad challenge boundary seed was rejected");
+        require(challenge_boundary_score.selection_weight == 10,
+                "empty-pocket challenge weight mismatch");
+        auto challenge_bad_pill = challenge_boundary;
+        challenge_bad_pill.pocket_kind = iss::PocketKind::pill;
+        challenge_bad_pill.pocket_id = 1;
+        const auto challenge_bad_pill_score = iss::score_daily_bad_challenge_v0(challenge_bad_pill);
+        require(challenge_bad_pill_score.eligible,
+                "bad pill was rejected by the challenge gate");
+        require(challenge_bad_pill_score.selection_weight == 30,
+                "bad pill challenge weight mismatch");
+        auto challenge_shot_speed_down = challenge_bad_pill;
+        challenge_shot_speed_down.pocket_id = 47;
+        require(!iss::score_daily_bad_challenge_v0(challenge_shot_speed_down).eligible,
+                "Shot Speed Down was accepted as a challenge bad pill");
+        auto challenge_card = challenge_boundary;
+        challenge_card.pocket_kind = iss::PocketKind::card;
+        challenge_card.pocket_id = 1;
+        require(!iss::score_daily_bad_challenge_v0(challenge_card).eligible,
+                "card pocket item passed the challenge gate");
+        auto challenge_with_resource = challenge_boundary;
+        challenge_with_resource.coins = 1;
+        require(!iss::score_daily_bad_challenge_v0(challenge_with_resource).eligible,
+                "starting resource passed the challenge gate");
+        auto challenge_wrong_active = challenge_boundary;
+        challenge_wrong_active.active_id = 37;
+        require(!iss::score_daily_bad_challenge_v0(challenge_wrong_active).eligible,
+                "unlisted active item passed the challenge gate");
+        auto challenge_wrong_passive = challenge_boundary;
+        challenge_wrong_passive.passive_id = 560;
+        require(!iss::score_daily_bad_challenge_v0(challenge_wrong_passive).eligible,
+                "unlisted passive item passed the challenge gate");
+        auto challenge_treatment = challenge_boundary;
+        challenge_treatment.passive_id = 240;
+        challenge_treatment.post_item_stats_available = true;
+        challenge_treatment.post_damage = 1.999;
+        challenge_treatment.post_tears = 1.499;
+        const auto challenge_treatment_score = iss::score_daily_bad_challenge_v0(challenge_treatment);
+        require(challenge_treatment_score.eligible,
+                "awful Experimental Treatment seed was rejected");
+        require(challenge_treatment_score.selection_weight == 1'000,
+                "Experimental Treatment challenge weight mismatch");
+        auto challenge_treatment_bad_pill = challenge_treatment;
+        challenge_treatment_bad_pill.pocket_kind = iss::PocketKind::pill;
+        challenge_treatment_bad_pill.pocket_id = 15;
+        require(iss::score_daily_bad_challenge_v0(challenge_treatment_bad_pill).selection_weight
+                    == 3'000,
+                "bad pill did not multiply the treatment challenge weight");
+        challenge_treatment.post_tears = 1.5;
+        require(!iss::score_daily_bad_challenge_v0(challenge_treatment).eligible,
+                "1.5 post-treatment tears passed the challenge gate");
+
+        iss::DailyGoodOptions daily_options;
+        daily_options.date_utc8 = "2026-08-06";
+        daily_options.candidates = 25'000;
+        daily_options.threads = 1;
+        const auto daily_single_thread = iss::select_daily_good_v0(builtin, daily_options);
+        daily_options.threads = 4;
+        const auto daily_four_threads = iss::select_daily_good_v0(builtin, daily_options);
+        require(daily_single_thread.eligible > 0, "daily scan produced no eligible seeds");
+        require(daily_single_thread.primary.seed == daily_four_threads.primary.seed,
+                "daily selection changed with thread count");
+        require(daily_single_thread.eligible == daily_four_threads.eligible,
+                "daily eligible count changed with thread count");
+        require(daily_single_thread.primary_score.selection_weight
+                    == daily_four_threads.primary_score.selection_weight,
+                "daily weight changed with thread count");
+        daily_options.threads = 1;
+        const auto daily_v1_single_thread = iss::select_daily_good_v1(builtin, daily_options);
+        daily_options.threads = 4;
+        const auto daily_v1_four_threads = iss::select_daily_good_v1(builtin, daily_options);
+        require(daily_v1_single_thread.rules_version == iss::daily_good_rules_version_v1,
+                "daily v1 result version mismatch");
+        require(daily_v1_single_thread.primary.seed == daily_v1_four_threads.primary.seed,
+                "daily v1 selection changed with thread count");
+        require(daily_v1_single_thread.primary_score.selection_weight
+                    == daily_v1_four_threads.primary_score.selection_weight,
+                "daily v1 weight changed with thread count");
+        daily_options.draw_variant = 0x12345678U;
+        const auto daily_v1_variant = iss::select_daily_good_v1(builtin, daily_options);
+        require(daily_v1_variant.primary.seed != daily_v1_four_threads.primary.seed,
+                "daily v1 reroll variant repeated the first seed");
+        daily_options.threads = 1;
+        const auto daily_v1_variant_single_thread = iss::select_daily_good_v1(builtin, daily_options);
+        require(daily_v1_variant.primary.seed == daily_v1_variant_single_thread.primary.seed,
+                "daily v1 reroll variant changed with thread count");
+        daily_options.draw_variant = 0;
+        daily_options.candidates = 1'000'000;
+        daily_options.threads = 1;
+        const auto daily_bad_single_thread = iss::select_daily_bad_v5(builtin, daily_options);
+        daily_options.threads = 4;
+        const auto daily_bad_four_threads = iss::select_daily_bad_v5(builtin, daily_options);
+        require(daily_bad_single_thread.rules_version == iss::daily_bad_rules_version_v5,
+                "daily bad result version mismatch");
+        require(daily_bad_single_thread.eligible > 0,
+                "daily bad scan produced no eligible seeds");
+        require(daily_bad_single_thread.primary.seed == daily_bad_four_threads.primary.seed,
+                "daily bad selection changed with thread count");
+        require(daily_bad_single_thread.primary.active_quality == 0
+                    || daily_bad_single_thread.primary.active_id == 33
+                    || daily_bad_single_thread.primary.active_id == 38
+                    || daily_bad_single_thread.primary.active_id == 45
+                    || daily_bad_single_thread.primary.active_id == 298
+                    || daily_bad_single_thread.primary.active_id == 522
+                    || daily_bad_single_thread.primary.active_id == 639
+                    || daily_bad_single_thread.primary.active_id == 729,
+                "daily bad selection used a disallowed active item");
+        require(daily_bad_single_thread.primary.passive_quality == 0
+                    || daily_bad_single_thread.primary.passive_id == 149
+                    || daily_bad_single_thread.primary.passive_id == 222
+                    || daily_bad_single_thread.primary.passive_id == 329
+                    || daily_bad_single_thread.primary.passive_id == 529
+                    || daily_bad_single_thread.primary.passive_id == 561,
+                "daily bad selection used a disallowed passive item");
+        require(daily_bad_single_thread.primary.active_id != 19
+                    && daily_bad_single_thread.primary.active_id != 59
+                    && daily_bad_single_thread.primary.active_id != 137
+                    && daily_bad_single_thread.primary.active_id != 161
+                    && daily_bad_single_thread.primary.passive_id != 19
+                    && daily_bad_single_thread.primary.passive_id != 59
+                    && daily_bad_single_thread.primary.passive_id != 137
+                    && daily_bad_single_thread.primary.passive_id != 161,
+                "daily bad selection included an excluded item");
+        require(daily_bad_single_thread.primary.move_speed < 1.0
+                    && daily_bad_single_thread.primary.tears < 2.5
+                    && daily_bad_single_thread.primary.damage < 3.0,
+                "daily bad selection exceeded the v4 stat gate");
+        require(daily_bad_single_thread.primary.bombs == 0,
+                "daily bad selection included starting bombs");
+        require(daily_bad_single_thread.primary.active_id != 482,
+                "daily bad selection included Clicker");
+        daily_options.draw_variant = 0x12345678U;
+        const auto daily_bad_variant = iss::select_daily_bad_v5(builtin, daily_options);
+        require(daily_bad_variant.primary.seed != daily_bad_four_threads.primary.seed,
+                "daily bad reroll variant repeated the first seed");
+
+        const auto challenge_pool_single_thread = iss::scan_daily_bad_challenge_pool_v0(
+            builtin, 10'000'000, 1
+        );
+        const auto challenge_pool_four_threads = iss::scan_daily_bad_challenge_pool_v0(
+            builtin, 10'000'000, 4
+        );
+        require(!challenge_pool_single_thread.candidates.empty(),
+                "challenge pool scan produced no candidates");
+        require(challenge_pool_single_thread.candidates.size()
+                    == challenge_pool_four_threads.candidates.size(),
+                "challenge pool size changed with thread count");
+        for (std::size_t index = 0;
+             index < challenge_pool_single_thread.candidates.size();
+             ++index) {
+            const auto& left = challenge_pool_single_thread.candidates[index];
+            const auto& right = challenge_pool_four_threads.candidates[index];
+            require(left.seed == right.seed
+                        && left.selection_weight == right.selection_weight,
+                    "challenge pool contents changed with thread count");
+        }
+        iss::DailyGoodOptions challenge_options;
+        challenge_options.date_utc8 = "2026-08-06";
+        const auto pooled_challenge = iss::select_daily_bad_challenge_v0_from_pool(
+            builtin, challenge_options, challenge_pool_single_thread
+        );
+        require(pooled_challenge.primary_score.eligible,
+                "pooled challenge selection violated the challenge rules");
+        const auto pooled_challenge_again = iss::select_daily_bad_challenge_v0_from_pool(
+            builtin, challenge_options, challenge_pool_four_threads
+        );
+        require(pooled_challenge.primary.seed == pooled_challenge_again.primary.seed,
+                "pooled challenge selection changed with thread count");
+
+        auto cache_test_pool = challenge_pool_single_thread;
+        cache_test_pool.scanned = std::uint64_t{1} << 32U;
+        const auto challenge_cache_path = std::filesystem::temp_directory_path()
+            / "isaac_seed_seeker_challenge_pool_test.pool";
+        iss::save_daily_bad_challenge_pool_v0(challenge_cache_path, cache_test_pool);
+        const auto loaded_challenge_pool = iss::load_daily_bad_challenge_pool_v0(
+            challenge_cache_path, builtin
+        );
+        std::filesystem::remove(challenge_cache_path);
+        require(loaded_challenge_pool.has_value(),
+                "saved challenge pool could not be loaded");
+        require(loaded_challenge_pool->candidates.size()
+                    == cache_test_pool.candidates.size(),
+                "loaded challenge pool size mismatch");
+        daily_options.draw_variant = 0;
+        bool invalid_daily_date_rejected = false;
+        try {
+            daily_options.date_utc8 = "2026-02-30";
+            static_cast<void>(iss::select_daily_good_v0(builtin, daily_options));
+        } catch (const std::invalid_argument&) {
+            invalid_daily_date_rejected = true;
+        }
+        require(invalid_daily_date_rejected, "invalid daily date was accepted");
 
         const auto pill_start = iss::predict_eden_start(5U, builtin);
         require(pill_start.pocket_kind == iss::PocketKind::pill, "pill pocket kind mismatch");

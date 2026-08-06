@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cctype>
 #include <chrono>
 #include <cmath>
 #include <exception>
@@ -932,6 +933,37 @@ std::string seed_to_string(std::uint32_t seed) {
         compact[static_cast<std::size_t>(index)] = alphabet[(payload >> shift) & 31U];
     }
     return compact.substr(0, 4) + " " + compact.substr(4);
+}
+
+std::uint32_t string_to_seed(std::string_view value) {
+    std::string compact;
+    compact.reserve(8);
+    for (const char raw : value) {
+        const auto byte = static_cast<unsigned char>(raw);
+        if (std::isspace(byte) != 0) {
+            continue;
+        }
+        compact.push_back(static_cast<char>(std::toupper(byte)));
+    }
+    if (compact.size() != 8) {
+        throw std::invalid_argument("seed must contain exactly eight characters");
+    }
+
+    std::uint64_t payload = 0;
+    for (const char character : compact) {
+        const auto found = std::find(std::begin(alphabet), std::end(alphabet) - 1, character);
+        if (found == std::end(alphabet) - 1) {
+            throw std::invalid_argument(std::string("seed contains invalid character: ") + character);
+        }
+        payload = (payload << 5U) | static_cast<std::uint64_t>(found - std::begin(alphabet));
+    }
+
+    const auto seed = static_cast<std::uint32_t>((payload >> 8U) ^ seed_xor);
+    const auto normalized = compact.substr(0, 4) + " " + compact.substr(4);
+    if (seed_to_string(seed) != normalized) {
+        throw std::invalid_argument("seed checksum is invalid");
+    }
+    return seed;
 }
 
 std::uint32_t a5_from_seed(std::uint32_t seed) noexcept {

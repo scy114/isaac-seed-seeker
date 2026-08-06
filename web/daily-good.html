@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>每日一爽 · Isaac Seed Seeker</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body data-page="daily-good">
+  <canvas id="basement-room" aria-hidden="true"></canvas>
+  <main class="shell daily-good-shell">
+    <header class="hero treatment-hero daily-good-hero">
+      <div class="treatment-hero-copy">
+        <a class="back-link" id="generic-page-link" href="/">← 返回伊甸搜索</a>
+        <div class="treatment-title-row">
+          <img class="daily-good-hero-icon" src="/game-assets/passive/381.png" alt="" data-game-icon>
+          <div>
+            <p class="step">DAILY EDEN</p>
+            <h1>每日一爽</h1>
+            <p class="treatment-title-en" lang="en">One Eden seed a day</p>
+            <p class="treatment-tagline">来都来了，开一把吧。</p>
+          </div>
+        </div>
+      </div>
+      <aside class="profile-card">
+        <span class="profile-label">今日日期</span>
+        <strong id="daily-date">正在读取…</strong>
+      </aside>
+    </header>
+
+    <section class="panel daily-good-panel">
+      <div class="daily-good-heading">
+        <p class="step">TODAY'S SEED</p>
+        <h2 id="daily-heading">今天就玩这个</h2>
+      </div>
+
+      <div class="daily-good-reveal" aria-live="polite">
+        <div class="daily-good-paper">
+          <strong id="daily-seed">—</strong>
+        </div>
+        <p id="daily-status">正在替你抽取今天的伊甸开局……</p>
+      </div>
+
+      <div class="daily-good-actions">
+        <button class="primary" id="copy-daily-seed" type="button" disabled>复制种子</button>
+        <button class="secondary" id="reroll-daily-seed" type="button" disabled>换一个</button>
+        <button class="secondary" id="reveal-daily-seed" type="button" disabled>开辉眼</button>
+      </div>
+
+      <p class="error" id="daily-error" hidden></p>
+
+      <section class="daily-details" id="daily-details" hidden>
+        <div class="daily-details-heading">
+          <p class="step">SPOILERS</p>
+          <h3>这局带了什么</h3>
+        </div>
+
+        <div class="daily-detail-items">
+          <article class="inspector-item-card">
+            <img id="daily-pocket-icon" alt="" hidden>
+            <span><small>口袋物</small><strong id="daily-pocket">—</strong><b id="daily-pocket-meta">—</b></span>
+          </article>
+          <article class="inspector-item-card">
+            <img id="daily-active-icon" alt="" hidden>
+            <span><small>主动道具</small><strong id="daily-active">—</strong><b id="daily-active-meta">—</b></span>
+          </article>
+          <article class="inspector-item-card">
+            <img id="daily-passive-icon" alt="" hidden>
+            <span><small>被动道具</small><strong id="daily-passive">—</strong><b id="daily-passive-meta">—</b></span>
+          </article>
+        </div>
+
+        <dl class="daily-detail-resources">
+          <div><dt>红心</dt><dd id="daily-red-hearts">—</dd></div>
+          <div><dt>魂心</dt><dd id="daily-soul-hearts">—</dd></div>
+          <div><dt>钱</dt><dd id="daily-coins">—</dd></div>
+          <div><dt>钥匙</dt><dd id="daily-keys">—</dd></div>
+          <div><dt>炸弹</dt><dd id="daily-bombs">—</dd></div>
+        </dl>
+
+        <dl class="daily-detail-stats">
+          <div><dt>伤害</dt><dd id="daily-damage">—</dd></div>
+          <div><dt>射速</dt><dd id="daily-tears">—</dd></div>
+          <div><dt>移速</dt><dd id="daily-move-speed">—</dd></div>
+          <div><dt>射程</dt><dd id="daily-range">—</dd></div>
+          <div><dt>弹速</dt><dd id="daily-shot-speed">—</dd></div>
+          <div><dt>幸运</dt><dd id="daily-luck">—</dd></div>
+        </dl>
+      </section>
+    </section>
+
+    <footer>
+      <span>每日一爽 · 玩得不爽就换一个</span>
+      <button id="shutdown-button" type="button">关闭本地程序</button>
+    </footer>
+  </main>
+  <script src="/daily-good.js"></script>
+</body>
+</html>

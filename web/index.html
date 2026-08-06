@@ -35,19 +35,42 @@
           <p class="catalog-state" id="catalog-state">正在载入离线名称目录…</p>
         </div>
         <div class="preset-actions" aria-label="筛选操作">
+          <a class="chip" id="seed-inspector-link" href="/seed-inspector.html">解析已有种子</a>
           <button class="chip" id="clear-filters" type="button">清空条件</button>
         </div>
       </div>
 
-      <a class="special-search-card" id="treatment-page-link" href="/experimental-treatment.html">
-        <img src="/game-assets/passive/240.png" alt="" data-game-icon>
-        <span class="special-search-copy">
-          <small>特殊开局 · SPECIAL START</small>
-          <strong>实验性疗法</strong>
-          <span>筛选黄针的属性增减与结算后面板</span>
-        </span>
-        <b>进入专页 →</b>
-      </a>
+      <div class="special-search-grid">
+        <a class="special-search-card daily-good-entry" id="daily-good-page-link" href="/daily-good.html">
+          <img src="/game-assets/passive/381.png" alt="" data-game-icon>
+          <span class="special-search-copy">
+            <small>DAILY EDEN</small>
+            <strong>每日一爽</strong>
+            <span>今天玩什么？</span>
+          </span>
+          <b>领取种子 →</b>
+        </a>
+
+        <a class="special-search-card" id="treatment-page-link" href="/experimental-treatment.html">
+          <img src="/game-assets/passive/240.png" alt="" data-game-icon>
+          <span class="special-search-copy">
+            <small>特殊开局 · SPECIAL START</small>
+            <strong>实验性疗法</strong>
+            <span>筛选黄针的属性增减与结算后面板</span>
+          </span>
+          <b>进入专页 →</b>
+        </a>
+
+        <a class="special-search-card daily-bad-entry" id="daily-bad-page-link" href="/daily-bad.html">
+          <img src="/game-assets/active/36.png" alt="" data-game-icon>
+          <span class="special-search-copy">
+            <small>DAILY EDEN</small>
+            <strong>每日毒种</strong>
+            <span>今天能有多难受？</span>
+          </span>
+          <b>领取种子 →</b>
+        </a>
+      </div>
 
       <form id="search-form">
         <section class="filter-group" aria-labelledby="pocket-heading">

@@ -11,9 +11,10 @@ find_package(Threads REQUIRED)
 add_library(isaac_seed_core
     native/generated/builtin_profile_j460.cpp
     native/src/core.cpp
+    native/src/daily.cpp
     native/src/profile_tables.cpp
 )
-target_include_directories(isaac_seed_core PUBLIC native/include)
+target_include_directories(isaac_seed_core PUBLIC native/include PRIVATE native/generated)
 target_link_libraries(isaac_seed_core PUBLIC Threads::Threads)
 
 if(MSVC)

@@ -45,37 +45,69 @@ try {
     $Headers = @{"X-Isaac-Token" = $Token}
     $Page = Invoke-WebRequest $Url -UseBasicParsing
     $TreatmentPage = Invoke-WebRequest ($BaseUrl + "experimental-treatment.html?token=" + $Token) -UseBasicParsing
+    $InspectorPage = Invoke-WebRequest ($BaseUrl + "seed-inspector.html?token=" + $Token) -UseBasicParsing
+    $DailyGoodPage = Invoke-WebRequest ($BaseUrl + "daily-good.html?token=" + $Token) -UseBasicParsing
+    $DailyBadPage = Invoke-WebRequest ($BaseUrl + "daily-bad.html?token=" + $Token) -UseBasicParsing
     $ClientScript = Invoke-WebRequest ($BaseUrl + "app.js") -UseBasicParsing
+    $InspectorScript = Invoke-WebRequest ($BaseUrl + "seed-inspector.js") -UseBasicParsing
+    $DailyGoodScript = Invoke-WebRequest ($BaseUrl + "daily-good.js") -UseBasicParsing
     $IsaacFont = Invoke-WebRequest ($BaseUrl + "assets/isaacsans.ttf") -UseBasicParsing
     $LanaPixelFont = Invoke-WebRequest ($BaseUrl + "assets/lanapixel.ttf") -UseBasicParsing
     $SeekerTitle = Invoke-WebRequest ($BaseUrl + "assets/isaac-seed-seeker-title.png") -UseBasicParsing
-    if (
-        $Page.Content -notmatch 'id="red-hearts-min"' -or
-        $Page.Content -notmatch 'id="coins-min"' -or
-        $Page.Content -notmatch 'id="treatment-page-link"' -or
-        $Page.Content -notmatch 'data-sort-key="damage"' -or
-        $TreatmentPage.Content -notmatch 'data-page="treatment"' -or
-        $TreatmentPage.Content -notmatch 'id="experimental-damage"' -or
-        $TreatmentPage.Content -notmatch 'id="post-damage-min"' -or
-        $TreatmentPage.Content -notmatch 'id="treatment-constraint-state"' -or
-        $TreatmentPage.Content -notmatch 'data-treatment-stat="damage"' -or
-        $TreatmentPage.Content -notmatch 'class="base-stats-panel"' -or
-        $TreatmentPage.Content -notmatch 'id="generic-page-link"' -or
-        $TreatmentPage.Content -notmatch 'class="treatment-tagline"' -or
-        $Page.Content -notmatch 'id="page-size"' -or
-        $Page.Content -notmatch 'id="catalog-state"' -or
-        $ClientScript.Content -notmatch "pill_effect_ids" -or
-        $ClientScript.Content -notmatch "post_item_stats_available" -or
-        $ClientScript.Content -notmatch "treatmentMode" -or
-        $ClientScript.Content -notmatch "sort_direction" -or
-        $ClientScript.Content -notmatch "compareMatches" -or
-        $ClientScript.Content -notmatch "class CatalogPicker" -or
-        $IsaacFont.RawContentLength -lt 10000 -or
-        $LanaPixelFont.RawContentLength -lt 1000000 -or
-        $SeekerTitle.Headers["Content-Type"] -notmatch "image/png" -or
-        $SeekerTitle.RawContentLength -lt 100000
-    ) {
-        throw "embedded WebUI does not expose the generic Eden filters"
+    $EmbeddedChecks = [ordered]@{
+        "generic red hearts" = $Page.Content -match 'id="red-hearts-min"'
+        "generic coins" = $Page.Content -match 'id="coins-min"'
+        "treatment link" = $Page.Content -match 'id="treatment-page-link"'
+        "inspector link" = $Page.Content -match 'id="seed-inspector-link"'
+        "daily-good link" = $Page.Content -match 'id="daily-good-page-link"'
+        "daily-bad link" = $Page.Content -match 'id="daily-bad-page-link"'
+        "generic damage sort" = $Page.Content -match 'data-sort-key="damage"'
+        "treatment page" = $TreatmentPage.Content -match 'data-page="treatment"'
+        "treatment damage" = $TreatmentPage.Content -match 'id="experimental-damage"'
+        "treatment post damage" = $TreatmentPage.Content -match 'id="post-damage-min"'
+        "treatment constraint state" = $TreatmentPage.Content -match 'id="treatment-constraint-state"'
+        "treatment stat model" = $TreatmentPage.Content -match 'data-treatment-stat="damage"'
+        "treatment base stats" = $TreatmentPage.Content -match 'class="base-stats-panel"'
+        "treatment back link" = $TreatmentPage.Content -match 'id="generic-page-link"'
+        "treatment tagline" = $TreatmentPage.Content -match 'class="treatment-tagline"'
+        "inspector page" = $InspectorPage.Content -match 'data-page="inspector"'
+        "inspector input" = $InspectorPage.Content -match 'id="seed-input"'
+        "inspector result" = $InspectorPage.Content -match 'id="inspector-result"'
+        "inspector active" = $InspectorPage.Content -match 'id="result-active"'
+        "inspector normalization" = $InspectorScript.Content -match 'normalizeSeed'
+        "inspector request" = $InspectorScript.Content -match 'JSON.stringify'
+        "daily-good page" = $DailyGoodPage.Content -match 'data-page="daily-good"'
+        "daily-good seed" = $DailyGoodPage.Content -match 'id="daily-seed"'
+        "daily-good reroll" = $DailyGoodPage.Content -match 'id="reroll-daily-seed"'
+        "daily-good reveal" = $DailyGoodPage.Content -match 'id="reveal-daily-seed"'
+        "daily-good details" = $DailyGoodPage.Content -match 'id="daily-details"'
+        "daily-good random variant" = $DailyGoodScript.Content -match 'randomVariant'
+        "daily-good persistence" = $DailyGoodScript.Content -match 'localStorage'
+        "daily-good inspect" = $DailyGoodScript.Content -match '/api/v1/inspect'
+        "daily-bad page" = $DailyBadPage.Content -match 'data-page="daily-bad"'
+        "daily-bad seed" = $DailyBadPage.Content -match 'id="daily-seed"'
+        "daily-bad poop icon" = $DailyBadPage.Content -match '/game-assets/active/36.png'
+        "daily-bad endpoint" = $DailyGoodScript.Content -match '/api/v1/daily-bad'
+        "daily-bad challenge button" = $DailyBadPage.Content -match 'id="challenge-daily-seed"'
+        "daily-bad challenge endpoint" = $DailyGoodScript.Content -match '/api/v1/daily-bad-challenge'
+        "daily-bad challenge scan modal" = $DailyBadPage.Content -match 'id="challenge-scan-modal"'
+        "daily-bad challenge scan toggle" = $DailyGoodScript.Content -match 'showChallengeScan'
+        "generic page size" = $Page.Content -match 'id="page-size"'
+        "generic catalog state" = $Page.Content -match 'id="catalog-state"'
+        "generic pills" = $ClientScript.Content -match "pill_effect_ids"
+        "generic post-item stats" = $ClientScript.Content -match "post_item_stats_available"
+        "generic treatment mode" = $ClientScript.Content -match "treatmentMode"
+        "generic sort direction" = $ClientScript.Content -match "sort_direction"
+        "generic result comparator" = $ClientScript.Content -match "compareMatches"
+        "generic catalog picker" = $ClientScript.Content -match "class CatalogPicker"
+        "Isaac font" = $IsaacFont.RawContentLength -ge 10000
+        "LanaPixel font" = $LanaPixelFont.RawContentLength -ge 1000000
+        "title MIME" = $SeekerTitle.Headers["Content-Type"] -match "image/png"
+        "title image" = $SeekerTitle.RawContentLength -ge 100000
+    }
+    $FailedEmbeddedChecks = @($EmbeddedChecks.GetEnumerator() | Where-Object { -not $_.Value } | ForEach-Object Key)
+    if ($FailedEmbeddedChecks.Count) {
+        throw "embedded WebUI check failed: $($FailedEmbeddedChecks -join ', ')"
     }
     if ($Page.Content -match 'id="experimental-damage"' -or
         $Page.Content -match 'id="post-damage-min"' -or
@@ -149,6 +181,136 @@ try {
         }
     }
     if (-not $UnauthorizedBlocked) { throw "POST endpoint accepted a request without its session token" }
+
+    $DailyBody = @{date = "2026-08-06"; variant = 0} | ConvertTo-Json -Compress
+    $DailyFirst = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-good") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $DailyBody
+    $DailyFirstAgain = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-good") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $DailyBody
+    $DailyVariant = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-good") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body (@{date = "2026-08-06"; variant = 305419896} | ConvertTo-Json -Compress)
+    if ($DailyFirst.rules_version -ne "daily-good-v1" -or
+        $DailyFirst.seed -ne $DailyFirstAgain.seed -or
+        $DailyFirst.seed -eq $DailyVariant.seed -or
+        $DailyVariant.variant -ne 305419896) {
+        throw "daily-good endpoint did not provide a stable first seed and distinct reroll"
+    }
+    $DailyBadFirst = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-bad") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $DailyBody
+    $DailyBadFirstAgain = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-bad") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $DailyBody
+    $DailyBadVariant = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-bad") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body (@{date = "2026-08-06"; variant = 305419896} | ConvertTo-Json -Compress)
+    if ($DailyBadFirst.rules_version -ne "daily-bad-v5" -or
+        $DailyBadFirst.seed -ne $DailyBadFirstAgain.seed -or
+        $DailyBadFirst.seed -eq $DailyBadVariant.seed -or
+        $DailyBadVariant.variant -ne 305419896) {
+        throw "daily-bad endpoint did not provide a stable first seed and distinct reroll"
+    }
+    $DailyBadInspected = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/inspect") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body (@{seed = $DailyBadFirst.seed} | ConvertTo-Json -Compress)
+    $DailyBadActiveAllowed = $DailyBadInspected.active_quality -eq 0 -or
+        $DailyBadInspected.active_id -in @(33, 38, 45, 298, 522, 639, 729)
+    $DailyBadPassiveAllowed = $DailyBadInspected.passive_quality -eq 0 -or
+        $DailyBadInspected.passive_id -in @(149, 222, 329, 529, 561)
+    if (-not $DailyBadActiveAllowed -or
+        -not $DailyBadPassiveAllowed -or
+        $DailyBadInspected.active_id -in @(19, 59, 137, 161) -or
+        $DailyBadInspected.active_id -eq 482 -or
+        $DailyBadInspected.passive_id -in @(19, 59, 137, 161) -or
+        $DailyBadInspected.bombs -ne 0 -or
+        $DailyBadInspected.move_speed -ge 1.0 -or
+        $DailyBadInspected.tears -ge 2.5 -or
+        $DailyBadInspected.damage -ge 3.0) {
+        throw "daily-bad endpoint returned a seed outside the v5 item, bomb, and stat gates"
+    }
+    $ChallengeBody = @{
+        date = "2026-08-06"
+        variant = 0
+        candidates = 10000000
+    } | ConvertTo-Json -Compress
+    $ChallengeFirst = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-bad-challenge") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $ChallengeBody
+    $ChallengeFirstAgain = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-bad-challenge") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $ChallengeBody
+    $ChallengeVariant = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-bad-challenge") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body (@{
+            date = "2026-08-06"
+            variant = 305419896
+            candidates = 10000000
+        } | ConvertTo-Json -Compress)
+    if ($ChallengeFirst.rules_version -ne "daily-bad-challenge-v0" -or
+        $ChallengeFirst.cache_hit -ne $false -or
+        $ChallengeFirst.seed -ne $ChallengeFirstAgain.seed -or
+        $ChallengeFirst.seed -eq $ChallengeVariant.seed -or
+        $ChallengeVariant.variant -ne 305419896) {
+        throw "daily-bad challenge endpoint was not stable or did not reroll"
+    }
+    $ChallengeInspected = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/inspect") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body (@{seed = $ChallengeFirst.seed} | ConvertTo-Json -Compress)
+    $ChallengePocketAllowed = $ChallengeInspected.pocket_kind -eq "none" -or
+        ($ChallengeInspected.pocket_kind -eq "pill" -and
+            $ChallengeInspected.pocket_id -in @(1, 6, 11, 13, 15, 17))
+    $ChallengeLowPanelBranch = $ChallengeInspected.passive_id -in @(561, 697) -and
+        $ChallengeInspected.move_speed -lt 1.0 -and
+        $ChallengeInspected.damage -lt 3.0 -and
+        $ChallengeInspected.tears -lt 2.0
+    $ChallengeTreatmentBranch = $ChallengeInspected.passive_id -eq 240 -and
+        $ChallengeInspected.post_item_stats_available -and
+        $ChallengeInspected.post_damage -lt 2.0 -and
+        $ChallengeInspected.post_tears -lt 1.5
+    if ($ChallengeInspected.active_id -notin @(36, 39, 41, 177, 287, 290, 294, 325, 475, 480, 481, 582) -or
+        -not $ChallengePocketAllowed -or
+        $ChallengeInspected.coins -ne 0 -or
+        $ChallengeInspected.keys -ne 0 -or
+        $ChallengeInspected.bombs -ne 0 -or
+        (-not $ChallengeLowPanelBranch -and -not $ChallengeTreatmentBranch)) {
+        throw "daily-bad challenge endpoint returned a seed outside the strict challenge rules"
+    }
     $Body = @{
         trinket_id = 169
         active_ids = @(145, 133)
@@ -208,6 +370,36 @@ try {
     if ([Math]::Abs($Inspected.damage - 2.877413690) -gt 0.000001 -or $null -eq $Inspected.tears) {
         throw "inspect endpoint returned the wrong Found HUD stats"
     }
+
+    $LabelInspectBody = @{seed = "TEXZ WDS0"} | ConvertTo-Json -Compress
+    $LabelInspected = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/inspect") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $LabelInspectBody
+    if ($LabelInspected.seed_u32 -ne 2261264115 -or $LabelInspected.seed -ne "TEXZ WDS0" -or
+        $LabelInspected.pocket_kind -ne "card" -or $LabelInspected.pocket_id -ne 2 -or
+        $LabelInspected.active_id -ne 347 -or $LabelInspected.passive_id -ne 402) {
+        throw "inspect endpoint did not decode the game seed label"
+    }
+
+    $InvalidLabelRejected = $false
+    try {
+        Invoke-RestMethod `
+            ($BaseUrl + "api/v1/inspect") `
+            -Method Post `
+            -ContentType "application/json" `
+            -Headers $Headers `
+            -Body (@{seed = "TEXZ WDS1"} | ConvertTo-Json -Compress) | Out-Null
+    } catch {
+        if ($_.Exception.Response.StatusCode.value__ -eq 400) {
+            $InvalidLabelRejected = $true
+        } else {
+            throw
+        }
+    }
+    if (-not $InvalidLabelRejected) { throw "inspect endpoint accepted an invalid seed checksum" }
 
     $PillInspectBody = @{seed_u32 = 230816840} | ConvertTo-Json -Compress
     $PillInspected = Invoke-RestMethod `
