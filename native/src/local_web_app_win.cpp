@@ -963,6 +963,7 @@ int run_local_web_app(bool open_browser) {
     const auto inspector_js = load_resource(IDR_WEB_INSPECTOR_APP);
     const auto daily_good_html = load_resource(IDR_WEB_DAILY_GOOD);
     const auto daily_good_js = load_resource(IDR_WEB_DAILY_GOOD_APP);
+    const auto daily_bad_html = load_resource(IDR_WEB_DAILY_BAD);
     const GameIconCatalog game_icons;
     SearchSession session;
     std::cout << "Isaac Seed Seeker: " << url << std::endl;
@@ -1009,6 +1010,10 @@ int run_local_web_app(bool open_browser) {
                        && (request.path == "/daily-good.html"
                            || request.path.starts_with("/daily-good.html?"))) {
                 respond(client, 200, "OK", "text/html; charset=utf-8", daily_good_html);
+            } else if (request.method == "GET"
+                       && (request.path == "/daily-bad.html"
+                           || request.path.starts_with("/daily-bad.html?"))) {
+                respond(client, 200, "OK", "text/html; charset=utf-8", daily_bad_html);
             } else if (request.method == "GET" && request.path == "/style.css") {
                 respond(client, 200, "OK", "text/css; charset=utf-8", style_css);
             } else if (request.method == "GET" && request.path == "/app.js") {
@@ -1080,6 +1085,22 @@ int run_local_web_app(bool open_browser) {
                 options.date_utc8 = *date;
                 options.draw_variant = optional_json_u32(request.body, "variant").value_or(0U);
                 const auto result = select_daily_good_v1(builtin_j460_profile(), options);
+                std::ostringstream output;
+                output << "{\"rules_version\":\"" << result.rules_version
+                       << "\",\"date\":\"" << json_escape(result.date_utc8)
+                       << "\",\"seed\":\"" << seed_to_string(result.primary.seed)
+                       << "\",\"seed_u32\":" << result.primary.seed
+                       << ",\"variant\":" << options.draw_variant << '}';
+                respond(client, 200, "OK", "application/json; charset=utf-8", output.str());
+            } else if (request.method == "POST" && request.path == "/api/v1/daily-bad") {
+                const auto date = optional_json_string(request.body, "date");
+                if (!date) {
+                    throw std::invalid_argument("missing JSON field: date");
+                }
+                DailyGoodOptions options;
+                options.date_utc8 = *date;
+                options.draw_variant = optional_json_u32(request.body, "variant").value_or(0U);
+                const auto result = select_daily_bad_v0(builtin_j460_profile(), options);
                 std::ostringstream output;
                 output << "{\"rules_version\":\"" << result.rules_version
                        << "\",\"date\":\"" << json_escape(result.date_utc8)

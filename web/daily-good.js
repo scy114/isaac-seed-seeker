@@ -1,6 +1,9 @@
 const $ = (selector) => document.querySelector(selector);
 const sessionToken = new URLSearchParams(window.location.search).get("token") || "";
-const rulesVersion = "daily-good-v1";
+const dailyConfig = document.body.dataset.page === "daily-bad"
+  ? {rulesVersion: "daily-bad-v0", endpoint: "/api/v1/daily-bad"}
+  : {rulesVersion: "daily-good-v1", endpoint: "/api/v1/daily-good"};
+const rulesVersion = dailyConfig.rulesVersion;
 const catalogByKey = new Map();
 let dailyState = null;
 let requestInProgress = false;
@@ -198,7 +201,7 @@ function renderSeed(message) {
 }
 
 async function fetchDailySeed(variant) {
-  return request("/api/v1/daily-good", {
+  return request(dailyConfig.endpoint, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({date: $("#daily-date").dataset.isoDate, variant}),

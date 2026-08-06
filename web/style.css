@@ -240,6 +240,8 @@ h2 { margin: 0; color: #e9d8bd; font-size: 25px; letter-spacing: .01em; }
 .special-search-card:hover { border-color: #bd7f35; background: linear-gradient(100deg, #341812, #1d1512 62%, #2d2012); }
 .daily-good-entry { border-color: #756443; background: linear-gradient(100deg, #2a2113, #171210 62%, #211810); }
 .daily-good-entry:hover { border-color: #d5bd72; background: linear-gradient(100deg, #3b301a, #1d1712 62%, #302713); }
+.daily-bad-entry { border-color: #65523d; background: linear-gradient(100deg, #292016, #171310 62%, #241b13); }
+.daily-bad-entry:hover { border-color: #aa8652; background: linear-gradient(100deg, #392a1b, #1d1712 62%, #302216); }
 .special-search-card img { flex: 0 0 auto; width: 60px; height: 60px; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(3px 4px 0 #050303); }
 .special-search-card img.is-missing { display: none; }
 .special-search-copy { display: grid; flex: 1 1 auto; gap: 2px; min-width: 0; }

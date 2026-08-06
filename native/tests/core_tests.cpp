@@ -192,6 +192,33 @@ int main(int argc, char** argv) {
         require(!iss::score_daily_good_v0(daily_low_tears).eligible,
                 "low tears passed the daily good gate");
 
+        iss::EdenStart daily_bad_boundary;
+        daily_bad_boundary.active_quality = 0;
+        daily_bad_boundary.passive_quality = 1;
+        daily_bad_boundary.damage = 2.999;
+        daily_bad_boundary.tears = 2.999;
+        daily_bad_boundary.move_speed = 0.999;
+        const auto daily_bad_boundary_score = iss::score_daily_bad_v0(daily_bad_boundary);
+        require(daily_bad_boundary_score.eligible, "daily bad boundary seed was rejected");
+        require(daily_bad_boundary_score.selection_weight == 1,
+                "daily bad boundary weight mismatch");
+        auto daily_bad_quality_two = daily_bad_boundary;
+        daily_bad_quality_two.active_quality = 1;
+        require(!iss::score_daily_bad_v0(daily_bad_quality_two).eligible,
+                "Q2 total passed the daily bad gate");
+        auto daily_bad_speed_one = daily_bad_boundary;
+        daily_bad_speed_one.move_speed = 1.0;
+        require(!iss::score_daily_bad_v0(daily_bad_speed_one).eligible,
+                "1.xx speed passed the daily bad gate");
+        auto daily_bad_tears_three = daily_bad_boundary;
+        daily_bad_tears_three.tears = 3.0;
+        require(!iss::score_daily_bad_v0(daily_bad_tears_three).eligible,
+                "3.xx tears passed the daily bad gate");
+        auto daily_bad_damage_three = daily_bad_boundary;
+        daily_bad_damage_three.damage = 3.0;
+        require(!iss::score_daily_bad_v0(daily_bad_damage_three).eligible,
+                "3.xx damage passed the daily bad gate");
+
         iss::DailyGoodOptions daily_options;
         daily_options.date_utc8 = "2026-08-06";
         daily_options.candidates = 25'000;
@@ -226,6 +253,28 @@ int main(int argc, char** argv) {
         const auto daily_v1_variant_single_thread = iss::select_daily_good_v1(builtin, daily_options);
         require(daily_v1_variant.primary.seed == daily_v1_variant_single_thread.primary.seed,
                 "daily v1 reroll variant changed with thread count");
+        daily_options.draw_variant = 0;
+        daily_options.threads = 1;
+        const auto daily_bad_single_thread = iss::select_daily_bad_v0(builtin, daily_options);
+        daily_options.threads = 4;
+        const auto daily_bad_four_threads = iss::select_daily_bad_v0(builtin, daily_options);
+        require(daily_bad_single_thread.rules_version == iss::daily_bad_rules_version_v0,
+                "daily bad result version mismatch");
+        require(daily_bad_single_thread.eligible > 0,
+                "daily bad scan produced no eligible seeds");
+        require(daily_bad_single_thread.primary.seed == daily_bad_four_threads.primary.seed,
+                "daily bad selection changed with thread count");
+        require(daily_bad_single_thread.primary.active_quality
+                    + daily_bad_single_thread.primary.passive_quality <= 1,
+                "daily bad selection exceeded total quality one");
+        require(daily_bad_single_thread.primary.move_speed < 1.0
+                    && daily_bad_single_thread.primary.tears < 3.0
+                    && daily_bad_single_thread.primary.damage < 3.0,
+                "daily bad selection exceeded the 022 stat gate");
+        daily_options.draw_variant = 0x12345678U;
+        const auto daily_bad_variant = iss::select_daily_bad_v0(builtin, daily_options);
+        require(daily_bad_variant.primary.seed != daily_bad_four_threads.primary.seed,
+                "daily bad reroll variant repeated the first seed");
         daily_options.draw_variant = 0;
         bool invalid_daily_date_rejected = false;
         try {

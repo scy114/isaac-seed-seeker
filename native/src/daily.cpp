@@ -136,15 +136,26 @@ DailyGoodScore score_daily_good_v1(const EdenStart& start) noexcept {
     return result;
 }
 
+DailyBadScore score_daily_bad_v0(const EdenStart& start) noexcept {
+    DailyBadScore result;
+    result.eligible = start.active_quality + start.passive_quality <= 1
+        && start.move_speed < 1.0
+        && start.tears < 3.0
+        && start.damage < 3.0;
+    if (result.eligible) result.selection_weight = 1;
+    return result;
+}
+
 namespace {
 
 using DailyScoreFunction = DailyGoodScore (*)(const EdenStart&) noexcept;
 
-DailyGoodResult select_daily_good_impl(
+DailyGoodResult select_daily_impl(
     const ProfileTables& tables,
     const DailyGoodOptions& options,
     std::string_view rules_version,
-    DailyScoreFunction score_function
+    DailyScoreFunction score_function,
+    std::uint64_t draw_salt
 ) {
     if (!valid_iso_date(options.date_utc8)) {
         throw std::invalid_argument("daily date must use a valid YYYY-MM-DD value");
@@ -199,10 +210,9 @@ DailyGoodResult select_daily_good_impl(
         }
     }
     if (eligible == 0 || total_weight == 0) {
-        throw std::runtime_error("daily scan produced no eligible good seeds");
+        throw std::runtime_error("daily scan produced no eligible seeds");
     }
 
-    auto draw_salt = 0x6461696c792d676fULL;
     if (options.draw_variant != 0) {
         draw_salt ^= splitmix64(options.draw_variant);
     }
@@ -244,11 +254,12 @@ DailyGoodResult select_daily_good_v0(
     const ProfileTables& tables,
     const DailyGoodOptions& options
 ) {
-    return select_daily_good_impl(
+    return select_daily_impl(
         tables,
         options,
         daily_good_rules_version_v0,
-        score_daily_good_v0
+        score_daily_good_v0,
+        0x6461696c792d676fULL
     );
 }
 
@@ -256,11 +267,25 @@ DailyGoodResult select_daily_good_v1(
     const ProfileTables& tables,
     const DailyGoodOptions& options
 ) {
-    return select_daily_good_impl(
+    return select_daily_impl(
         tables,
         options,
         daily_good_rules_version_v1,
-        score_daily_good_v1
+        score_daily_good_v1,
+        0x6461696c792d676fULL
+    );
+}
+
+DailyBadResult select_daily_bad_v0(
+    const ProfileTables& tables,
+    const DailyGoodOptions& options
+) {
+    return select_daily_impl(
+        tables,
+        options,
+        daily_bad_rules_version_v0,
+        score_daily_bad_v0,
+        0x6461696c792d6261ULL
     );
 }
 

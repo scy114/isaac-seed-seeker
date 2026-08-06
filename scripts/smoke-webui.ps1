@@ -47,6 +47,7 @@ try {
     $TreatmentPage = Invoke-WebRequest ($BaseUrl + "experimental-treatment.html?token=" + $Token) -UseBasicParsing
     $InspectorPage = Invoke-WebRequest ($BaseUrl + "seed-inspector.html?token=" + $Token) -UseBasicParsing
     $DailyGoodPage = Invoke-WebRequest ($BaseUrl + "daily-good.html?token=" + $Token) -UseBasicParsing
+    $DailyBadPage = Invoke-WebRequest ($BaseUrl + "daily-bad.html?token=" + $Token) -UseBasicParsing
     $ClientScript = Invoke-WebRequest ($BaseUrl + "app.js") -UseBasicParsing
     $InspectorScript = Invoke-WebRequest ($BaseUrl + "seed-inspector.js") -UseBasicParsing
     $DailyGoodScript = Invoke-WebRequest ($BaseUrl + "daily-good.js") -UseBasicParsing
@@ -59,7 +60,7 @@ try {
         "treatment link" = $Page.Content -match 'id="treatment-page-link"'
         "inspector link" = $Page.Content -match 'id="seed-inspector-link"'
         "daily-good link" = $Page.Content -match 'id="daily-good-page-link"'
-        "daily-bad placeholder" = $Page.Content -match 'id="daily-bad-placeholder"'
+        "daily-bad link" = $Page.Content -match 'id="daily-bad-page-link"'
         "generic damage sort" = $Page.Content -match 'data-sort-key="damage"'
         "treatment page" = $TreatmentPage.Content -match 'data-page="treatment"'
         "treatment damage" = $TreatmentPage.Content -match 'id="experimental-damage"'
@@ -83,6 +84,10 @@ try {
         "daily-good random variant" = $DailyGoodScript.Content -match 'randomVariant'
         "daily-good persistence" = $DailyGoodScript.Content -match 'localStorage'
         "daily-good inspect" = $DailyGoodScript.Content -match '/api/v1/inspect'
+        "daily-bad page" = $DailyBadPage.Content -match 'data-page="daily-bad"'
+        "daily-bad seed" = $DailyBadPage.Content -match 'id="daily-seed"'
+        "daily-bad poop icon" = $DailyBadPage.Content -match '/game-assets/active/36.png'
+        "daily-bad endpoint" = $DailyGoodScript.Content -match '/api/v1/daily-bad'
         "generic page size" = $Page.Content -match 'id="page-size"'
         "generic catalog state" = $Page.Content -match 'id="catalog-state"'
         "generic pills" = $ClientScript.Content -match "pill_effect_ids"
@@ -197,6 +202,42 @@ try {
         $DailyFirst.seed -eq $DailyVariant.seed -or
         $DailyVariant.variant -ne 305419896) {
         throw "daily-good endpoint did not provide a stable first seed and distinct reroll"
+    }
+    $DailyBadFirst = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-bad") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $DailyBody
+    $DailyBadFirstAgain = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-bad") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $DailyBody
+    $DailyBadVariant = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-bad") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body (@{date = "2026-08-06"; variant = 305419896} | ConvertTo-Json -Compress)
+    if ($DailyBadFirst.rules_version -ne "daily-bad-v0" -or
+        $DailyBadFirst.seed -ne $DailyBadFirstAgain.seed -or
+        $DailyBadFirst.seed -eq $DailyBadVariant.seed -or
+        $DailyBadVariant.variant -ne 305419896) {
+        throw "daily-bad endpoint did not provide a stable first seed and distinct reroll"
+    }
+    $DailyBadInspected = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/inspect") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body (@{seed = $DailyBadFirst.seed} | ConvertTo-Json -Compress)
+    if ($DailyBadInspected.active_quality + $DailyBadInspected.passive_quality -gt 1 -or
+        $DailyBadInspected.move_speed -ge 1.0 -or
+        $DailyBadInspected.tears -ge 3.0 -or
+        $DailyBadInspected.damage -ge 3.0) {
+        throw "daily-bad endpoint returned a seed outside the Q1 and 022 gates"
     }
     $Body = @{
         trinket_id = 169
