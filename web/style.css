@@ -433,8 +433,26 @@ input:disabled { color: #736a62; background: #171412; border-color: #302923; }
 
 .treatment-hero { min-height: 286px; }
 .treatment-hero-copy { flex: 1 1 auto; min-width: 0; padding: 13px 315px 0 12px; }
-.back-link { display: inline-block; margin-bottom: 19px; color: #a9917c; font-size: 12px; text-decoration: none; }
-.back-link:hover { color: #f0c78d; }
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 45px;
+  margin-bottom: 18px;
+  padding: 9px 20px 11px;
+  color: #2b1b15;
+  background: transparent url("/game-assets/ui/seed-paper.png") no-repeat center / 100% 100%;
+  font-size: 16px;
+  font-weight: 800;
+  text-decoration: none;
+  filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, .48));
+  transform: rotate(-.35deg);
+  transition: color .12s ease, filter .12s ease, transform .12s ease;
+}
+.back-link:hover {
+  color: #6f1d19;
+  filter: drop-shadow(3px 4px 0 rgba(0, 0, 0, .52));
+  transform: rotate(0) translateY(-1px);
+}
 .treatment-title-row { display: flex; align-items: center; gap: 22px; }
 .treatment-hero-icon { width: 112px; height: 112px; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(6px 8px 0 rgba(0, 0, 0, .58)); }
 .treatment-hero-icon.is-missing { display: none; }
@@ -610,7 +628,7 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
   color: #f2d6a6;
   font-family: "IsaacSans", var(--font-mono);
   font-size: 27px;
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: .09em;
   text-transform: uppercase;
   -webkit-font-smoothing: none;
@@ -618,7 +636,14 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
 }
 .inspector-form button { min-width: 142px; padding: 17px 20px; }
 .inspector-result-panel { scroll-margin-top: 18px; }
-.inspector-result-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 25px; }
+.inspector-result-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(44px, 8vw, 108px);
+  margin-bottom: 25px;
+}
+.inspector-result-heading > div:first-child { min-width: 142px; }
 .inspector-seed-summary { display: grid; justify-items: center; gap: 3px; }
 .inspector-seed-card {
   display: grid;
@@ -637,7 +662,7 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
   display: block;
   font-family: "IsaacSans", var(--font-mono);
   font-size: 39px;
-  font-weight: 400;
+  font-weight: 700;
   line-height: 1.06;
   letter-spacing: .035em;
   white-space: pre-line;
