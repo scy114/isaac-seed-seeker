@@ -161,7 +161,7 @@ function pocketDescription(result) {
 
 function hideDailyDetails() {
   $("#daily-details").hidden = true;
-  $("#reveal-daily-seed").textContent = "揭晓开局";
+  $("#reveal-daily-seed").textContent = "开辉眼";
 }
 
 function renderDailyDetails(result) {
@@ -185,7 +185,7 @@ function renderDailyDetails(result) {
   });
 
   $("#daily-details").hidden = false;
-  $("#reveal-daily-seed").textContent = "收起答案";
+  $("#reveal-daily-seed").textContent = "闭辉眼";
   $("#daily-details").scrollIntoView({behavior: "smooth", block: "nearest"});
 }
 
@@ -271,7 +271,7 @@ async function toggleDailyReveal() {
   const button = $("#reveal-daily-seed");
   const error = $("#daily-error");
   button.disabled = true;
-  button.textContent = "正在揭晓……";
+  button.textContent = "正在开辉眼……";
   error.hidden = true;
   try {
     await ensureCatalog();
@@ -284,7 +284,7 @@ async function toggleDailyReveal() {
   } catch (failure) {
     error.textContent = failure.message;
     error.hidden = false;
-    button.textContent = "揭晓开局";
+    button.textContent = "开辉眼";
   } finally {
     button.disabled = false;
   }
