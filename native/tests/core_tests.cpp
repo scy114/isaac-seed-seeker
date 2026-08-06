@@ -478,6 +478,54 @@ int main(int argc, char** argv) {
         const auto daily_bad_variant = iss::select_daily_bad_v5(builtin, daily_options);
         require(daily_bad_variant.primary.seed != daily_bad_four_threads.primary.seed,
                 "daily bad reroll variant repeated the first seed");
+
+        const auto challenge_pool_single_thread = iss::scan_daily_bad_challenge_pool_v0(
+            builtin, 10'000'000, 1
+        );
+        const auto challenge_pool_four_threads = iss::scan_daily_bad_challenge_pool_v0(
+            builtin, 10'000'000, 4
+        );
+        require(!challenge_pool_single_thread.candidates.empty(),
+                "challenge pool scan produced no candidates");
+        require(challenge_pool_single_thread.candidates.size()
+                    == challenge_pool_four_threads.candidates.size(),
+                "challenge pool size changed with thread count");
+        for (std::size_t index = 0;
+             index < challenge_pool_single_thread.candidates.size();
+             ++index) {
+            const auto& left = challenge_pool_single_thread.candidates[index];
+            const auto& right = challenge_pool_four_threads.candidates[index];
+            require(left.seed == right.seed
+                        && left.selection_weight == right.selection_weight,
+                    "challenge pool contents changed with thread count");
+        }
+        iss::DailyGoodOptions challenge_options;
+        challenge_options.date_utc8 = "2026-08-06";
+        const auto pooled_challenge = iss::select_daily_bad_challenge_v0_from_pool(
+            builtin, challenge_options, challenge_pool_single_thread
+        );
+        require(pooled_challenge.primary_score.eligible,
+                "pooled challenge selection violated the challenge rules");
+        const auto pooled_challenge_again = iss::select_daily_bad_challenge_v0_from_pool(
+            builtin, challenge_options, challenge_pool_four_threads
+        );
+        require(pooled_challenge.primary.seed == pooled_challenge_again.primary.seed,
+                "pooled challenge selection changed with thread count");
+
+        auto cache_test_pool = challenge_pool_single_thread;
+        cache_test_pool.scanned = std::uint64_t{1} << 32U;
+        const auto challenge_cache_path = std::filesystem::temp_directory_path()
+            / "isaac_seed_seeker_challenge_pool_test.pool";
+        iss::save_daily_bad_challenge_pool_v0(challenge_cache_path, cache_test_pool);
+        const auto loaded_challenge_pool = iss::load_daily_bad_challenge_pool_v0(
+            challenge_cache_path, builtin
+        );
+        std::filesystem::remove(challenge_cache_path);
+        require(loaded_challenge_pool.has_value(),
+                "saved challenge pool could not be loaded");
+        require(loaded_challenge_pool->candidates.size()
+                    == cache_test_pool.candidates.size(),
+                "loaded challenge pool size mismatch");
         daily_options.draw_variant = 0;
         bool invalid_daily_date_rejected = false;
         try {

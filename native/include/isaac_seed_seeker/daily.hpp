@@ -3,7 +3,10 @@
 #include "isaac_seed_seeker/core.hpp"
 
 #include <cstdint>
+#include <filesystem>
+#include <optional>
 #include <string>
+#include <vector>
 
 namespace isaac_seed_seeker {
 
@@ -58,6 +61,18 @@ struct DailyGoodResult {
 using DailyBadScore = DailyGoodScore;
 using DailyBadResult = DailyGoodResult;
 
+struct DailyBadChallengeCandidate {
+    std::uint32_t seed = 0;
+    std::int32_t selection_weight = 0;
+};
+
+struct DailyBadChallengePool {
+    std::vector<DailyBadChallengeCandidate> candidates;
+    std::uint64_t scanned = 0;
+    double elapsed_seconds = 0.0;
+    unsigned threads = 0;
+};
+
 DailyGoodScore score_daily_good_v0(const EdenStart& start) noexcept;
 DailyGoodScore score_daily_good_v1(const EdenStart& start) noexcept;
 DailyBadScore score_daily_bad_v0(const EdenStart& start) noexcept;
@@ -111,6 +126,28 @@ DailyBadResult select_daily_bad_v5(
 DailyBadResult select_daily_bad_challenge_v0(
     const ProfileTables& tables,
     const DailyGoodOptions& options
+);
+
+DailyBadChallengePool scan_daily_bad_challenge_pool_v0(
+    const ProfileTables& tables,
+    std::uint64_t candidates = std::uint64_t{1} << 32U,
+    unsigned threads = 0
+);
+
+DailyBadResult select_daily_bad_challenge_v0_from_pool(
+    const ProfileTables& tables,
+    const DailyGoodOptions& options,
+    const DailyBadChallengePool& pool
+);
+
+std::optional<DailyBadChallengePool> load_daily_bad_challenge_pool_v0(
+    const std::filesystem::path& path,
+    const ProfileTables& tables
+);
+
+void save_daily_bad_challenge_pool_v0(
+    const std::filesystem::path& path,
+    const DailyBadChallengePool& pool
 );
 
 }  // namespace isaac_seed_seeker

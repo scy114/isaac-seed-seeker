@@ -5,7 +5,10 @@
 #include <array>
 #include <chrono>
 #include <cmath>
+#include <fstream>
+#include <iterator>
 #include <limits>
+#include <numeric>
 #include <stdexcept>
 #include <thread>
 #include <utility>
@@ -47,6 +50,16 @@ std::uint64_t splitmix64(std::uint64_t value) noexcept {
     value = (value ^ (value >> 30U)) * 0xbf58476d1ce4e5b9ULL;
     value = (value ^ (value >> 27U)) * 0x94d049bb133111ebULL;
     return value ^ (value >> 31U);
+}
+
+std::uint32_t inverse_odd_u32(std::uint32_t value) noexcept {
+    auto inverse = value;
+    inverse *= 2U - value * inverse;
+    inverse *= 2U - value * inverse;
+    inverse *= 2U - value * inverse;
+    inverse *= 2U - value * inverse;
+    inverse *= 2U - value * inverse;
+    return inverse;
 }
 
 bool valid_iso_date(std::string_view value) noexcept {
@@ -472,6 +485,225 @@ DailyBadResult select_daily_bad_challenge_v0(
         score_daily_bad_challenge_v0,
         0x6368616c6c656e67ULL
     );
+}
+
+DailyBadChallengePool scan_daily_bad_challenge_pool_v0(
+    const ProfileTables& tables,
+    std::uint64_t candidates,
+    unsigned threads
+) {
+    if (candidates == 0 || candidates > (std::uint64_t{1} << 32U)) {
+        throw std::invalid_argument(
+            "challenge pool candidate count must be within the 32-bit seed space"
+        );
+    }
+    const auto started = std::chrono::steady_clock::now();
+    auto thread_count = threads == 0 ? std::thread::hardware_concurrency() : threads;
+    thread_count = std::clamp(thread_count, 1U, 64U);
+    thread_count = static_cast<unsigned>(std::min<std::uint64_t>(thread_count, candidates));
+
+    std::vector<std::vector<DailyBadChallengeCandidate>> local_candidates(thread_count);
+    std::vector<std::thread> workers;
+    workers.reserve(thread_count);
+    for (unsigned thread_index = 0; thread_index < thread_count; ++thread_index) {
+        const auto begin = candidates * thread_index / thread_count;
+        const auto end = candidates * (thread_index + 1U) / thread_count;
+        workers.emplace_back([&, begin, end, thread_index] {
+            auto& output = local_candidates[thread_index];
+            output.reserve(static_cast<std::size_t>((end - begin) / 100'000U + 32U));
+            for (std::uint64_t value = begin; value < end; ++value) {
+                const auto seed = static_cast<std::uint32_t>(value);
+                if (seed == 0) continue;
+                const auto score = score_daily_bad_challenge_v0(
+                    predict_eden_start(seed, tables)
+                );
+                if (score.eligible) {
+                    output.push_back({seed, score.selection_weight});
+                }
+            }
+        });
+    }
+    for (auto& worker : workers) worker.join();
+
+    DailyBadChallengePool pool;
+    pool.scanned = candidates;
+    pool.threads = thread_count;
+    for (auto& local : local_candidates) {
+        pool.candidates.insert(
+            pool.candidates.end(),
+            std::make_move_iterator(local.begin()),
+            std::make_move_iterator(local.end())
+        );
+    }
+    std::sort(
+        pool.candidates.begin(),
+        pool.candidates.end(),
+        [](const auto& left, const auto& right) { return left.seed < right.seed; }
+    );
+    pool.elapsed_seconds = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - started
+    ).count();
+    if (pool.candidates.empty()) {
+        throw std::runtime_error("challenge pool scan produced no eligible seeds");
+    }
+    return pool;
+}
+
+DailyBadResult select_daily_bad_challenge_v0_from_pool(
+    const ProfileTables& tables,
+    const DailyGoodOptions& options,
+    const DailyBadChallengePool& pool
+) {
+    if (!valid_iso_date(options.date_utc8)) {
+        throw std::invalid_argument("daily date must use a valid YYYY-MM-DD value");
+    }
+    if (pool.candidates.empty() || pool.scanned == 0) {
+        throw std::invalid_argument("challenge pool cannot be empty");
+    }
+    const auto started = std::chrono::steady_clock::now();
+    const auto key = options.date_utc8 + "|j460-full-unlock|"
+        + std::string(daily_bad_challenge_rules_version_v0);
+    const auto key_hash = stable_hash(key);
+    const auto sequence_seed = splitmix64(key_hash);
+    const auto sequence_step = static_cast<std::uint32_t>(sequence_seed >> 32U) | 1U;
+    const auto sequence_start = static_cast<std::uint32_t>(sequence_seed);
+    const auto inverse_step = inverse_odd_u32(sequence_step);
+
+    std::vector<std::size_t> order(pool.candidates.size());
+    std::iota(order.begin(), order.end(), 0U);
+    std::sort(order.begin(), order.end(), [&](std::size_t left, std::size_t right) {
+        const auto left_index = static_cast<std::uint32_t>(
+            (pool.candidates[left].seed - sequence_start) * inverse_step
+        );
+        const auto right_index = static_cast<std::uint32_t>(
+            (pool.candidates[right].seed - sequence_start) * inverse_step
+        );
+        return left_index < right_index;
+    });
+
+    std::uint64_t total_weight = 0;
+    for (const auto& candidate : pool.candidates) {
+        if (candidate.seed == 0 || candidate.selection_weight <= 0) {
+            throw std::invalid_argument("challenge pool contains an invalid candidate");
+        }
+        total_weight += static_cast<std::uint64_t>(candidate.selection_weight);
+    }
+    auto draw_salt = 0x6368616c6c656e67ULL;
+    if (options.draw_variant != 0) draw_salt ^= splitmix64(options.draw_variant);
+    auto target = splitmix64(key_hash ^ draw_salt) % total_weight;
+    const DailyBadChallengeCandidate* selected = nullptr;
+    for (const auto index : order) {
+        const auto& candidate = pool.candidates[index];
+        const auto weight = static_cast<std::uint64_t>(candidate.selection_weight);
+        if (target < weight) {
+            selected = &candidate;
+            break;
+        }
+        target -= weight;
+    }
+    if (selected == nullptr) throw std::runtime_error("daily weighted draw failed");
+
+    DailyBadResult result;
+    result.date_utc8 = options.date_utc8;
+    result.rules_version = std::string(daily_bad_challenge_rules_version_v0);
+    result.primary = predict_eden_start(selected->seed, tables);
+    result.primary_score = score_daily_bad_challenge_v0(result.primary);
+    result.scanned = pool.scanned;
+    result.eligible = pool.candidates.size();
+    result.threads = pool.threads;
+    result.elapsed_seconds = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - started
+    ).count();
+    if (!result.primary_score.eligible
+        || result.primary_score.selection_weight != selected->selection_weight) {
+        throw std::runtime_error("challenge pool candidate no longer matches its rules");
+    }
+    return result;
+}
+
+std::optional<DailyBadChallengePool> load_daily_bad_challenge_pool_v0(
+    const std::filesystem::path& path,
+    const ProfileTables& tables
+) {
+    std::ifstream input(path, std::ios::binary);
+    if (!input) return std::nullopt;
+    std::string magic;
+    std::string rules_version;
+    std::string profile_id;
+    std::uint64_t scanned = 0;
+    std::size_t count = 0;
+    if (!(input >> magic >> rules_version >> profile_id >> scanned >> count)
+        || magic != "ISSS_CHALLENGE_POOL_V1"
+        || rules_version != daily_bad_challenge_rules_version_v0
+        || profile_id != "j460-full-unlock"
+        || scanned != (std::uint64_t{1} << 32U)
+        || count == 0
+        || count > 1'000'000U) {
+        return std::nullopt;
+    }
+
+    DailyBadChallengePool pool;
+    pool.scanned = scanned;
+    pool.candidates.reserve(count);
+    for (std::size_t index = 0; index < count; ++index) {
+        DailyBadChallengeCandidate candidate;
+        if (!(input >> candidate.seed >> candidate.selection_weight)
+            || candidate.seed == 0
+            || candidate.selection_weight <= 0) {
+            return std::nullopt;
+        }
+        const auto score = score_daily_bad_challenge_v0(
+            predict_eden_start(candidate.seed, tables)
+        );
+        if (!score.eligible || score.selection_weight != candidate.selection_weight) {
+            return std::nullopt;
+        }
+        pool.candidates.push_back(candidate);
+    }
+    std::sort(
+        pool.candidates.begin(),
+        pool.candidates.end(),
+        [](const auto& left, const auto& right) { return left.seed < right.seed; }
+    );
+    const auto duplicate = std::adjacent_find(
+        pool.candidates.begin(),
+        pool.candidates.end(),
+        [](const auto& left, const auto& right) { return left.seed == right.seed; }
+    );
+    if (duplicate != pool.candidates.end()) return std::nullopt;
+    return pool;
+}
+
+void save_daily_bad_challenge_pool_v0(
+    const std::filesystem::path& path,
+    const DailyBadChallengePool& pool
+) {
+    if (pool.scanned != (std::uint64_t{1} << 32U) || pool.candidates.empty()) {
+        throw std::invalid_argument("only a complete challenge pool can be cached");
+    }
+    std::filesystem::create_directories(path.parent_path());
+    auto temporary = path;
+    temporary += ".tmp";
+    std::ofstream output(temporary, std::ios::binary | std::ios::trunc);
+    if (!output) throw std::runtime_error("cannot create challenge pool cache");
+    output << "ISSS_CHALLENGE_POOL_V1\n"
+           << daily_bad_challenge_rules_version_v0 << '\n'
+           << "j460-full-unlock\n"
+           << pool.scanned << '\n'
+           << pool.candidates.size() << '\n';
+    for (const auto& candidate : pool.candidates) {
+        output << candidate.seed << ' ' << candidate.selection_weight << '\n';
+    }
+    output.close();
+    if (!output) throw std::runtime_error("cannot finish challenge pool cache");
+    std::error_code error;
+    std::filesystem::remove(path, error);
+    error.clear();
+    std::filesystem::rename(temporary, path, error);
+    if (error) {
+        std::filesystem::remove(temporary, error);
+        throw std::runtime_error("cannot install challenge pool cache");
+    }
 }
 
 }  // namespace isaac_seed_seeker

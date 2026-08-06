@@ -223,7 +223,9 @@ function showChallengeScan(visible) {
 
 async function fetchDailySeed(variant) {
   const scansAllSeeds = dailyConfig.challenge;
-  if (scansAllSeeds) showChallengeScan(true);
+  const scanNoticeTimer = scansAllSeeds
+    ? setTimeout(() => showChallengeScan(true), 180)
+    : null;
   try {
     return await request(dailyConfig.endpoint, {
       method: "POST",
@@ -231,6 +233,7 @@ async function fetchDailySeed(variant) {
       body: JSON.stringify({date: $("#daily-date").dataset.isoDate, variant}),
     });
   } finally {
+    if (scanNoticeTimer !== null) clearTimeout(scanNoticeTimer);
     if (scansAllSeeds) showChallengeScan(false);
   }
 }

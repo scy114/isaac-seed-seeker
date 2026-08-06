@@ -280,6 +280,7 @@ try {
             candidates = 10000000
         } | ConvertTo-Json -Compress)
     if ($ChallengeFirst.rules_version -ne "daily-bad-challenge-v0" -or
+        $ChallengeFirst.cache_hit -ne $false -or
         $ChallengeFirst.seed -ne $ChallengeFirstAgain.seed -or
         $ChallengeFirst.seed -eq $ChallengeVariant.seed -or
         $ChallengeVariant.variant -ne 305419896) {

@@ -580,6 +580,17 @@ std::optional<std::filesystem::path> environment_path(const wchar_t* name) {
     return std::filesystem::path(value.data());
 }
 
+std::filesystem::path challenge_pool_cache_path() {
+    const auto local_app_data = environment_path(L"LOCALAPPDATA");
+    const auto root = local_app_data.has_value()
+        ? *local_app_data
+        : std::filesystem::temp_directory_path();
+    return root
+        / "IsaacSeedSeeker"
+        / "cache"
+        / "j460-daily-bad-challenge-v0.pool";
+}
+
 void append_unique_path(
     std::vector<std::filesystem::path>& paths,
     const std::filesystem::path& candidate
@@ -966,6 +977,7 @@ int run_local_web_app(bool open_browser) {
     const auto daily_bad_html = load_resource(IDR_WEB_DAILY_BAD);
     const GameIconCatalog game_icons;
     SearchSession session;
+    std::optional<DailyBadChallengePool> challenge_pool;
     std::cout << "Isaac Seed Seeker: " << url << std::endl;
     if (open_browser) {
         ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
@@ -1117,20 +1129,48 @@ int run_local_web_app(bool open_browser) {
                 DailyGoodOptions options;
                 options.date_utc8 = *date;
                 options.draw_variant = optional_json_u32(request.body, "variant").value_or(0U);
-                options.candidates = optional_json_u32(request.body, "candidates")
-                    .value_or(0U);
-                if (options.candidates == 0) {
-                    options.candidates = std::uint64_t{1} << 32U;
+                const auto requested_candidates = optional_json_u32(
+                    request.body, "candidates"
+                ).value_or(0U);
+                DailyBadResult result;
+                bool cache_hit = false;
+                if (requested_candidates != 0) {
+                    options.candidates = requested_candidates;
+                    result = select_daily_bad_challenge_v0(
+                        builtin_j460_profile(), options
+                    );
+                } else {
+                    const auto cache_path = challenge_pool_cache_path();
+                    if (!challenge_pool) {
+                        challenge_pool = load_daily_bad_challenge_pool_v0(
+                            cache_path, builtin_j460_profile()
+                        );
+                        cache_hit = challenge_pool.has_value();
+                    } else {
+                        cache_hit = true;
+                    }
+                    if (!challenge_pool) {
+                        challenge_pool = scan_daily_bad_challenge_pool_v0(
+                            builtin_j460_profile()
+                        );
+                        try {
+                            save_daily_bad_challenge_pool_v0(cache_path, *challenge_pool);
+                        } catch (const std::exception&) {
+                            // The in-memory pool remains usable when the cache directory is unwritable.
+                        }
+                    }
+                    options.candidates = challenge_pool->scanned;
+                    result = select_daily_bad_challenge_v0_from_pool(
+                        builtin_j460_profile(), options, *challenge_pool
+                    );
                 }
-                const auto result = select_daily_bad_challenge_v0(
-                    builtin_j460_profile(), options
-                );
                 std::ostringstream output;
                 output << "{\"rules_version\":\"" << result.rules_version
                        << "\",\"date\":\"" << json_escape(result.date_utc8)
                        << "\",\"seed\":\"" << seed_to_string(result.primary.seed)
                        << "\",\"seed_u32\":" << result.primary.seed
-                       << ",\"variant\":" << options.draw_variant << '}';
+                       << ",\"variant\":" << options.draw_variant
+                       << ",\"cache_hit\":" << (cache_hit ? "true" : "false") << '}';
                 respond(client, 200, "OK", "application/json; charset=utf-8", output.str());
             } else if (request.method == "GET" && request.path == "/api/v1/search/status") {
                 respond(client, 200, "OK", "application/json; charset=utf-8", session.status_json());
