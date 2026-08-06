@@ -202,6 +202,13 @@ DailyBadScore score_daily_bad_v3(const EdenStart& start) noexcept {
     return result;
 }
 
+DailyBadScore score_daily_bad_v4(const EdenStart& start) noexcept {
+    auto result = score_daily_bad_v3(start);
+    result.eligible = result.eligible && start.tears < 2.5;
+    if (!result.eligible) result.selection_weight = 0;
+    return result;
+}
+
 namespace {
 
 using DailyScoreFunction = DailyGoodScore (*)(const EdenStart&) noexcept;
@@ -380,6 +387,19 @@ DailyBadResult select_daily_bad_v3(
         options,
         daily_bad_rules_version_v3,
         score_daily_bad_v3,
+        0x6461696c792d6261ULL
+    );
+}
+
+DailyBadResult select_daily_bad_v4(
+    const ProfileTables& tables,
+    const DailyGoodOptions& options
+) {
+    return select_daily_impl(
+        tables,
+        options,
+        daily_bad_rules_version_v4,
+        score_daily_bad_v4,
         0x6461696c792d6261ULL
     );
 }

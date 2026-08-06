@@ -221,7 +221,7 @@ try {
         -ContentType "application/json" `
         -Headers $Headers `
         -Body (@{date = "2026-08-06"; variant = 305419896} | ConvertTo-Json -Compress)
-    if ($DailyBadFirst.rules_version -ne "daily-bad-v3" -or
+    if ($DailyBadFirst.rules_version -ne "daily-bad-v4" -or
         $DailyBadFirst.seed -ne $DailyBadFirstAgain.seed -or
         $DailyBadFirst.seed -eq $DailyBadVariant.seed -or
         $DailyBadVariant.variant -ne 305419896) {
@@ -243,9 +243,9 @@ try {
         $DailyBadInspected.passive_id -in @(19, 59, 137, 161) -or
         $DailyBadInspected.bombs -ne 0 -or
         $DailyBadInspected.move_speed -ge 1.0 -or
-        $DailyBadInspected.tears -ge 3.0 -or
+        $DailyBadInspected.tears -ge 2.5 -or
         $DailyBadInspected.damage -ge 3.0) {
-        throw "daily-bad endpoint returned a seed outside the v3 item, bomb, and 022 gates"
+        throw "daily-bad endpoint returned a seed outside the v4 item, bomb, and stat gates"
     }
     $Body = @{
         trinket_id = 169
