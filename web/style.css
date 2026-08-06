@@ -621,10 +621,18 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
   min-width: 285px;
   padding: 18px 24px;
   color: var(--paper-ink);
-  background: #d5c4a7 url("/game-assets/ui/seed-paper.png") no-repeat center / 100% 100%;
+  background: transparent url("/game-assets/ui/seed-paper.png") no-repeat center / 100% 100%;
   filter: drop-shadow(3px 4px 0 rgba(0, 0, 0, .42));
 }
-.inspector-seed-card strong { display: block; font-family: var(--font-mono); font-size: 24px; letter-spacing: .08em; }
+.inspector-seed-card strong {
+  display: block;
+  font-family: "IsaacSans", var(--font-mono);
+  font-size: 27px;
+  font-weight: 400;
+  letter-spacing: .06em;
+  -webkit-font-smoothing: none;
+  text-rendering: optimizeSpeed;
+}
 .inspector-seed-card small { color: #59443a; }
 .inspector-layout { display: grid; grid-template-columns: 1.35fr .65fr; gap: 18px; }
 .inspector-block { padding: 18px; background: #171310; border: 1px solid var(--line); }
