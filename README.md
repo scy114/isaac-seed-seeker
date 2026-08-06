@@ -16,7 +16,7 @@ Isaac Seed Seeker 使用原生 C++ 内核枚举种子，并通过本地 WebUI �
 - 筛选红心、魂心、钱、钥匙、炸弹及六项基础属性；
 - 支持包含条件、排除条件、数值区间和多类别组合；
 - 提供实验性疗法（黄针）专用搜索，可筛选结算后的精确属性范围；
-- 提供不剧透开局内容的“每日一爽”，并可随机更换当天推荐；
+- 提供“每日一爽”，可随机更换当天推荐，也可按需揭晓开局；
 - 按属性、资源或道具品质排序结果；
 - 支持多线程全域扫描、进度显示、停止任务和 TXT 导出；
 - 单个原生程序运行，计算与页面服务均在本机完成。
@@ -34,9 +34,9 @@ Isaac Seed Seeker 使用原生 C++ 内核枚举种子，并通过本地 WebUI �
 
 ## 安装
 
-当前公开测试版本为 [v0.1.0](https://github.com/scy114/isaac-seed-seeker/releases/tag/v0.1.0)。
+当前公开测试版本为 [v0.2.0](https://github.com/scy114/isaac-seed-seeker/releases/tag/v0.2.0)。
 
-1. 从 [GitHub Releases](https://github.com/scy114/isaac-seed-seeker/releases) 下载 `IsaacSeedSeeker-v0.1.0-windows-x64.zip`；
+1. 从 [GitHub Releases](https://github.com/scy114/isaac-seed-seeker/releases) 下载 `IsaacSeedSeeker-v0.2.0-windows-x64.zip`；
 2. 完整解压 ZIP；
 3. 运行 `IsaacSeedSeeker.exe`；
 4. 程序将在默认浏览器中打开本地 WebUI；
@@ -74,7 +74,7 @@ Isaac Seed Seeker 使用原生 C++ 内核枚举种子，并通过本地 WebUI �
 
 ### 每日一爽
 
-“每日一爽”按北京时间日期生成一个公共伊甸开局种子。同一规则版本下，所有玩家首次领取的种子相同；点击“换一个”会从当天合格候选中重新抽取，并避免立即重复。页面只展示游戏种子，不公开道具、属性或评分。
+“每日一爽”按北京时间日期生成一个公共伊甸开局种子。同一规则版本下，所有玩家首次领取的种子相同；点击“换一个”会从当天合格候选中重新抽取，并避免立即重复。默认只展示游戏种子，点击“开辉眼”后可查看开局道具、资源和属性。
 
 ## 数据语义
 
