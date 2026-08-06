@@ -341,58 +341,58 @@ int main(int argc, char** argv) {
         challenge_boundary.move_speed = 0.999;
         challenge_boundary.damage = 2.999;
         challenge_boundary.tears = 1.999;
-        const auto challenge_boundary_score = iss::score_daily_bad_challenge_v0(challenge_boundary);
+        const auto challenge_boundary_score = iss::score_daily_bad_challenge_v1(challenge_boundary);
         require(challenge_boundary_score.eligible,
                 "daily bad challenge boundary seed was rejected");
-        require(challenge_boundary_score.selection_weight == 10,
+        require(challenge_boundary_score.selection_weight == 1,
                 "empty-pocket challenge weight mismatch");
         auto challenge_bad_pill = challenge_boundary;
         challenge_bad_pill.pocket_kind = iss::PocketKind::pill;
         challenge_bad_pill.pocket_id = 1;
-        const auto challenge_bad_pill_score = iss::score_daily_bad_challenge_v0(challenge_bad_pill);
+        const auto challenge_bad_pill_score = iss::score_daily_bad_challenge_v1(challenge_bad_pill);
         require(challenge_bad_pill_score.eligible,
                 "bad pill was rejected by the challenge gate");
-        require(challenge_bad_pill_score.selection_weight == 30,
+        require(challenge_bad_pill_score.selection_weight == 3,
                 "bad pill challenge weight mismatch");
         auto challenge_shot_speed_down = challenge_bad_pill;
         challenge_shot_speed_down.pocket_id = 47;
-        require(!iss::score_daily_bad_challenge_v0(challenge_shot_speed_down).eligible,
+        require(!iss::score_daily_bad_challenge_v1(challenge_shot_speed_down).eligible,
                 "Shot Speed Down was accepted as a challenge bad pill");
         auto challenge_card = challenge_boundary;
         challenge_card.pocket_kind = iss::PocketKind::card;
         challenge_card.pocket_id = 1;
-        require(!iss::score_daily_bad_challenge_v0(challenge_card).eligible,
+        require(!iss::score_daily_bad_challenge_v1(challenge_card).eligible,
                 "card pocket item passed the challenge gate");
         auto challenge_with_resource = challenge_boundary;
         challenge_with_resource.coins = 1;
-        require(!iss::score_daily_bad_challenge_v0(challenge_with_resource).eligible,
+        require(!iss::score_daily_bad_challenge_v1(challenge_with_resource).eligible,
                 "starting resource passed the challenge gate");
         auto challenge_wrong_active = challenge_boundary;
         challenge_wrong_active.active_id = 37;
-        require(!iss::score_daily_bad_challenge_v0(challenge_wrong_active).eligible,
+        require(!iss::score_daily_bad_challenge_v1(challenge_wrong_active).eligible,
                 "unlisted active item passed the challenge gate");
         auto challenge_wrong_passive = challenge_boundary;
         challenge_wrong_passive.passive_id = 560;
-        require(!iss::score_daily_bad_challenge_v0(challenge_wrong_passive).eligible,
+        require(!iss::score_daily_bad_challenge_v1(challenge_wrong_passive).eligible,
                 "unlisted passive item passed the challenge gate");
         auto challenge_treatment = challenge_boundary;
         challenge_treatment.passive_id = 240;
         challenge_treatment.post_item_stats_available = true;
         challenge_treatment.post_damage = 1.999;
         challenge_treatment.post_tears = 1.499;
-        const auto challenge_treatment_score = iss::score_daily_bad_challenge_v0(challenge_treatment);
+        const auto challenge_treatment_score = iss::score_daily_bad_challenge_v1(challenge_treatment);
         require(challenge_treatment_score.eligible,
                 "awful Experimental Treatment seed was rejected");
-        require(challenge_treatment_score.selection_weight == 1'000,
+        require(challenge_treatment_score.selection_weight == 1,
                 "Experimental Treatment challenge weight mismatch");
         auto challenge_treatment_bad_pill = challenge_treatment;
         challenge_treatment_bad_pill.pocket_kind = iss::PocketKind::pill;
         challenge_treatment_bad_pill.pocket_id = 15;
-        require(iss::score_daily_bad_challenge_v0(challenge_treatment_bad_pill).selection_weight
-                    == 3'000,
+        require(iss::score_daily_bad_challenge_v1(challenge_treatment_bad_pill).selection_weight
+                    == 3,
                 "bad pill did not multiply the treatment challenge weight");
         challenge_treatment.post_tears = 1.5;
-        require(!iss::score_daily_bad_challenge_v0(challenge_treatment).eligible,
+        require(!iss::score_daily_bad_challenge_v1(challenge_treatment).eligible,
                 "1.5 post-treatment tears passed the challenge gate");
 
         iss::DailyGoodOptions daily_options;
@@ -479,10 +479,10 @@ int main(int argc, char** argv) {
         require(daily_bad_variant.primary.seed != daily_bad_four_threads.primary.seed,
                 "daily bad reroll variant repeated the first seed");
 
-        const auto challenge_pool_single_thread = iss::scan_daily_bad_challenge_pool_v0(
+        const auto challenge_pool_single_thread = iss::scan_daily_bad_challenge_pool_v1(
             builtin, 10'000'000, 1
         );
-        const auto challenge_pool_four_threads = iss::scan_daily_bad_challenge_pool_v0(
+        const auto challenge_pool_four_threads = iss::scan_daily_bad_challenge_pool_v1(
             builtin, 10'000'000, 4
         );
         require(!challenge_pool_single_thread.candidates.empty(),
@@ -496,28 +496,64 @@ int main(int argc, char** argv) {
             const auto& left = challenge_pool_single_thread.candidates[index];
             const auto& right = challenge_pool_four_threads.candidates[index];
             require(left.seed == right.seed
-                        && left.selection_weight == right.selection_weight,
+                        && left.selection_weight == right.selection_weight
+                        && left.passive_id == right.passive_id,
                     "challenge pool contents changed with thread count");
         }
         iss::DailyGoodOptions challenge_options;
         challenge_options.date_utc8 = "2026-08-06";
-        const auto pooled_challenge = iss::select_daily_bad_challenge_v0_from_pool(
+        const auto pooled_challenge = iss::select_daily_bad_challenge_v1_from_pool(
             builtin, challenge_options, challenge_pool_single_thread
         );
         require(pooled_challenge.primary_score.eligible,
                 "pooled challenge selection violated the challenge rules");
-        const auto pooled_challenge_again = iss::select_daily_bad_challenge_v0_from_pool(
+        const auto pooled_challenge_again = iss::select_daily_bad_challenge_v1_from_pool(
             builtin, challenge_options, challenge_pool_four_threads
         );
         require(pooled_challenge.primary.seed == pooled_challenge_again.primary.seed,
                 "pooled challenge selection changed with thread count");
 
+        iss::DailyBadChallengePool balanced_challenge_pool;
+        balanced_challenge_pool.scanned = std::uint64_t{1} << 32U;
+        balanced_challenge_pool.threads = 1;
+        for (const auto seed : std::array<std::uint32_t, 3>{
+                 12'970'367U, 1'607'211U, 1'459'399U,
+             }) {
+            const auto start = iss::predict_eden_start(seed, builtin);
+            const auto score = iss::score_daily_bad_challenge_v1(start);
+            require(score.eligible, "balanced challenge fixture is no longer eligible");
+            balanced_challenge_pool.candidates.push_back({
+                seed,
+                score.selection_weight,
+                static_cast<std::uint16_t>(start.passive_id),
+            });
+        }
+        std::array<std::uint32_t, 3> branch_counts{};
+        for (std::uint32_t variant = 0; variant < 10'000U; ++variant) {
+            challenge_options.draw_variant = variant;
+            const auto draw = iss::select_daily_bad_challenge_v1_from_pool(
+                builtin, challenge_options, balanced_challenge_pool
+            );
+            const auto branch = draw.primary.passive_id == 240 ? 0U
+                : draw.primary.passive_id == 697 ? 1U
+                : draw.primary.passive_id == 561 ? 2U
+                : 3U;
+            require(branch < branch_counts.size(), "challenge draw used an unknown branch");
+            ++branch_counts[branch];
+        }
+        require(branch_counts[0] >= 3'800U && branch_counts[0] <= 4'200U,
+                "Experimental Treatment branch drifted away from 40 percent");
+        require(branch_counts[1] >= 2'800U && branch_counts[1] <= 3'200U,
+                "Vanishing Twin branch drifted away from 30 percent");
+        require(branch_counts[2] >= 2'800U && branch_counts[2] <= 3'200U,
+                "Almond Milk branch drifted away from 30 percent");
+
         auto cache_test_pool = challenge_pool_single_thread;
         cache_test_pool.scanned = std::uint64_t{1} << 32U;
         const auto challenge_cache_path = std::filesystem::temp_directory_path()
             / "isaac_seed_seeker_challenge_pool_test.pool";
-        iss::save_daily_bad_challenge_pool_v0(challenge_cache_path, cache_test_pool);
-        const auto loaded_challenge_pool = iss::load_daily_bad_challenge_pool_v0(
+        iss::save_daily_bad_challenge_pool_v1(challenge_cache_path, cache_test_pool);
+        const auto loaded_challenge_pool = iss::load_daily_bad_challenge_pool_v1(
             challenge_cache_path, builtin
         );
         std::filesystem::remove(challenge_cache_path);

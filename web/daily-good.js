@@ -5,7 +5,7 @@ const standardDailyConfig = isDailyBadPage
   ? {rulesVersion: "daily-bad-v5", endpoint: "/api/v1/daily-bad", challenge: false}
   : {rulesVersion: "daily-good-v1", endpoint: "/api/v1/daily-good", challenge: false};
 const challengeDailyConfig = {
-  rulesVersion: "daily-bad-challenge-v0",
+  rulesVersion: "daily-bad-challenge-v1",
   endpoint: "/api/v1/daily-bad-challenge",
   challenge: true,
 };
