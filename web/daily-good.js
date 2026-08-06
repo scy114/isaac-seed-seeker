@@ -1,7 +1,7 @@
 const $ = (selector) => document.querySelector(selector);
 const sessionToken = new URLSearchParams(window.location.search).get("token") || "";
 const dailyConfig = document.body.dataset.page === "daily-bad"
-  ? {rulesVersion: "daily-bad-v2", endpoint: "/api/v1/daily-bad"}
+  ? {rulesVersion: "daily-bad-v3", endpoint: "/api/v1/daily-bad"}
   : {rulesVersion: "daily-good-v1", endpoint: "/api/v1/daily-good"};
 const rulesVersion = dailyConfig.rulesVersion;
 const catalogByKey = new Map();

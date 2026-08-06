@@ -303,6 +303,15 @@ int main(int argc, char** argv) {
                 "TMTRAINER was removed from the daily bad v2 pool");
         require(daily_bad_v2_tmtrainer_score.selection_weight == 7,
                 "TMTRAINER daily bad v2 weight mismatch");
+        require(iss::score_daily_bad_v3(daily_bad_v2_base_pool).eligible,
+                "zero-bomb seed was rejected by daily bad v3");
+        auto daily_bad_v3_with_bomb = daily_bad_v2_base_pool;
+        daily_bad_v3_with_bomb.bombs = 1;
+        const auto daily_bad_v3_with_bomb_score = iss::score_daily_bad_v3(daily_bad_v3_with_bomb);
+        require(!daily_bad_v3_with_bomb_score.eligible,
+                "bomb start passed the daily bad v3 gate");
+        require(daily_bad_v3_with_bomb_score.selection_weight == 0,
+                "rejected daily bad v3 seed retained selection weight");
 
         iss::DailyGoodOptions daily_options;
         daily_options.date_utc8 = "2026-08-06";
@@ -341,10 +350,10 @@ int main(int argc, char** argv) {
         daily_options.draw_variant = 0;
         daily_options.candidates = 1'000'000;
         daily_options.threads = 1;
-        const auto daily_bad_single_thread = iss::select_daily_bad_v2(builtin, daily_options);
+        const auto daily_bad_single_thread = iss::select_daily_bad_v3(builtin, daily_options);
         daily_options.threads = 4;
-        const auto daily_bad_four_threads = iss::select_daily_bad_v2(builtin, daily_options);
-        require(daily_bad_single_thread.rules_version == iss::daily_bad_rules_version_v2,
+        const auto daily_bad_four_threads = iss::select_daily_bad_v3(builtin, daily_options);
+        require(daily_bad_single_thread.rules_version == iss::daily_bad_rules_version_v3,
                 "daily bad result version mismatch");
         require(daily_bad_single_thread.eligible > 0,
                 "daily bad scan produced no eligible seeds");
@@ -379,8 +388,10 @@ int main(int argc, char** argv) {
                     && daily_bad_single_thread.primary.tears < 3.0
                     && daily_bad_single_thread.primary.damage < 3.0,
                 "daily bad selection exceeded the 022 stat gate");
+        require(daily_bad_single_thread.primary.bombs == 0,
+                "daily bad selection included starting bombs");
         daily_options.draw_variant = 0x12345678U;
-        const auto daily_bad_variant = iss::select_daily_bad_v2(builtin, daily_options);
+        const auto daily_bad_variant = iss::select_daily_bad_v3(builtin, daily_options);
         require(daily_bad_variant.primary.seed != daily_bad_four_threads.primary.seed,
                 "daily bad reroll variant repeated the first seed");
         daily_options.draw_variant = 0;
