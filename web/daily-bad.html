@@ -46,6 +46,7 @@
         <button class="primary" id="copy-daily-seed" type="button" disabled>复制种子</button>
         <button class="secondary" id="reroll-daily-seed" type="button" disabled>换一个</button>
         <button class="secondary" id="reveal-daily-seed" type="button" disabled>开辉眼</button>
+        <button class="secondary" id="challenge-daily-seed" type="button" disabled>挑战自我</button>
       </div>
 
       <p class="error" id="daily-error" hidden></p>
@@ -79,6 +80,7 @@
           <div><dt>炸弹</dt><dd id="daily-bombs">—</dd></div>
         </dl>
 
+        <p class="daily-stats-note" id="daily-stats-note" hidden></p>
         <dl class="daily-detail-stats">
           <div><dt>伤害</dt><dd id="daily-damage">—</dd></div>
           <div><dt>射速</dt><dd id="daily-tears">—</dd></div>
@@ -95,6 +97,16 @@
       <button id="shutdown-button" type="button">关闭本地程序</button>
     </footer>
   </main>
+
+  <div class="challenge-scan-modal" id="challenge-scan-modal" role="dialog" aria-modal="true" aria-labelledby="challenge-scan-title" hidden>
+    <div class="challenge-scan-card">
+      <p class="step">FULL SEED SCAN</p>
+      <h2 id="challenge-scan-title">正在扫描 42 亿个种子</h2>
+      <p>请稍等一会儿。</p>
+      <div class="challenge-scan-track" aria-hidden="true"><span></span></div>
+    </div>
+  </div>
+
   <script src="/daily-good.js"></script>
 </body>
 </html>

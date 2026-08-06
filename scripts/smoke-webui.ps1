@@ -88,6 +88,10 @@ try {
         "daily-bad seed" = $DailyBadPage.Content -match 'id="daily-seed"'
         "daily-bad poop icon" = $DailyBadPage.Content -match '/game-assets/active/36.png'
         "daily-bad endpoint" = $DailyGoodScript.Content -match '/api/v1/daily-bad'
+        "daily-bad challenge button" = $DailyBadPage.Content -match 'id="challenge-daily-seed"'
+        "daily-bad challenge endpoint" = $DailyGoodScript.Content -match '/api/v1/daily-bad-challenge'
+        "daily-bad challenge scan modal" = $DailyBadPage.Content -match 'id="challenge-scan-modal"'
+        "daily-bad challenge scan toggle" = $DailyGoodScript.Content -match 'showChallengeScan'
         "generic page size" = $Page.Content -match 'id="page-size"'
         "generic catalog state" = $Page.Content -match 'id="catalog-state"'
         "generic pills" = $ClientScript.Content -match "pill_effect_ids"
@@ -221,7 +225,7 @@ try {
         -ContentType "application/json" `
         -Headers $Headers `
         -Body (@{date = "2026-08-06"; variant = 305419896} | ConvertTo-Json -Compress)
-    if ($DailyBadFirst.rules_version -ne "daily-bad-v4" -or
+    if ($DailyBadFirst.rules_version -ne "daily-bad-v5" -or
         $DailyBadFirst.seed -ne $DailyBadFirstAgain.seed -or
         $DailyBadFirst.seed -eq $DailyBadVariant.seed -or
         $DailyBadVariant.variant -ne 305419896) {
@@ -240,12 +244,71 @@ try {
     if (-not $DailyBadActiveAllowed -or
         -not $DailyBadPassiveAllowed -or
         $DailyBadInspected.active_id -in @(19, 59, 137, 161) -or
+        $DailyBadInspected.active_id -eq 482 -or
         $DailyBadInspected.passive_id -in @(19, 59, 137, 161) -or
         $DailyBadInspected.bombs -ne 0 -or
         $DailyBadInspected.move_speed -ge 1.0 -or
         $DailyBadInspected.tears -ge 2.5 -or
         $DailyBadInspected.damage -ge 3.0) {
-        throw "daily-bad endpoint returned a seed outside the v4 item, bomb, and stat gates"
+        throw "daily-bad endpoint returned a seed outside the v5 item, bomb, and stat gates"
+    }
+    $ChallengeBody = @{
+        date = "2026-08-06"
+        variant = 0
+        candidates = 10000000
+    } | ConvertTo-Json -Compress
+    $ChallengeFirst = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-bad-challenge") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $ChallengeBody
+    $ChallengeFirstAgain = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-bad-challenge") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $ChallengeBody
+    $ChallengeVariant = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/daily-bad-challenge") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body (@{
+            date = "2026-08-06"
+            variant = 305419896
+            candidates = 10000000
+        } | ConvertTo-Json -Compress)
+    if ($ChallengeFirst.rules_version -ne "daily-bad-challenge-v0" -or
+        $ChallengeFirst.seed -ne $ChallengeFirstAgain.seed -or
+        $ChallengeFirst.seed -eq $ChallengeVariant.seed -or
+        $ChallengeVariant.variant -ne 305419896) {
+        throw "daily-bad challenge endpoint was not stable or did not reroll"
+    }
+    $ChallengeInspected = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/inspect") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body (@{seed = $ChallengeFirst.seed} | ConvertTo-Json -Compress)
+    $ChallengePocketAllowed = $ChallengeInspected.pocket_kind -eq "none" -or
+        ($ChallengeInspected.pocket_kind -eq "pill" -and
+            $ChallengeInspected.pocket_id -in @(1, 6, 11, 13, 15, 17))
+    $ChallengeLowPanelBranch = $ChallengeInspected.passive_id -in @(561, 697) -and
+        $ChallengeInspected.move_speed -lt 1.0 -and
+        $ChallengeInspected.damage -lt 3.0 -and
+        $ChallengeInspected.tears -lt 2.0
+    $ChallengeTreatmentBranch = $ChallengeInspected.passive_id -eq 240 -and
+        $ChallengeInspected.post_item_stats_available -and
+        $ChallengeInspected.post_damage -lt 2.0 -and
+        $ChallengeInspected.post_tears -lt 1.5
+    if ($ChallengeInspected.active_id -notin @(36, 39, 41, 177, 287, 290, 294, 325, 475, 480, 481, 582) -or
+        -not $ChallengePocketAllowed -or
+        $ChallengeInspected.coins -ne 0 -or
+        $ChallengeInspected.keys -ne 0 -or
+        $ChallengeInspected.bombs -ne 0 -or
+        (-not $ChallengeLowPanelBranch -and -not $ChallengeTreatmentBranch)) {
+        throw "daily-bad challenge endpoint returned a seed outside the strict challenge rules"
     }
     $Body = @{
         trinket_id = 169

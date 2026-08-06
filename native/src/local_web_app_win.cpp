@@ -1100,7 +1100,31 @@ int run_local_web_app(bool open_browser) {
                 DailyGoodOptions options;
                 options.date_utc8 = *date;
                 options.draw_variant = optional_json_u32(request.body, "variant").value_or(0U);
-                const auto result = select_daily_bad_v4(builtin_j460_profile(), options);
+                const auto result = select_daily_bad_v5(builtin_j460_profile(), options);
+                std::ostringstream output;
+                output << "{\"rules_version\":\"" << result.rules_version
+                       << "\",\"date\":\"" << json_escape(result.date_utc8)
+                       << "\",\"seed\":\"" << seed_to_string(result.primary.seed)
+                       << "\",\"seed_u32\":" << result.primary.seed
+                       << ",\"variant\":" << options.draw_variant << '}';
+                respond(client, 200, "OK", "application/json; charset=utf-8", output.str());
+            } else if (request.method == "POST"
+                       && request.path == "/api/v1/daily-bad-challenge") {
+                const auto date = optional_json_string(request.body, "date");
+                if (!date) {
+                    throw std::invalid_argument("missing JSON field: date");
+                }
+                DailyGoodOptions options;
+                options.date_utc8 = *date;
+                options.draw_variant = optional_json_u32(request.body, "variant").value_or(0U);
+                options.candidates = optional_json_u32(request.body, "candidates")
+                    .value_or(0U);
+                if (options.candidates == 0) {
+                    options.candidates = std::uint64_t{1} << 32U;
+                }
+                const auto result = select_daily_bad_challenge_v0(
+                    builtin_j460_profile(), options
+                );
                 std::ostringstream output;
                 output << "{\"rules_version\":\"" << result.rules_version
                        << "\",\"date\":\"" << json_escape(result.date_utc8)

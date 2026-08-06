@@ -1,9 +1,16 @@
 const $ = (selector) => document.querySelector(selector);
 const sessionToken = new URLSearchParams(window.location.search).get("token") || "";
-const dailyConfig = document.body.dataset.page === "daily-bad"
-  ? {rulesVersion: "daily-bad-v4", endpoint: "/api/v1/daily-bad"}
-  : {rulesVersion: "daily-good-v1", endpoint: "/api/v1/daily-good"};
-const rulesVersion = dailyConfig.rulesVersion;
+const isDailyBadPage = document.body.dataset.page === "daily-bad";
+const standardDailyConfig = isDailyBadPage
+  ? {rulesVersion: "daily-bad-v5", endpoint: "/api/v1/daily-bad", challenge: false}
+  : {rulesVersion: "daily-good-v1", endpoint: "/api/v1/daily-good", challenge: false};
+const challengeDailyConfig = {
+  rulesVersion: "daily-bad-challenge-v0",
+  endpoint: "/api/v1/daily-bad-challenge",
+  challenge: true,
+};
+let dailyConfig = standardDailyConfig;
+let rulesVersion = dailyConfig.rulesVersion;
 const catalogByKey = new Map();
 let dailyState = null;
 let requestInProgress = false;
@@ -183,9 +190,16 @@ function renderDailyDetails(result) {
   ["red_hearts", "soul_hearts", "coins", "keys", "bombs"].forEach((field) => {
     $(`#daily-${field.replaceAll("_", "-")}`).textContent = result[field];
   });
+  const usePostItemStats = dailyConfig.challenge && result.post_item_stats_available;
   ["damage", "move_speed", "tears", "range", "shot_speed", "luck"].forEach((field) => {
-    $(`#daily-${field.replaceAll("_", "-")}`).textContent = Number(result[field]).toFixed(4);
+    const value = usePostItemStats ? result[`post_${field}`] : result[field];
+    $(`#daily-${field.replaceAll("_", "-")}`).textContent = Number(value).toFixed(4);
   });
+  const statsNote = $("#daily-stats-note");
+  if (statsNote) {
+    statsNote.hidden = !usePostItemStats;
+    statsNote.textContent = usePostItemStats ? "实验性疗法结算后面板" : "";
+  }
 
   $("#daily-details").hidden = false;
   $("#reveal-daily-seed").textContent = "问心无愧";
@@ -198,14 +212,27 @@ function renderSeed(message) {
   $("#copy-daily-seed").disabled = false;
   $("#reroll-daily-seed").disabled = false;
   $("#reveal-daily-seed").disabled = false;
+  const challengeButton = $("#challenge-daily-seed");
+  if (challengeButton) challengeButton.disabled = false;
+}
+
+function showChallengeScan(visible) {
+  const modal = $("#challenge-scan-modal");
+  if (modal) modal.hidden = !visible;
 }
 
 async function fetchDailySeed(variant) {
-  return request(dailyConfig.endpoint, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({date: $("#daily-date").dataset.isoDate, variant}),
-  });
+  const scansAllSeeds = dailyConfig.challenge;
+  if (scansAllSeeds) showChallengeScan(true);
+  try {
+    return await request(dailyConfig.endpoint, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({date: $("#daily-date").dataset.isoDate, variant}),
+    });
+  } finally {
+    if (scansAllSeeds) showChallengeScan(false);
+  }
 }
 
 async function initializeDailySeed() {
@@ -238,6 +265,8 @@ async function rerollDailySeed() {
   hideDailyDetails();
   button.disabled = true;
   $("#reveal-daily-seed").disabled = true;
+  const challengeButton = $("#challenge-daily-seed");
+  if (challengeButton) challengeButton.disabled = true;
   error.hidden = true;
   $("#daily-status").textContent = "再抽一个……";
   try {
@@ -261,6 +290,48 @@ async function rerollDailySeed() {
     requestInProgress = false;
     button.disabled = false;
     $("#reveal-daily-seed").disabled = false;
+    if (challengeButton) challengeButton.disabled = false;
+  }
+}
+
+function renderDailyMode() {
+  const challengeButton = $("#challenge-daily-seed");
+  if (!challengeButton) return;
+  challengeButton.textContent = dailyConfig.challenge ? "回到每日一毒" : "挑战自我";
+  $("#daily-heading").textContent = dailyConfig.challenge ? "挑战自我" : "今天就玩这个";
+}
+
+async function toggleChallengeMode() {
+  if (requestInProgress) return;
+  requestInProgress = true;
+  dailyConfig = dailyConfig.challenge ? standardDailyConfig : challengeDailyConfig;
+  rulesVersion = dailyConfig.rulesVersion;
+  dailyState = null;
+  hideDailyDetails();
+  renderDailyMode();
+  const error = $("#daily-error");
+  error.hidden = true;
+  $("#daily-status").textContent = dailyConfig.challenge
+    ? "正在挑一颗真正难受的……"
+    : "正在返回今天的毒种……";
+  for (const selector of [
+    "#copy-daily-seed",
+    "#reroll-daily-seed",
+    "#reveal-daily-seed",
+    "#challenge-daily-seed",
+  ]) {
+    $(selector).disabled = true;
+  }
+  try {
+    await initializeDailySeed();
+  } catch (failure) {
+    error.textContent = failure.message;
+    error.hidden = false;
+    $("#daily-status").textContent = "这次没挑出来";
+  } finally {
+    requestInProgress = false;
+    if (dailyState) renderSeed($("#daily-status").textContent);
+    $("#challenge-daily-seed").disabled = false;
   }
 }
 
@@ -316,12 +387,14 @@ async function initialize() {
   document.querySelectorAll("img[data-game-icon]").forEach((image) => {
     image.addEventListener("error", () => image.classList.add("is-missing"), {once: true});
   });
+  renderDailyMode();
   await initializeDailySeed();
 }
 
 $("#copy-daily-seed").addEventListener("click", copyDailySeed);
 $("#reroll-daily-seed").addEventListener("click", rerollDailySeed);
 $("#reveal-daily-seed").addEventListener("click", toggleDailyReveal);
+$("#challenge-daily-seed")?.addEventListener("click", toggleChallengeMode);
 $("#shutdown-button").addEventListener("click", async () => {
   await request("/api/v1/shutdown", {method: "POST"});
   document.body.innerHTML = '<main class="shell"><section class="panel"><h2>本地程序已关闭</h2><p>现在可以关闭这个页面。</p></section></main>';

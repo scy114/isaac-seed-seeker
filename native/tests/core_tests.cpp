@@ -322,6 +322,78 @@ int main(int argc, char** argv) {
                 "2.5 tears passed the daily bad v4 gate");
         require(daily_bad_v4_tears_boundary_score.selection_weight == 0,
                 "rejected daily bad v4 seed retained selection weight");
+        auto daily_bad_v5_clicker = daily_bad_v4_boundary;
+        daily_bad_v5_clicker.tears = 1.9;
+        daily_bad_v5_clicker.active_id = 482;
+        require(!iss::score_daily_bad_v5(daily_bad_v5_clicker).eligible,
+                "Clicker passed the daily bad v5 gate");
+        daily_bad_v5_clicker.active_id = 1;
+        require(iss::score_daily_bad_v5(daily_bad_v5_clicker).eligible,
+                "daily bad v5 rejected a non-Clicker v4 seed");
+
+        iss::EdenStart challenge_boundary;
+        challenge_boundary.active_id = 36;
+        challenge_boundary.passive_id = 561;
+        challenge_boundary.pocket_kind = iss::PocketKind::none;
+        challenge_boundary.coins = 0;
+        challenge_boundary.keys = 0;
+        challenge_boundary.bombs = 0;
+        challenge_boundary.move_speed = 0.999;
+        challenge_boundary.damage = 2.999;
+        challenge_boundary.tears = 1.999;
+        const auto challenge_boundary_score = iss::score_daily_bad_challenge_v0(challenge_boundary);
+        require(challenge_boundary_score.eligible,
+                "daily bad challenge boundary seed was rejected");
+        require(challenge_boundary_score.selection_weight == 10,
+                "empty-pocket challenge weight mismatch");
+        auto challenge_bad_pill = challenge_boundary;
+        challenge_bad_pill.pocket_kind = iss::PocketKind::pill;
+        challenge_bad_pill.pocket_id = 1;
+        const auto challenge_bad_pill_score = iss::score_daily_bad_challenge_v0(challenge_bad_pill);
+        require(challenge_bad_pill_score.eligible,
+                "bad pill was rejected by the challenge gate");
+        require(challenge_bad_pill_score.selection_weight == 30,
+                "bad pill challenge weight mismatch");
+        auto challenge_shot_speed_down = challenge_bad_pill;
+        challenge_shot_speed_down.pocket_id = 47;
+        require(!iss::score_daily_bad_challenge_v0(challenge_shot_speed_down).eligible,
+                "Shot Speed Down was accepted as a challenge bad pill");
+        auto challenge_card = challenge_boundary;
+        challenge_card.pocket_kind = iss::PocketKind::card;
+        challenge_card.pocket_id = 1;
+        require(!iss::score_daily_bad_challenge_v0(challenge_card).eligible,
+                "card pocket item passed the challenge gate");
+        auto challenge_with_resource = challenge_boundary;
+        challenge_with_resource.coins = 1;
+        require(!iss::score_daily_bad_challenge_v0(challenge_with_resource).eligible,
+                "starting resource passed the challenge gate");
+        auto challenge_wrong_active = challenge_boundary;
+        challenge_wrong_active.active_id = 37;
+        require(!iss::score_daily_bad_challenge_v0(challenge_wrong_active).eligible,
+                "unlisted active item passed the challenge gate");
+        auto challenge_wrong_passive = challenge_boundary;
+        challenge_wrong_passive.passive_id = 560;
+        require(!iss::score_daily_bad_challenge_v0(challenge_wrong_passive).eligible,
+                "unlisted passive item passed the challenge gate");
+        auto challenge_treatment = challenge_boundary;
+        challenge_treatment.passive_id = 240;
+        challenge_treatment.post_item_stats_available = true;
+        challenge_treatment.post_damage = 1.999;
+        challenge_treatment.post_tears = 1.499;
+        const auto challenge_treatment_score = iss::score_daily_bad_challenge_v0(challenge_treatment);
+        require(challenge_treatment_score.eligible,
+                "awful Experimental Treatment seed was rejected");
+        require(challenge_treatment_score.selection_weight == 1'000,
+                "Experimental Treatment challenge weight mismatch");
+        auto challenge_treatment_bad_pill = challenge_treatment;
+        challenge_treatment_bad_pill.pocket_kind = iss::PocketKind::pill;
+        challenge_treatment_bad_pill.pocket_id = 15;
+        require(iss::score_daily_bad_challenge_v0(challenge_treatment_bad_pill).selection_weight
+                    == 3'000,
+                "bad pill did not multiply the treatment challenge weight");
+        challenge_treatment.post_tears = 1.5;
+        require(!iss::score_daily_bad_challenge_v0(challenge_treatment).eligible,
+                "1.5 post-treatment tears passed the challenge gate");
 
         iss::DailyGoodOptions daily_options;
         daily_options.date_utc8 = "2026-08-06";
@@ -360,10 +432,10 @@ int main(int argc, char** argv) {
         daily_options.draw_variant = 0;
         daily_options.candidates = 1'000'000;
         daily_options.threads = 1;
-        const auto daily_bad_single_thread = iss::select_daily_bad_v4(builtin, daily_options);
+        const auto daily_bad_single_thread = iss::select_daily_bad_v5(builtin, daily_options);
         daily_options.threads = 4;
-        const auto daily_bad_four_threads = iss::select_daily_bad_v4(builtin, daily_options);
-        require(daily_bad_single_thread.rules_version == iss::daily_bad_rules_version_v4,
+        const auto daily_bad_four_threads = iss::select_daily_bad_v5(builtin, daily_options);
+        require(daily_bad_single_thread.rules_version == iss::daily_bad_rules_version_v5,
                 "daily bad result version mismatch");
         require(daily_bad_single_thread.eligible > 0,
                 "daily bad scan produced no eligible seeds");
@@ -400,8 +472,10 @@ int main(int argc, char** argv) {
                 "daily bad selection exceeded the v4 stat gate");
         require(daily_bad_single_thread.primary.bombs == 0,
                 "daily bad selection included starting bombs");
+        require(daily_bad_single_thread.primary.active_id != 482,
+                "daily bad selection included Clicker");
         daily_options.draw_variant = 0x12345678U;
-        const auto daily_bad_variant = iss::select_daily_bad_v4(builtin, daily_options);
+        const auto daily_bad_variant = iss::select_daily_bad_v5(builtin, daily_options);
         require(daily_bad_variant.primary.seed != daily_bad_four_threads.primary.seed,
                 "daily bad reroll variant repeated the first seed");
         daily_options.draw_variant = 0;

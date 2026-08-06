@@ -209,6 +209,50 @@ DailyBadScore score_daily_bad_v4(const EdenStart& start) noexcept {
     return result;
 }
 
+DailyBadScore score_daily_bad_v5(const EdenStart& start) noexcept {
+    auto result = score_daily_bad_v4(start);
+    result.eligible = result.eligible && start.active_id != 482;
+    if (!result.eligible) result.selection_weight = 0;
+    return result;
+}
+
+DailyBadScore score_daily_bad_challenge_v0(const EdenStart& start) noexcept {
+    static constexpr std::array<std::uint16_t, 12> active_ids{
+        36, 39, 41, 177, 287, 290, 294, 325, 475, 480, 481, 582,
+    };
+    static constexpr std::array<std::int32_t, 6> bad_pill_effect_ids{
+        1, 6, 11, 13, 15, 17,
+    };
+    const auto active_allowed = std::find(
+        active_ids.begin(), active_ids.end(), start.active_id
+    ) != active_ids.end();
+    const auto empty_pocket = start.pocket_kind == PocketKind::none;
+    const auto bad_pill = start.pocket_kind == PocketKind::pill
+        && std::find(
+            bad_pill_effect_ids.begin(), bad_pill_effect_ids.end(), start.pocket_id
+        ) != bad_pill_effect_ids.end();
+    const auto resource_gate = start.coins == 0 && start.keys == 0 && start.bombs == 0;
+    const auto low_panel_passive = (start.passive_id == 697 || start.passive_id == 561)
+        && start.move_speed < 1.0
+        && start.damage < 3.0
+        && start.tears < 2.0;
+    const auto treatment_passive = start.passive_id == 240
+        && start.post_item_stats_available
+        && start.post_damage < 2.0
+        && start.post_tears < 1.5;
+
+    DailyBadScore result;
+    result.eligible = active_allowed
+        && (empty_pocket || bad_pill)
+        && resource_gate
+        && (low_panel_passive || treatment_passive);
+    if (result.eligible) {
+        const auto branch_weight = treatment_passive ? 1'000 : 10;
+        result.selection_weight = bad_pill ? branch_weight * 3 : branch_weight;
+    }
+    return result;
+}
+
 namespace {
 
 using DailyScoreFunction = DailyGoodScore (*)(const EdenStart&) noexcept;
@@ -401,6 +445,32 @@ DailyBadResult select_daily_bad_v4(
         daily_bad_rules_version_v4,
         score_daily_bad_v4,
         0x6461696c792d6261ULL
+    );
+}
+
+DailyBadResult select_daily_bad_v5(
+    const ProfileTables& tables,
+    const DailyGoodOptions& options
+) {
+    return select_daily_impl(
+        tables,
+        options,
+        daily_bad_rules_version_v5,
+        score_daily_bad_v5,
+        0x6461696c792d6261ULL
+    );
+}
+
+DailyBadResult select_daily_bad_challenge_v0(
+    const ProfileTables& tables,
+    const DailyGoodOptions& options
+) {
+    return select_daily_impl(
+        tables,
+        options,
+        daily_bad_challenge_rules_version_v0,
+        score_daily_bad_challenge_v0,
+        0x6368616c6c656e67ULL
     );
 }
 

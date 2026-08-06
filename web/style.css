@@ -814,6 +814,7 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
 .daily-good-reveal > p { min-height: 20px; margin: -2px 0 0; color: #b39e88; font-size: 13px; }
 .daily-good-actions { display: flex; justify-content: center; gap: 12px; width: min(570px, 100%); }
 .daily-good-actions button { min-width: 160px; }
+.daily-bad-shell .daily-good-actions { width: min(740px, 100%); }
 .daily-good-rule { max-width: 650px; margin: 20px 0 0; padding-top: 16px; color: #8f8175; border-top: 1px solid #40332c; font-size: 12px; line-height: 1.65; }
 .daily-good-panel .error { width: min(650px, 100%); margin: 12px 0 0; }
 .daily-details { width: 100%; margin-top: 24px; padding-top: 24px; border-top: 1px solid #4b3a31; text-align: left; }
@@ -832,6 +833,55 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
 .daily-detail-stats dt { color: #86796e; font-size: 11px; }
 .daily-detail-resources dd,
 .daily-detail-stats dd { margin: 4px 0 0; color: #ead5b5; font-family: var(--font-mono); font-size: 17px; font-weight: 700; }
+.daily-stats-note { margin: 12px 0 -2px; color: #b58a58; font-size: 12px; text-align: center; }
+.challenge-scan-modal[hidden] { display: none; }
+.challenge-scan-modal {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(10, 7, 5, .82);
+  backdrop-filter: blur(3px);
+}
+.challenge-scan-card {
+  width: min(500px, 100%);
+  padding: 34px 36px 30px;
+  color: #ead5b5;
+  background: #211c19;
+  border: 2px solid #5a4639;
+  box-shadow: 7px 8px 0 rgba(0, 0, 0, .55), inset 0 0 0 3px #120f0d;
+  text-align: center;
+}
+.challenge-scan-card .step { margin: 0 auto 14px; }
+.challenge-scan-card h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 5vw, 38px);
+  font-weight: 400;
+}
+.challenge-scan-card > p:last-of-type { margin: 11px 0 22px; color: #b39e88; }
+.challenge-scan-track {
+  position: relative;
+  height: 8px;
+  overflow: hidden;
+  background: #100d0b;
+  border: 1px solid #4c392f;
+}
+.challenge-scan-track span {
+  position: absolute;
+  inset-block: 0;
+  left: -35%;
+  width: 35%;
+  background: #a93a2f;
+  box-shadow: 0 0 9px rgba(184, 59, 45, .65);
+  animation: challenge-scan 1.15s ease-in-out infinite;
+}
+@keyframes challenge-scan {
+  from { transform: translateX(0); }
+  to { transform: translateX(390%); }
+}
 
 @media (max-width: 1040px) {
   .hero { align-items: start; }
