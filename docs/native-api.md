@@ -27,6 +27,9 @@
 # 检查单个 uint32 种子
 .\build\native\IsaacSeedSeeker.exe inspect --seed 10161220
 
+# 解码八字符游戏种子并检查开局
+.\build\native\IsaacSeedSeeker.exe inspect --seed-label "TEXZ WDS0"
+
 # 搜索；示例中的三类 ID 条件必须同时成立
 .\build\native\IsaacSeedSeeker.exe search `
   --trinket 169 `
@@ -89,6 +92,14 @@
 ```json
 {"seed_u32": 2}
 ```
+
+也可以直接提交游戏显示的八字符种子：
+
+```json
+{"seed": "TEXZ WDS0"}
+```
+
+`seed` 与 `seed_u32` 必须且只能提供一个。八字符种子会先进行字母表和校验码验证，再用于预测伊甸开局。
 
 ### 开始搜索
 

@@ -58,8 +58,20 @@ int main(int argc, char** argv) {
         };
         for (const auto& [seed, label] : seed_labels) {
             require(iss::seed_to_string(seed) == label, "seed codec golden mismatch");
+            require(iss::string_to_seed(label) == seed, "seed decoder golden mismatch");
         }
         require(iss::seed_to_string(1U) == "B911 99AC", "special seed label mismatch");
+        require(iss::string_to_seed("masv\tsyfs") == 1'473'169'325U,
+                "seed decoder normalization mismatch");
+        for (const auto invalid : {"MASV SYFA", "MASI SYFS", "ABC"}) {
+            bool rejected = false;
+            try {
+                static_cast<void>(iss::string_to_seed(invalid));
+            } catch (const std::invalid_argument&) {
+                rejected = true;
+            }
+            require(rejected, "invalid seed label was accepted");
+        }
         require(iss::a5_from_seed(10161220U) == 778875255U, "a5 golden mismatch");
         require(iss::p988_from_seed(10161220U) == 2935808445U, "p988 golden mismatch");
 

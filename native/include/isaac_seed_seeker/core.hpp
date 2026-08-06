@@ -240,6 +240,7 @@ using ProgressCallback = std::function<void(const SearchProgress&)>;
 
 std::uint32_t seed_checksum(std::uint32_t seed) noexcept;
 std::string seed_to_string(std::uint32_t seed);
+std::uint32_t string_to_seed(std::string_view value);
 std::uint32_t a5_from_seed(std::uint32_t seed) noexcept;
 std::uint32_t p988_from_a5(std::uint32_t a5) noexcept;
 std::uint32_t p988_from_seed(std::uint32_t seed) noexcept;

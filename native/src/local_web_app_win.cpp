@@ -956,6 +956,8 @@ int run_local_web_app(bool open_browser) {
     const auto seeker_title = load_resource(IDR_SEEKER_TITLE);
     const auto lana_pixel_font = load_resource(IDR_LANA_PIXEL_FONT);
     const auto treatment_html = load_resource(IDR_WEB_TREATMENT);
+    const auto inspector_html = load_resource(IDR_WEB_INSPECTOR);
+    const auto inspector_js = load_resource(IDR_WEB_INSPECTOR_APP);
     const GameIconCatalog game_icons;
     SearchSession session;
     std::cout << "Isaac Seed Seeker: " << url << std::endl;
@@ -994,10 +996,16 @@ int run_local_web_app(bool open_browser) {
                        && (request.path == "/experimental-treatment.html"
                            || request.path.starts_with("/experimental-treatment.html?"))) {
                 respond(client, 200, "OK", "text/html; charset=utf-8", treatment_html);
+            } else if (request.method == "GET"
+                       && (request.path == "/seed-inspector.html"
+                           || request.path.starts_with("/seed-inspector.html?"))) {
+                respond(client, 200, "OK", "text/html; charset=utf-8", inspector_html);
             } else if (request.method == "GET" && request.path == "/style.css") {
                 respond(client, 200, "OK", "text/css; charset=utf-8", style_css);
             } else if (request.method == "GET" && request.path == "/app.js") {
                 respond(client, 200, "OK", "text/javascript; charset=utf-8", app_js);
+            } else if (request.method == "GET" && request.path == "/seed-inspector.js") {
+                respond(client, 200, "OK", "text/javascript; charset=utf-8", inspector_js);
             } else if (request.method == "GET" && request.path == "/assets/isaacsans.ttf") {
                 respond(client, 200, "OK", "font/ttf", isaac_sans_font);
             } else if (request.method == "GET" && request.path == "/assets/isaac-seed-seeker-title.png") {
@@ -1032,7 +1040,14 @@ int run_local_web_app(bool open_browser) {
             } else if (request.method == "GET" && request.path == "/api/v1/profile") {
                 respond(client, 200, "OK", "application/json; charset=utf-8", profile_json(game_icons));
             } else if (request.method == "POST" && request.path == "/api/v1/inspect") {
-                const auto seed = json_u32(request.body, "seed_u32");
+                const auto seed_label = optional_json_string(request.body, "seed");
+                const auto seed_value = optional_json_u32(request.body, "seed_u32");
+                if (seed_label.has_value() == seed_value.has_value()) {
+                    throw std::invalid_argument("provide exactly one of seed or seed_u32");
+                }
+                const auto seed = seed_label.has_value()
+                    ? string_to_seed(*seed_label)
+                    : *seed_value;
                 const auto start = predict_eden_start(seed, builtin_j460_profile());
                 std::ostringstream output;
                 output << std::setprecision(10);

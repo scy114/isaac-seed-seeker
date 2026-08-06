@@ -327,7 +327,8 @@ void print_usage() {
     std::cout
         << "Isaac Seed Seeker\n\n"
         << "Inspect one seed:\n"
-        << "  IsaacSeedSeeker inspect --seed 10161220\n\n"
+        << "  IsaacSeedSeeker inspect --seed 10161220\n"
+        << "  IsaacSeedSeeker inspect --seed-label \"B74H HQPR\"\n\n"
         << "Search a range:\n"
         << "  IsaacSeedSeeker search "
            "--trinket 1,2 --active 105 --damage-min 4.0 "
@@ -363,7 +364,10 @@ int main(int argc, char** argv) {
         }
         const auto tables = load_tables(arguments);
         if (arguments.command == "inspect") {
-            const auto seed = parse_u32(required(arguments, "seed"), "seed");
+            const auto seed_label = optional(arguments, "seed-label");
+            const auto seed = seed_label.empty()
+                ? parse_u32(required(arguments, "seed"), "seed")
+                : iss::string_to_seed(seed_label);
             const auto start = iss::predict_eden_start(seed, tables);
             std::cout << std::setprecision(10);
             std::cout << "{\"seed\":\"" << iss::seed_to_string(seed)

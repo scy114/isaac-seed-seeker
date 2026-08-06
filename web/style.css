@@ -587,6 +587,67 @@ tbody tr:hover { background: #191614; }
 footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; color: #97877a; font-size: 13px; }
 #shutdown-button { padding: 8px 12px; font-size: 12px; }
 
+.inspector-shell { width: min(1080px, calc(100% - 44px)); }
+.seed-mark {
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 78px;
+  color: #24120f;
+  background: #d8c29f;
+  border: 3px solid #2d1713;
+  box-shadow: inset 0 0 0 2px #90765c, 5px 6px 0 rgba(0, 0, 0, .48);
+  font-family: var(--font-display);
+  font-size: 24px;
+  transform: rotate(-2deg);
+}
+.inspector-query-panel { max-width: 900px; margin-right: auto; margin-left: auto; }
+.inspector-form { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 14px; }
+.seed-code-field { display: grid; gap: 8px; }
+.seed-code-field > span { color: #c7b7a3; font-weight: 700; }
+.seed-code-field input {
+  padding: 15px 18px;
+  color: #f2d6a6;
+  font-family: var(--font-mono);
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.inspector-form button { min-width: 142px; padding: 17px 20px; }
+.inspector-result-panel { scroll-margin-top: 18px; }
+.inspector-result-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 25px; }
+.inspector-seed-card {
+  min-width: 285px;
+  padding: 18px 24px;
+  color: var(--paper-ink);
+  background: #d5c4a7 url("/game-assets/ui/seed-paper.png") no-repeat center / 100% 100%;
+  filter: drop-shadow(3px 4px 0 rgba(0, 0, 0, .42));
+}
+.inspector-seed-card strong { display: block; font-family: var(--font-mono); font-size: 24px; letter-spacing: .08em; }
+.inspector-seed-card small { color: #59443a; }
+.inspector-layout { display: grid; grid-template-columns: 1.35fr .65fr; gap: 18px; }
+.inspector-block { padding: 18px; background: #171310; border: 1px solid var(--line); }
+.inspector-block h3 { margin: 0 0 14px; color: #d8c4a7; font-family: var(--font-display); font-size: 18px; font-weight: 400; }
+.inspector-items { display: grid; gap: 10px; }
+.inspector-item-card { display: flex; align-items: center; min-height: 68px; padding: 10px 13px; background: #0f0c0a; border: 1px solid #3a2d26; }
+.inspector-item-card img { flex: 0 0 52px; width: 52px; height: 52px; margin-right: 12px; object-fit: contain; image-rendering: pixelated; }
+.inspector-item-card span { display: grid; gap: 2px; min-width: 0; }
+.inspector-item-card small { color: #84786d; font-size: 10px; text-transform: uppercase; }
+.inspector-item-card strong { color: #ead9c0; font-size: 15px; }
+.inspector-item-card b { color: #b89463; font-family: var(--font-mono); font-size: 11px; font-weight: 500; }
+.inspector-resource-grid,
+.inspector-stat-grid { display: grid; margin: 0; }
+.inspector-resource-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.inspector-resource-grid div,
+.inspector-stat-grid div { padding: 11px 12px; background: #0f0c0a; border: 1px solid #352a24; }
+.inspector-resource-grid dt,
+.inspector-stat-grid dt { color: #86796e; font-size: 11px; }
+.inspector-resource-grid dd,
+.inspector-stat-grid dd { margin: 4px 0 0; color: #ead5b5; font-family: var(--font-mono); font-size: 18px; font-weight: 700; }
+.inspector-stats-block { margin-top: 18px; }
+.inspector-stat-grid { grid-template-columns: repeat(6, 1fr); gap: 10px; }
+
 @media (max-width: 1040px) {
   .hero { align-items: start; }
   .hero-copy { padding-right: 265px; }
@@ -631,6 +692,11 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
   .special-search-card { align-items: flex-start; }
   .special-search-card > b { display: none; }
   .treatment-target-grid { grid-template-columns: 1fr; }
+  .inspector-form,
+  .inspector-layout { grid-template-columns: 1fr; }
+  .inspector-result-heading { display: grid; }
+  .inspector-seed-card { min-width: 0; }
+  .inspector-stat-grid { grid-template-columns: repeat(2, 1fr); }
   .treatment-rule-strip { display: grid; gap: 5px; }
   .treatment-health-card { grid-template-columns: 1fr !important; }
   .direction-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }

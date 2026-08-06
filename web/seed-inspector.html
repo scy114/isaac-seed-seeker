@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>种子解析 · Isaac Seed Seeker</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body data-page="inspector">
+  <canvas id="basement-room" aria-hidden="true"></canvas>
+  <main class="shell inspector-shell">
+    <header class="hero treatment-hero">
+      <div class="treatment-hero-copy">
+        <a class="back-link" id="generic-page-link" href="/">← 返回伊甸搜索</a>
+        <div class="treatment-title-row">
+          <div class="seed-mark" aria-hidden="true">SEED</div>
+          <div>
+            <p class="step">RUN SEED</p>
+            <h1>种子解析</h1>
+            <p class="treatment-title-en" lang="en">Seed Inspector</p>
+            <p class="treatment-tagline">输入种子，查看这局的伊甸开局</p>
+          </div>
+        </div>
+      </div>
+      <aside class="profile-card">
+        <span class="profile-label">当前存档表</span>
+        <strong id="profile-name">正在读取…</strong>
+        <small id="profile-detail"></small>
+      </aside>
+    </header>
+
+    <section class="panel inspector-query-panel">
+      <div class="section-title compact">
+        <div>
+          <p class="step">ENTER SEED</p>
+          <h2>输入八字符游戏种子</h2>
+          <p class="section-copy">空格和大小写均可自动处理；校验不正确的种子不会进入预测。</p>
+        </div>
+      </div>
+      <form id="seed-inspector-form" class="inspector-form">
+        <label class="seed-code-field" for="seed-input">
+          <span>游戏种子</span>
+          <input id="seed-input" type="text" inputmode="text" maxlength="16" placeholder="ABCD EFGH" autocomplete="off" spellcheck="false" autofocus>
+        </label>
+        <button id="inspect-button" type="submit">解析开局</button>
+      </form>
+      <p class="error" id="inspect-error" hidden></p>
+    </section>
+
+    <section class="panel inspector-result-panel" id="inspector-result" hidden>
+      <div class="inspector-result-heading">
+        <div><p class="step">EDEN START</p><h2>预测开局</h2></div>
+        <div class="inspector-seed-card">
+          <strong id="result-seed">—</strong>
+          <small>内部数值 <span id="result-seed-u32">—</span></small>
+        </div>
+      </div>
+
+      <div class="inspector-layout">
+        <section class="inspector-block">
+          <h3>携带物</h3>
+          <div class="inspector-items">
+            <article class="inspector-item-card" id="result-pocket-card">
+              <img id="result-pocket-icon" alt="" hidden>
+              <span><small>口袋物</small><strong id="result-pocket">—</strong><b id="result-pocket-meta">—</b></span>
+            </article>
+            <article class="inspector-item-card">
+              <img id="result-active-icon" alt="" hidden>
+              <span><small>主动道具</small><strong id="result-active">—</strong><b id="result-active-meta">—</b></span>
+            </article>
+            <article class="inspector-item-card">
+              <img id="result-passive-icon" alt="" hidden>
+              <span><small>被动道具</small><strong id="result-passive">—</strong><b id="result-passive-meta">—</b></span>
+            </article>
+          </div>
+        </section>
+
+        <section class="inspector-block">
+          <h3>血量与资源</h3>
+          <dl class="inspector-resource-grid">
+            <div><dt>红心</dt><dd id="result-red-hearts">—</dd></div>
+            <div><dt>魂心</dt><dd id="result-soul-hearts">—</dd></div>
+            <div><dt>钱</dt><dd id="result-coins">—</dd></div>
+            <div><dt>钥匙</dt><dd id="result-keys">—</dd></div>
+            <div><dt>炸弹</dt><dd id="result-bombs">—</dd></div>
+          </dl>
+        </section>
+      </div>
+
+      <section class="inspector-block inspector-stats-block">
+        <h3>基础属性</h3>
+        <dl class="inspector-stat-grid">
+          <div><dt>伤害</dt><dd id="result-damage">—</dd></div>
+          <div><dt>移速</dt><dd id="result-move-speed">—</dd></div>
+          <div><dt>射速</dt><dd id="result-tears">—</dd></div>
+          <div><dt>射程</dt><dd id="result-range">—</dd></div>
+          <div><dt>弹速</dt><dd id="result-shot-speed">—</dd></div>
+          <div><dt>幸运</dt><dd id="result-luck">—</dd></div>
+        </dl>
+      </section>
+    </section>
+
+    <footer>
+      <span>按当前 J460 全解锁 Profile 预测</span>
+      <button id="shutdown-button" type="button">关闭本地程序</button>
+    </footer>
+  </main>
+  <script src="/seed-inspector.js"></script>
+</body>
+</html>

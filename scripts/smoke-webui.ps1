@@ -45,7 +45,9 @@ try {
     $Headers = @{"X-Isaac-Token" = $Token}
     $Page = Invoke-WebRequest $Url -UseBasicParsing
     $TreatmentPage = Invoke-WebRequest ($BaseUrl + "experimental-treatment.html?token=" + $Token) -UseBasicParsing
+    $InspectorPage = Invoke-WebRequest ($BaseUrl + "seed-inspector.html?token=" + $Token) -UseBasicParsing
     $ClientScript = Invoke-WebRequest ($BaseUrl + "app.js") -UseBasicParsing
+    $InspectorScript = Invoke-WebRequest ($BaseUrl + "seed-inspector.js") -UseBasicParsing
     $IsaacFont = Invoke-WebRequest ($BaseUrl + "assets/isaacsans.ttf") -UseBasicParsing
     $LanaPixelFont = Invoke-WebRequest ($BaseUrl + "assets/lanapixel.ttf") -UseBasicParsing
     $SeekerTitle = Invoke-WebRequest ($BaseUrl + "assets/isaac-seed-seeker-title.png") -UseBasicParsing
@@ -53,6 +55,7 @@ try {
         $Page.Content -notmatch 'id="red-hearts-min"' -or
         $Page.Content -notmatch 'id="coins-min"' -or
         $Page.Content -notmatch 'id="treatment-page-link"' -or
+        $Page.Content -notmatch 'id="seed-inspector-link"' -or
         $Page.Content -notmatch 'data-sort-key="damage"' -or
         $TreatmentPage.Content -notmatch 'data-page="treatment"' -or
         $TreatmentPage.Content -notmatch 'id="experimental-damage"' -or
@@ -62,6 +65,12 @@ try {
         $TreatmentPage.Content -notmatch 'class="base-stats-panel"' -or
         $TreatmentPage.Content -notmatch 'id="generic-page-link"' -or
         $TreatmentPage.Content -notmatch 'class="treatment-tagline"' -or
+        $InspectorPage.Content -notmatch 'data-page="inspector"' -or
+        $InspectorPage.Content -notmatch 'id="seed-input"' -or
+        $InspectorPage.Content -notmatch 'id="inspector-result"' -or
+        $InspectorPage.Content -notmatch 'id="result-active"' -or
+        $InspectorScript.Content -notmatch 'normalizeSeed' -or
+        $InspectorScript.Content -notmatch 'JSON.stringify' -or
         $Page.Content -notmatch 'id="page-size"' -or
         $Page.Content -notmatch 'id="catalog-state"' -or
         $ClientScript.Content -notmatch "pill_effect_ids" -or
@@ -208,6 +217,36 @@ try {
     if ([Math]::Abs($Inspected.damage - 2.877413690) -gt 0.000001 -or $null -eq $Inspected.tears) {
         throw "inspect endpoint returned the wrong Found HUD stats"
     }
+
+    $LabelInspectBody = @{seed = "TEXZ WDS0"} | ConvertTo-Json -Compress
+    $LabelInspected = Invoke-RestMethod `
+        ($BaseUrl + "api/v1/inspect") `
+        -Method Post `
+        -ContentType "application/json" `
+        -Headers $Headers `
+        -Body $LabelInspectBody
+    if ($LabelInspected.seed_u32 -ne 2261264115 -or $LabelInspected.seed -ne "TEXZ WDS0" -or
+        $LabelInspected.pocket_kind -ne "card" -or $LabelInspected.pocket_id -ne 2 -or
+        $LabelInspected.active_id -ne 347 -or $LabelInspected.passive_id -ne 402) {
+        throw "inspect endpoint did not decode the game seed label"
+    }
+
+    $InvalidLabelRejected = $false
+    try {
+        Invoke-RestMethod `
+            ($BaseUrl + "api/v1/inspect") `
+            -Method Post `
+            -ContentType "application/json" `
+            -Headers $Headers `
+            -Body (@{seed = "TEXZ WDS1"} | ConvertTo-Json -Compress) | Out-Null
+    } catch {
+        if ($_.Exception.Response.StatusCode.value__ -eq 400) {
+            $InvalidLabelRejected = $true
+        } else {
+            throw
+        }
+    }
+    if (-not $InvalidLabelRejected) { throw "inspect endpoint accepted an invalid seed checksum" }
 
     $PillInspectBody = @{seed_u32 = 230816840} | ConvertTo-Json -Compress
     $PillInspected = Invoke-RestMethod `
