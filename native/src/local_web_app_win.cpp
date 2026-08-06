@@ -1100,7 +1100,7 @@ int run_local_web_app(bool open_browser) {
                 DailyGoodOptions options;
                 options.date_utc8 = *date;
                 options.draw_variant = optional_json_u32(request.body, "variant").value_or(0U);
-                const auto result = select_daily_bad_v1(builtin_j460_profile(), options);
+                const auto result = select_daily_bad_v2(builtin_j460_profile(), options);
                 std::ostringstream output;
                 output << "{\"rules_version\":\"" << result.rules_version
                        << "\",\"date\":\"" << json_escape(result.date_utc8)

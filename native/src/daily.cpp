@@ -2,6 +2,7 @@
 #include "daily_q3_ratings_j460.hpp"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 #include <limits>
@@ -153,6 +154,36 @@ DailyBadScore score_daily_bad_v1(const EdenStart& start) noexcept {
     };
     result.eligible = start.active_quality <= 1
         && start.passive_quality == 0
+        && !excluded_item(start.active_id)
+        && !excluded_item(start.passive_id)
+        && start.move_speed < 1.0
+        && start.tears < 3.0
+        && start.damage < 3.0;
+    if (result.eligible) {
+        result.selection_weight = start.active_id == 721 || start.passive_id == 721 ? 7 : 10;
+    }
+    return result;
+}
+
+DailyBadScore score_daily_bad_v2(const EdenStart& start) noexcept {
+    static constexpr std::array<std::uint16_t, 7> extra_active_ids{
+        33, 38, 45, 298, 522, 639, 729,
+    };
+    static constexpr std::array<std::uint16_t, 5> extra_passive_ids{
+        149, 222, 329, 529, 561,
+    };
+    const auto excluded_item = [](std::uint16_t item_id) noexcept {
+        return item_id == 19 || item_id == 59 || item_id == 137 || item_id == 161;
+    };
+    const auto active_allowed = start.active_quality == 0
+        || std::find(extra_active_ids.begin(), extra_active_ids.end(), start.active_id)
+            != extra_active_ids.end();
+    const auto passive_allowed = start.passive_quality == 0
+        || std::find(extra_passive_ids.begin(), extra_passive_ids.end(), start.passive_id)
+            != extra_passive_ids.end();
+    DailyBadScore result;
+    result.eligible = active_allowed
+        && passive_allowed
         && !excluded_item(start.active_id)
         && !excluded_item(start.passive_id)
         && start.move_speed < 1.0
@@ -316,6 +347,19 @@ DailyBadResult select_daily_bad_v1(
         options,
         daily_bad_rules_version_v1,
         score_daily_bad_v1,
+        0x6461696c792d6261ULL
+    );
+}
+
+DailyBadResult select_daily_bad_v2(
+    const ProfileTables& tables,
+    const DailyGoodOptions& options
+) {
+    return select_daily_impl(
+        tables,
+        options,
+        daily_bad_rules_version_v2,
+        score_daily_bad_v2,
         0x6461696c792d6261ULL
     );
 }
