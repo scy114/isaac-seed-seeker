@@ -637,19 +637,37 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
 .inspector-form button { min-width: 142px; padding: 17px 20px; }
 .inspector-result-panel { scroll-margin-top: 18px; }
 .inspector-result-heading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(44px, 8vw, 108px);
-  margin-bottom: 25px;
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 0 0 19px;
 }
-.inspector-result-heading > div:first-child { min-width: 142px; }
-.inspector-seed-summary { display: grid; justify-items: center; gap: 3px; }
+.inspector-result-heading::after {
+  content: "";
+  width: min(760px, 82%);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #4b392f 14%, #4b392f 86%, transparent);
+  opacity: .72;
+}
+.inspector-seed-reveal { position: relative; width: 252px; }
+.inspector-seed-caption {
+  position: absolute;
+  z-index: 1;
+  top: 48px;
+  left: -92px;
+  width: 122px;
+  text-align: center;
+  transform: rotate(-1.5deg);
+}
+.inspector-seed-caption .step { width: 112px; min-height: 36px; padding: 7px 9px 8px; font-size: 14px; }
+.inspector-seed-caption h2 { margin: 4px 0 0; font-size: 21px; }
+.inspector-seed-summary { display: grid; justify-items: center; gap: 5px; }
 .inspector-seed-card {
   display: grid;
   place-items: center;
-  width: 288px;
-  height: 216px;
+  width: 252px;
+  height: 189px;
   color: var(--paper-ink);
   background-color: transparent;
   background-image: url("/game-assets/ui/seed-entry.png");
@@ -661,7 +679,7 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
 .inspector-seed-card strong {
   display: block;
   font-family: "IsaacSans", var(--font-mono);
-  font-size: 39px;
+  font-size: 35px;
   font-weight: 700;
   line-height: 1.06;
   letter-spacing: .035em;
@@ -670,7 +688,14 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
   -webkit-font-smoothing: none;
   text-rendering: optimizeSpeed;
 }
-.inspector-seed-summary > small { color: #a99483; }
+.inspector-seed-summary > small {
+  padding: 4px 10px 5px;
+  color: #9d8979;
+  background: rgba(10, 8, 7, .34);
+  border: 1px solid rgba(77, 57, 47, .62);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
 .inspector-layout { display: grid; grid-template-columns: 1.35fr .65fr; gap: 18px; }
 .inspector-block { padding: 18px; background: #171310; border: 1px solid var(--line); }
 .inspector-block h3 { margin: 0 0 14px; color: #d8c4a7; font-family: var(--font-display); font-size: 18px; font-weight: 400; }
@@ -739,8 +764,10 @@ footer { display: flex; align-items: center; justify-content: space-between; pad
   .treatment-target-grid { grid-template-columns: 1fr; }
   .inspector-form,
   .inspector-layout { grid-template-columns: 1fr; }
-  .inspector-result-heading { display: grid; }
-  .inspector-seed-card { width: min(288px, 100%); height: auto; aspect-ratio: 4 / 3; }
+  .inspector-seed-reveal { display: grid; justify-items: center; width: 100%; }
+  .inspector-seed-caption { position: static; width: auto; margin-bottom: -5px; transform: none; }
+  .inspector-seed-caption h2 { margin-bottom: 6px; }
+  .inspector-seed-card { width: min(252px, 100%); height: auto; aspect-ratio: 4 / 3; }
   .inspector-stat-grid { grid-template-columns: repeat(2, 1fr); }
   .treatment-rule-strip { display: grid; gap: 5px; }
   .treatment-health-card { grid-template-columns: 1fr !important; }
