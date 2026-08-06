@@ -185,7 +185,7 @@ function renderDailyDetails(result) {
   });
 
   $("#daily-details").hidden = false;
-  $("#reveal-daily-seed").textContent = "闭辉眼";
+  $("#reveal-daily-seed").textContent = "问心无愧";
   $("#daily-details").scrollIntoView({behavior: "smooth", block: "nearest"});
 }
 
