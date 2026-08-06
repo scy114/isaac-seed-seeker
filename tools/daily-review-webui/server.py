@@ -215,6 +215,8 @@ class ReviewApplication:
                 str(days),
                 "--candidates",
                 str(candidates),
+                "--rules",
+                "daily-good-v1",
                 "--output",
                 str(output_path),
             ]
@@ -238,7 +240,7 @@ class ReviewApplication:
 
         results = [self._decorate_row(row) for row in rows]
         return {
-            "rules_version": "daily-good-v0",
+            "rules_version": "daily-good-v1",
             "start_date": start_date,
             "days": days,
             "candidates_per_day": candidates,
@@ -257,6 +259,10 @@ class ReviewApplication:
             "active_q4_bonus",
             "passive_q4_bonus",
             "death_certificate_bonus",
+            "active_q3_rating",
+            "passive_q3_rating",
+            "active_q3_rating_bonus",
+            "passive_q3_rating_bonus",
             "damage_bonus",
             "tears_bonus",
             "move_speed_bonus",

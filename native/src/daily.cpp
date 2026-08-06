@@ -1,4 +1,5 @@
 #include "isaac_seed_seeker/daily.hpp"
+#include "daily_q3_ratings_j460.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -97,9 +98,53 @@ DailyGoodScore score_daily_good_v0(const EdenStart& start) noexcept {
     return result;
 }
 
-DailyGoodResult select_daily_good_v0(
+DailyGoodScore score_daily_good_v1(const EdenStart& start) noexcept {
+    DailyGoodScore result;
+    result.active_q3_rating = start.active_quality == 3
+        ? generated::daily_q3_active_rating(start.active_id)
+        : 0;
+    result.passive_q3_rating = start.passive_quality == 3
+        ? generated::daily_q3_passive_rating(start.passive_id)
+        : 0;
+    result.eligible = start.active_quality >= 3
+        && start.passive_quality >= 3
+        && (start.active_quality != 3 || result.active_q3_rating > 0)
+        && (start.passive_quality != 3 || result.passive_q3_rating > 0)
+        && start.passive_id != 149
+        && start.move_speed >= 1.0
+        && start.tears >= 3.0
+        && start.damage >= 3.0;
+    if (!result.eligible) return result;
+
+    result.active_quality_bonus = start.active_quality >= 4 ? 40 : 0;
+    result.passive_quality_bonus = start.passive_quality >= 4 ? 40 : 0;
+    result.active_q3_rating_bonus = generated::daily_q3_rating_bonus(result.active_q3_rating);
+    result.passive_q3_rating_bonus = generated::daily_q3_rating_bonus(result.passive_q3_rating);
+    result.death_certificate_bonus = start.active_id == 628 ? 30 : 0;
+    result.damage_bonus = linear_bonus(start.damage, 3.0, 4.5, 30);
+    result.tears_bonus = linear_bonus(start.tears, 3.0, maximum_eden_tears, 30);
+    result.move_speed_bonus = linear_bonus(start.move_speed, 1.0, 1.15, 15);
+    result.selection_weight = 100
+        + result.active_quality_bonus
+        + result.passive_quality_bonus
+        + result.active_q3_rating_bonus
+        + result.passive_q3_rating_bonus
+        + result.death_certificate_bonus
+        + result.damage_bonus
+        + result.tears_bonus
+        + result.move_speed_bonus;
+    return result;
+}
+
+namespace {
+
+using DailyScoreFunction = DailyGoodScore (*)(const EdenStart&) noexcept;
+
+DailyGoodResult select_daily_good_impl(
     const ProfileTables& tables,
-    const DailyGoodOptions& options
+    const DailyGoodOptions& options,
+    std::string_view rules_version,
+    DailyScoreFunction score_function
 ) {
     if (!valid_iso_date(options.date_utc8)) {
         throw std::invalid_argument("daily date must use a valid YYYY-MM-DD value");
@@ -112,7 +157,7 @@ DailyGoodResult select_daily_good_v0(
     }
 
     const auto started = std::chrono::steady_clock::now();
-    const auto key = options.date_utc8 + "|j460-full-unlock|" + std::string(daily_good_rules_version);
+    const auto key = options.date_utc8 + "|j460-full-unlock|" + std::string(rules_version);
     const auto key_hash = stable_hash(key);
     const auto sequence_seed = splitmix64(key_hash);
     const auto sequence_step = static_cast<std::uint32_t>(sequence_seed >> 32U) | 1U;
@@ -136,7 +181,7 @@ DailyGoodResult select_daily_good_v0(
                     + static_cast<std::uint32_t>(sequence_step * static_cast<std::uint32_t>(index));
                 if (seed == 0) continue;
                 auto start = predict_eden_start(seed, tables);
-                const auto score = score_daily_good_v0(start);
+                const auto score = score_function(start);
                 if (score.eligible) {
                     output.push_back(WeightedCandidate{std::move(start), score});
                 }
@@ -177,7 +222,7 @@ DailyGoodResult select_daily_good_v0(
 
     DailyGoodResult result;
     result.date_utc8 = options.date_utc8;
-    result.rules_version = std::string(daily_good_rules_version);
+    result.rules_version = std::string(rules_version);
     result.primary = selected->start;
     result.primary_score = selected->score;
     result.scanned = options.candidates;
@@ -187,6 +232,32 @@ DailyGoodResult select_daily_good_v0(
         std::chrono::steady_clock::now() - started
     ).count();
     return result;
+}
+
+}  // namespace
+
+DailyGoodResult select_daily_good_v0(
+    const ProfileTables& tables,
+    const DailyGoodOptions& options
+) {
+    return select_daily_good_impl(
+        tables,
+        options,
+        daily_good_rules_version_v0,
+        score_daily_good_v0
+    );
+}
+
+DailyGoodResult select_daily_good_v1(
+    const ProfileTables& tables,
+    const DailyGoodOptions& options
+) {
+    return select_daily_good_impl(
+        tables,
+        options,
+        daily_good_rules_version_v1,
+        score_daily_good_v1
+    );
 }
 
 }  // namespace isaac_seed_seeker

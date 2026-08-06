@@ -299,6 +299,7 @@ void write_daily_good_header(std::ostream& output) {
     output
         << "date,seed,seed_u32,weight,active_id,active_quality,passive_id,passive_quality,"
            "damage,tears,move_speed,active_q4_bonus,passive_q4_bonus,death_certificate_bonus,"
+           "active_q3_rating,passive_q3_rating,active_q3_rating_bonus,passive_q3_rating_bonus,"
            "damage_bonus,tears_bonus,move_speed_bonus,eligible,scanned,elapsed_seconds\n";
 }
 
@@ -320,6 +321,10 @@ void write_daily_good_row(std::ostream& output, const iss::DailyGoodResult& resu
            << score.active_quality_bonus << ','
            << score.passive_quality_bonus << ','
            << score.death_certificate_bonus << ','
+           << static_cast<unsigned>(score.active_q3_rating) << ','
+           << static_cast<unsigned>(score.passive_q3_rating) << ','
+           << score.active_q3_rating_bonus << ','
+           << score.passive_q3_rating_bonus << ','
            << score.damage_bonus << ','
            << score.tears_bonus << ','
            << score.move_speed_bonus << ','
@@ -402,7 +407,7 @@ void print_usage() {
         << "  IsaacSeedSeeker inspect --seed-label \"B74H HQPR\"\n\n"
         << "Simulate spoiler-visible daily good seeds for rule calibration:\n"
         << "  IsaacSeedSeeker simulate-daily-good --start-date 2026-01-01 "
-           "--days 100 --candidates 10000000 --output daily-good.csv\n\n"
+           "--days 100 --candidates 10000000 --rules daily-good-v1 --output daily-good.csv\n\n"
         << "Search a range:\n"
         << "  IsaacSeedSeeker search "
            "--trinket 1,2 --active 105 --damage-min 4.0 "
@@ -452,6 +457,17 @@ int main(int argc, char** argv) {
                 64U,
                 parse_unsigned(optional(arguments, "threads", "0"), "threads")
             );
+            const auto rules = optional(
+                arguments,
+                "rules",
+                std::string(iss::daily_good_rules_version)
+            );
+            if (rules != iss::daily_good_rules_version_v0
+                && rules != iss::daily_good_rules_version_v1) {
+                throw std::invalid_argument(
+                    "--rules must be daily-good-v0 or daily-good-v1"
+                );
+            }
             const auto output_path = optional(arguments, "output");
             std::ofstream file;
             std::ostream* output = &std::cout;
@@ -466,14 +482,16 @@ int main(int argc, char** argv) {
             double total_elapsed = 0.0;
             for (unsigned index = 0; index < days; ++index) {
                 options.date_utc8 = iso_date(first_date + std::chrono::days{index});
-                const auto result = iss::select_daily_good_v0(tables, options);
+                const auto result = rules == iss::daily_good_rules_version_v0
+                    ? iss::select_daily_good_v0(tables, options)
+                    : iss::select_daily_good_v1(tables, options);
                 write_daily_good_row(*output, result);
                 total_scanned += result.scanned;
                 total_eligible += result.eligible;
                 total_elapsed += result.elapsed_seconds;
             }
             if (!output_path.empty()) {
-                std::cout << "rules=" << iss::daily_good_rules_version
+                std::cout << "rules=" << rules
                           << " days=" << days
                           << " scanned=" << total_scanned
                           << " eligible=" << total_eligible

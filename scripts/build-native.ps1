@@ -20,7 +20,8 @@ $Common = @(
     "-Wextra",
     "-Wpedantic",
     "-pthread",
-    "-I$ProjectRoot\native\include"
+    "-I$ProjectRoot\native\include",
+    "-I$ProjectRoot\native\generated"
 )
 $CoreSources = @(
     "$ProjectRoot\native\generated\builtin_profile_j460.cpp",

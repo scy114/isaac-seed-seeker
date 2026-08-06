@@ -138,6 +138,34 @@ int main(int argc, char** argv) {
         require(daily_boundary_score.eligible, "daily good boundary seed was rejected");
         require(daily_boundary_score.selection_weight == 100,
                 "daily good boundary weight mismatch");
+        const auto daily_v1_boundary_score = iss::score_daily_good_v1(daily_good_boundary);
+        require(daily_v1_boundary_score.eligible, "daily v1 boundary seed was rejected");
+        require(daily_v1_boundary_score.active_q3_rating == 1,
+                "daily v1 active Q3 rating mismatch");
+        require(daily_v1_boundary_score.passive_q3_rating == 1,
+                "daily v1 passive Q3 rating mismatch");
+        require(daily_v1_boundary_score.selection_weight == 100,
+                "daily v1 boundary weight mismatch");
+
+        auto daily_v1_high_q3 = daily_good_boundary;
+        daily_v1_high_q3.active_id = 127;
+        daily_v1_high_q3.passive_id = 562;
+        const auto daily_v1_high_q3_score = iss::score_daily_good_v1(daily_v1_high_q3);
+        require(daily_v1_high_q3_score.active_q3_rating == 3,
+                "daily v1 high active Q3 rating mismatch");
+        require(daily_v1_high_q3_score.passive_q3_rating == 4,
+                "daily v1 high passive Q3 rating mismatch");
+        require(daily_v1_high_q3_score.active_q3_rating_bonus == 30,
+                "daily v1 active Q3 bonus mismatch");
+        require(daily_v1_high_q3_score.passive_q3_rating_bonus == 50,
+                "daily v1 passive Q3 bonus mismatch");
+        require(daily_v1_high_q3_score.selection_weight == 180,
+                "daily v1 high Q3 weight mismatch");
+
+        auto daily_v1_unknown_q3 = daily_good_boundary;
+        daily_v1_unknown_q3.active_id = 999;
+        require(!iss::score_daily_good_v1(daily_v1_unknown_q3).eligible,
+                "unrated Q3 item passed the daily v1 gate");
 
         auto daily_good_maximum = daily_good_boundary;
         daily_good_maximum.active_id = 628;
@@ -179,6 +207,17 @@ int main(int argc, char** argv) {
         require(daily_single_thread.primary_score.selection_weight
                     == daily_four_threads.primary_score.selection_weight,
                 "daily weight changed with thread count");
+        daily_options.threads = 1;
+        const auto daily_v1_single_thread = iss::select_daily_good_v1(builtin, daily_options);
+        daily_options.threads = 4;
+        const auto daily_v1_four_threads = iss::select_daily_good_v1(builtin, daily_options);
+        require(daily_v1_single_thread.rules_version == iss::daily_good_rules_version_v1,
+                "daily v1 result version mismatch");
+        require(daily_v1_single_thread.primary.seed == daily_v1_four_threads.primary.seed,
+                "daily v1 selection changed with thread count");
+        require(daily_v1_single_thread.primary_score.selection_weight
+                    == daily_v1_four_threads.primary_score.selection_weight,
+                "daily v1 weight changed with thread count");
         bool invalid_daily_date_rejected = false;
         try {
             daily_options.date_utc8 = "2026-02-30";

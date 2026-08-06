@@ -43,6 +43,8 @@ function bonusText(row) {
   const labels = [
     [row.active_q4_bonus, "主动 Q4"],
     [row.passive_q4_bonus, "被动 Q4"],
+    [row.active_q3_rating_bonus, `主动 Q3·${row.active_q3_rating}档`],
+    [row.passive_q3_rating_bonus, `被动 Q3·${row.passive_q3_rating}档`],
     [row.death_certificate_bonus, "死亡证明"],
     [row.damage_bonus, "伤害"],
     [row.tears_bonus, "射速"],
